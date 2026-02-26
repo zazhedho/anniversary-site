@@ -15,6 +15,7 @@ import (
 	roleHandler "anniversary-site/internal/handlers/http/role"
 	sessionHandler "anniversary-site/internal/handlers/http/session"
 	userHandler "anniversary-site/internal/handlers/http/user"
+	anniversaryRepo "anniversary-site/internal/repositories/anniversary"
 	auditRepo "anniversary-site/internal/repositories/audit"
 	authRepo "anniversary-site/internal/repositories/auth"
 	menuRepo "anniversary-site/internal/repositories/menu"
@@ -22,6 +23,7 @@ import (
 	roleRepo "anniversary-site/internal/repositories/role"
 	sessionRepo "anniversary-site/internal/repositories/session"
 	userRepo "anniversary-site/internal/repositories/user"
+	anniversarySvc "anniversary-site/internal/services/anniversary"
 	auditSvc "anniversary-site/internal/services/audit"
 	locationSvc "anniversary-site/internal/services/location"
 	menuSvc "anniversary-site/internal/services/menu"
@@ -61,12 +63,37 @@ func NewRoutes() *Routes {
 }
 
 func (r *Routes) AnniversaryRoutes() {
-	handler := anniversaryHandler.NewHandler(
+	loc, err := time.LoadLocation("Asia/Jakarta")
+	if err != nil {
+		loc = time.FixedZone("WIB", 7*60*60)
+	}
+
+	repo := anniversaryRepo.NewAnniversaryRepo(
 		utils.GetEnv("ANNIVERSARY_DATA_FILE", "./data/anniversary.json"),
+		loc,
+	)
+	svc := anniversarySvc.NewAnniversaryService(repo, loc)
+	h := anniversaryHandler.NewHandler(
+		svc,
 		utils.GetEnv("SETUP_TOKEN", ""),
 		utils.GetEnv("SETUP_API_ENABLED", true),
 	)
-	handler.RegisterRoutes(r.App)
+
+	public := r.App.Group("/api/public")
+	{
+		public.GET("/anniversary", h.GetPublic)
+		public.GET("/anniversary/moments", h.GetMoments)
+	}
+
+	setup := r.App.Group("/api/setup")
+	setup.Use(h.SetupAuthMiddleware())
+	{
+		setup.GET("/anniversary", h.GetSetup)
+		setup.PUT("/anniversary", h.UpdateConfig)
+		setup.PUT("/anniversary/moments", h.ReplaceMoments)
+		setup.POST("/anniversary/moments", h.AddMoment)
+		setup.DELETE("/anniversary/moments/:year", h.DeleteMoment)
+	}
 }
 
 func (r *Routes) UserRoutes() {

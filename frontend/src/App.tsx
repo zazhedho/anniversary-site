@@ -4,6 +4,7 @@ import PermissionRoute from "./components/common/PermissionRoute";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import { AuthProvider } from "./contexts/AuthContext";
 import PublicAnniversaryPage from "./pages/anniversary/PublicAnniversaryPage";
+import SetupAnniversaryPage from "./pages/anniversary/SetupAnniversaryPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import ChangePasswordPage from "./pages/auth/ChangePasswordPage";
 import LoginPage from "./pages/auth/LoginPage";
@@ -36,6 +37,14 @@ export default function App() {
                 element={
                   <PermissionRoute requiredAccess={{ resource: "dashboard", action: "view" }}>
                     <DashboardPage />
+                  </PermissionRoute>
+                }
+              />
+              <Route
+                path="/setup/anniversary"
+                element={
+                  <PermissionRoute requiredAccess={{ resource: "dashboard", action: "view" }}>
+                    <SetupAnniversaryPage />
                   </PermissionRoute>
                 }
               />

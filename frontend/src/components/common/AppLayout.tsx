@@ -8,6 +8,7 @@ export default function AppLayout() {
   const canListUsers = hasAccess({ resource: "users", action: "list" });
   const canViewProfile = hasAccess({ resource: "profile", action: "view" });
   const canChangePassword = hasAccess({ resource: "profile", action: "update_password" });
+  const canSetupAnniversary = hasAccess({ resource: "dashboard", action: "view" });
   const canViewPublic = hasAnyAccess([
     { resource: "dashboard", action: "view" },
     { resource: "profile", action: "view" },
@@ -34,6 +35,11 @@ export default function AppLayout() {
             {canListUsers ? (
               <NavLink to="/users" className={({ isActive }) => `rounded-full px-3 py-1.5 ${isActive ? "bg-[#9c4f46] text-white" : "hover:bg-white/70"}`}>
                 Users
+              </NavLink>
+            ) : null}
+            {canSetupAnniversary ? (
+              <NavLink to="/setup/anniversary" className={({ isActive }) => `rounded-full px-3 py-1.5 ${isActive ? "bg-[#9c4f46] text-white" : "hover:bg-white/70"}`}>
+                Setup
               </NavLink>
             ) : null}
             {canViewPublic ? (

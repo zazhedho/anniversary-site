@@ -1,62 +1,34 @@
 package anniversary
 
 import (
+	"anniversary-site/internal/dto"
+	interfaceanniversary "anniversary-site/internal/interfaces/anniversary"
+	serviceanniversary "anniversary-site/internal/services/anniversary"
 	"crypto/subtle"
+	"errors"
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Handler struct {
-	store       *Store
+	service     interfaceanniversary.ServiceAnniversaryInterface
 	setupToken  string
 	setupEnable bool
-	loc         *time.Location
 }
 
-func NewHandler(dataFilePath, setupToken string, setupEnable bool) *Handler {
-	loc, err := time.LoadLocation("Asia/Jakarta")
-	if err != nil {
-		loc = time.FixedZone("WIB", 7*60*60)
-	}
-
+func NewHandler(service interfaceanniversary.ServiceAnniversaryInterface, setupToken string, setupEnable bool) *Handler {
 	return &Handler{
-		store:       NewStore(dataFilePath, loc),
+		service:     service,
 		setupToken:  strings.TrimSpace(setupToken),
 		setupEnable: setupEnable,
-		loc:         loc,
-	}
-}
-
-func (h *Handler) RegisterRoutes(app *gin.Engine) {
-	public := app.Group("/api/public")
-	{
-		public.GET("/anniversary", h.GetPublic)
-		public.GET("/anniversary/moments", h.GetMoments)
-	}
-
-	setup := app.Group("/api/setup")
-	setup.Use(h.setupAuthMiddleware())
-	{
-		setup.GET("/anniversary", h.GetSetup)
-		setup.PUT("/anniversary", h.UpdateConfig)
-		setup.PUT("/anniversary/moments", h.ReplaceMoments)
-		setup.POST("/anniversary/moments", h.AddMoment)
-		setup.DELETE("/anniversary/moments/:year", h.DeleteMoment)
 	}
 }
 
 func (h *Handler) GetPublic(ctx *gin.Context) {
-	cfg, err := h.store.Load()
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"status": false, "message": err.Error()})
-		return
-	}
-
-	payload, err := BuildPublicPayload(cfg, time.Now(), h.loc)
+	payload, err := h.service.GetPublicPayload()
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"status": false, "message": err.Error()})
 		return
@@ -66,23 +38,17 @@ func (h *Handler) GetPublic(ctx *gin.Context) {
 }
 
 func (h *Handler) GetMoments(ctx *gin.Context) {
-	cfg, err := h.store.Load()
+	moments, err := h.service.GetPublicMoments()
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"status": false, "message": err.Error()})
 		return
 	}
 
-	payload, err := BuildPublicPayload(cfg, time.Now(), h.loc)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"status": false, "message": err.Error()})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, gin.H{"status": true, "data": payload.Moments})
+	ctx.JSON(http.StatusOK, gin.H{"status": true, "data": moments})
 }
 
 func (h *Handler) GetSetup(ctx *gin.Context) {
-	cfg, err := h.store.Load()
+	cfg, err := h.service.GetSetupConfig()
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"status": false, "message": err.Error()})
 		return
@@ -91,20 +57,18 @@ func (h *Handler) GetSetup(ctx *gin.Context) {
 }
 
 func (h *Handler) UpdateConfig(ctx *gin.Context) {
-	var req SiteConfig
+	var req dto.AnniversarySiteConfig
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"status": false, "message": "invalid JSON body"})
 		return
 	}
 
-	saved, err := h.store.Save(req)
+	payload, err := h.service.UpdateConfig(req)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"status": false, "message": err.Error()})
-		return
-	}
-
-	payload, err := BuildPublicPayload(saved, time.Now(), h.loc)
-	if err != nil {
+		if errors.Is(err, serviceanniversary.ErrSaveConfig) {
+			ctx.JSON(http.StatusBadRequest, gin.H{"status": false, "message": err.Error()})
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, gin.H{"status": false, "message": err.Error()})
 		return
 	}
@@ -113,49 +77,51 @@ func (h *Handler) UpdateConfig(ctx *gin.Context) {
 }
 
 func (h *Handler) ReplaceMoments(ctx *gin.Context) {
-	var req []AnnualMoment
+	var req []dto.AnniversaryMoment
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"status": false, "message": "invalid JSON body"})
 		return
 	}
 
-	cfg, err := h.store.Load()
+	moments, err := h.service.ReplaceMoments(req)
 	if err != nil {
+		if errors.Is(err, serviceanniversary.ErrLoadConfig) {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"status": false, "message": err.Error()})
+			return
+		}
+		if errors.Is(err, serviceanniversary.ErrSaveConfig) {
+			ctx.JSON(http.StatusBadRequest, gin.H{"status": false, "message": err.Error()})
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, gin.H{"status": false, "message": err.Error()})
 		return
 	}
 
-	cfg.Moments = req
-	saved, err := h.store.Save(cfg)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"status": false, "message": err.Error()})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, gin.H{"status": true, "message": "moments replaced", "data": saved.Moments})
+	ctx.JSON(http.StatusOK, gin.H{"status": true, "message": "moments replaced", "data": moments})
 }
 
 func (h *Handler) AddMoment(ctx *gin.Context) {
-	var req AnnualMoment
+	var req dto.AnniversaryMoment
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"status": false, "message": "invalid JSON body"})
 		return
 	}
 
-	cfg, err := h.store.Load()
+	moments, err := h.service.AddMoment(req)
 	if err != nil {
+		if errors.Is(err, serviceanniversary.ErrLoadConfig) {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"status": false, "message": err.Error()})
+			return
+		}
+		if errors.Is(err, serviceanniversary.ErrSaveConfig) {
+			ctx.JSON(http.StatusBadRequest, gin.H{"status": false, "message": err.Error()})
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, gin.H{"status": false, "message": err.Error()})
 		return
 	}
 
-	cfg.Moments = append(cfg.Moments, req)
-	saved, err := h.store.Save(cfg)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"status": false, "message": err.Error()})
-		return
-	}
-
-	ctx.JSON(http.StatusCreated, gin.H{"status": true, "message": "moment added", "data": saved.Moments})
+	ctx.JSON(http.StatusCreated, gin.H{"status": true, "message": "moment added", "data": moments})
 }
 
 func (h *Handler) DeleteMoment(ctx *gin.Context) {
@@ -165,35 +131,29 @@ func (h *Handler) DeleteMoment(ctx *gin.Context) {
 		return
 	}
 
-	cfg, err := h.store.Load()
+	moments, err := h.service.DeleteMoment(year)
 	if err != nil {
+		if errors.Is(err, serviceanniversary.ErrMomentNotFound) {
+			ctx.JSON(http.StatusNotFound, gin.H{"status": false, "message": "moment not found"})
+			return
+		}
+		if errors.Is(err, serviceanniversary.ErrLoadConfig) {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"status": false, "message": err.Error()})
+			return
+		}
+		if errors.Is(err, serviceanniversary.ErrSaveConfig) {
+			ctx.JSON(http.StatusBadRequest, gin.H{"status": false, "message": err.Error()})
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, gin.H{"status": false, "message": err.Error()})
 		return
 	}
 
-	nextMoments := make([]AnnualMoment, 0, len(cfg.Moments))
-	removed := false
-	for _, item := range cfg.Moments {
-		if item.Year == year {
-			removed = true
-			continue
-		}
-		nextMoments = append(nextMoments, item)
-	}
+	ctx.JSON(http.StatusOK, gin.H{"status": true, "message": "moment deleted", "data": moments})
+}
 
-	if !removed {
-		ctx.JSON(http.StatusNotFound, gin.H{"status": false, "message": "moment not found"})
-		return
-	}
-
-	cfg.Moments = nextMoments
-	saved, err := h.store.Save(cfg)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"status": false, "message": err.Error()})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, gin.H{"status": true, "message": "moment deleted", "data": saved.Moments})
+func (h *Handler) SetupAuthMiddleware() gin.HandlerFunc {
+	return h.setupAuthMiddleware()
 }
 
 func (h *Handler) setupAuthMiddleware() gin.HandlerFunc {

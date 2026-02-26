@@ -1,19 +1,22 @@
-package anniversary
+package serviceanniversary
 
 import (
+	"anniversary-site/internal/dto"
 	"fmt"
 	"sort"
 	"time"
 )
 
-func BuildPublicPayload(cfg SiteConfig, now time.Time, loc *time.Location) (PublicPayload, error) {
+const dateLayout = "2006-01-02"
+
+func BuildPublicPayload(cfg dto.AnniversarySiteConfig, now time.Time, loc *time.Location) (dto.AnniversaryPublicPayload, error) {
 	if loc == nil {
 		loc = time.FixedZone("WIB", 7*60*60)
 	}
 
 	weddingDate, err := time.ParseInLocation(dateLayout, cfg.WeddingDate, loc)
 	if err != nil {
-		return PublicPayload{}, fmt.Errorf("failed parsing wedding date: %w", err)
+		return dto.AnniversaryPublicPayload{}, fmt.Errorf("failed parsing wedding date: %w", err)
 	}
 
 	now = now.In(loc)
@@ -30,7 +33,7 @@ func BuildPublicPayload(cfg SiteConfig, now time.Time, loc *time.Location) (Publ
 		nextNumber = 1
 	}
 
-	countdown := Countdown{}
+	countdown := dto.AnniversaryCountdown{}
 	if !isToday {
 		diff := nextDate.Sub(now)
 		if diff < 0 {
@@ -39,7 +42,7 @@ func BuildPublicPayload(cfg SiteConfig, now time.Time, loc *time.Location) (Publ
 		countdown = breakdownDuration(diff)
 	}
 
-	momentViews := make([]AnnualMomentView, 0, len(cfg.Moments))
+	momentViews := make([]dto.AnniversaryMomentView, 0, len(cfg.Moments))
 	for _, moment := range cfg.Moments {
 		momentDate, err := time.ParseInLocation(dateLayout, moment.Date, loc)
 		if err != nil {
@@ -54,7 +57,7 @@ func BuildPublicPayload(cfg SiteConfig, now time.Time, loc *time.Location) (Publ
 			status = "today"
 		}
 
-		momentViews = append(momentViews, AnnualMomentView{
+		momentViews = append(momentViews, dto.AnniversaryMomentView{
 			Year:   moment.Year,
 			Title:  moment.Title,
 			Date:   moment.Date,
@@ -67,9 +70,9 @@ func BuildPublicPayload(cfg SiteConfig, now time.Time, loc *time.Location) (Publ
 		return momentViews[i].Year < momentViews[j].Year
 	})
 
-	payload := PublicPayload{
+	payload := dto.AnniversaryPublicPayload{
 		Config: cfg,
-		Next: NextAnniversary{
+		Next: dto.AnniversaryNext{
 			Number:     nextNumber,
 			Label:      fmt.Sprintf("Anniversary ke-%d", nextNumber),
 			Date:       nextDate.Format(dateLayout),
@@ -85,7 +88,7 @@ func BuildPublicPayload(cfg SiteConfig, now time.Time, loc *time.Location) (Publ
 	return payload, nil
 }
 
-func breakdownDuration(duration time.Duration) Countdown {
+func breakdownDuration(duration time.Duration) dto.AnniversaryCountdown {
 	totalSeconds := int64(duration.Seconds())
 	if totalSeconds < 0 {
 		totalSeconds = 0
@@ -98,5 +101,10 @@ func breakdownDuration(duration time.Duration) Countdown {
 	minutes := remaining / 60
 	seconds := remaining % 60
 
-	return Countdown{Days: days, Hours: hours, Minutes: minutes, Seconds: seconds}
+	return dto.AnniversaryCountdown{
+		Days:    days,
+		Hours:   hours,
+		Minutes: minutes,
+		Seconds: seconds,
+	}
 }

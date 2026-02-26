@@ -9,11 +9,14 @@ export type MemoryCard = {
   note: string;
 };
 
-export type AnnualMoment = {
+export type AnnualMomentConfig = {
   year: number;
   title: string;
   date: string;
   note: string;
+};
+
+export type AnnualMomentView = AnnualMomentConfig & {
   status: "done" | "today" | "upcoming";
 };
 
@@ -28,6 +31,7 @@ export type SiteConfig = {
   music_url: string;
   timeline: TimelineItem[];
   memory_cards: MemoryCard[];
+  annual_moments: AnnualMomentConfig[];
 };
 
 export type NextAnniversary = {
@@ -41,7 +45,7 @@ export type NextAnniversary = {
 export type PublicPayload = {
   config: SiteConfig;
   next_anniversary: NextAnniversary;
-  moments: AnnualMoment[];
+  moments: AnnualMomentView[];
   timezone: string;
   server_time: string;
 };

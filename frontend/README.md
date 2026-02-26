@@ -11,6 +11,7 @@ Route utama:
 - `/login`, `/register`, `/forgot-password`, `/reset-password`
 - `/dashboard`, `/profile`, `/change-password` (protected)
 - `/users`, `/users/new`, `/users/:id/edit` (protected, admin-style flow)
+- `/setup/anniversary` (protected, editor JSON setup)
 
 Kontrol menu dan akses route protected menggunakan permission dari backend (bukan hardcoded role),
 dengan acuan `resource + action` dari endpoint `GET /api/permissions/me`
@@ -56,5 +57,10 @@ Jika kosong, frontend akan menggunakan path relatif (`/api/...`).
 - `GET /api/permissions/me` (untuk evaluasi akses resource/action)
 - `PUT /api/user/change/password`
 - `GET /api/public/anniversary`
+- `GET /api/setup/anniversary` (`X-Setup-Token`)
+- `PUT /api/setup/anniversary` (`X-Setup-Token`)
+- `PUT /api/setup/anniversary/moments` (`X-Setup-Token`)
+- `POST /api/setup/anniversary/moments` (`X-Setup-Token`)
+- `DELETE /api/setup/anniversary/moments/:year` (`X-Setup-Token`)
 
 Pastikan backend dijalankan dengan `ENABLE_ADMIN_API=true` jika ingin memakai endpoint auth (`/api/user/*`).
