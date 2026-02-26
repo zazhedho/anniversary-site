@@ -1,10 +1,10 @@
 package database
 
 import (
+	"anniversary-site/pkg/logger"
+	"anniversary-site/utils"
 	"database/sql"
 	"fmt"
-	"starter-kit/pkg/logger"
-	"starter-kit/utils"
 	"time"
 
 	"gorm.io/driver/postgres"

@@ -1,8 +1,8 @@
 package interfacesession
 
 import (
+	domainsession "anniversary-site/internal/domain/session"
 	"context"
-	domainsession "starter-kit/internal/domain/session"
 	"time"
 )
 

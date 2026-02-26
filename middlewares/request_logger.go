@@ -1,10 +1,10 @@
 package middlewares
 
 import (
+	"anniversary-site/pkg/logger"
+	"anniversary-site/utils"
 	"fmt"
 	"net/http"
-	"starter-kit/pkg/logger"
-	"starter-kit/utils"
 	"time"
 
 	"github.com/gin-gonic/gin"

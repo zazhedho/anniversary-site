@@ -1,11 +1,11 @@
 package repositorysession
 
 import (
+	domainsession "anniversary-site/internal/domain/session"
+	"anniversary-site/pkg/logger"
 	"context"
 	"encoding/json"
 	"fmt"
-	domainsession "starter-kit/internal/domain/session"
-	"starter-kit/pkg/logger"
 	"time"
 
 	"github.com/redis/go-redis/v9"

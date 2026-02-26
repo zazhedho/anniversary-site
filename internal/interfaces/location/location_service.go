@@ -1,6 +1,6 @@
 package interfacelocation
 
-import domainlocation "starter-kit/internal/domain/location"
+import domainlocation "anniversary-site/internal/domain/location"
 
 type ServiceLocationInterface interface {
 	GetProvince(year string) ([]domainlocation.Location, error)

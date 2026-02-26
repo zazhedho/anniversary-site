@@ -1,12 +1,12 @@
 package servicesession
 
 import (
+	domainsession "anniversary-site/internal/domain/session"
+	domainuser "anniversary-site/internal/domain/user"
+	interfacesession "anniversary-site/internal/interfaces/session"
+	"anniversary-site/utils"
 	"context"
 	"fmt"
-	domainsession "starter-kit/internal/domain/session"
-	domainuser "starter-kit/internal/domain/user"
-	interfacesession "starter-kit/internal/interfaces/session"
-	"starter-kit/utils"
 	"strings"
 	"time"
 

@@ -40,3 +40,7 @@ Thumbs.db
 # Temporary files
 tmp/
 temp/
+
+# Frontend build artifacts
+frontend/node_modules/
+frontend/dist/

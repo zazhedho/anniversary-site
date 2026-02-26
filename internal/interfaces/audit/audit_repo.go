@@ -1,6 +1,6 @@
 package interfaceaudit
 
-import domainaudit "starter-kit/internal/domain/audit"
+import domainaudit "anniversary-site/internal/domain/audit"
 
 type RepoAuditInterface interface {
 	Store(m domainaudit.AuditTrail) error

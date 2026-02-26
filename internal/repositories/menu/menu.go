@@ -1,10 +1,10 @@
 package repositorymenu
 
 import (
+	domainmenu "anniversary-site/internal/domain/menu"
+	interfacemenu "anniversary-site/internal/interfaces/menu"
+	"anniversary-site/pkg/filter"
 	"fmt"
-	domainmenu "starter-kit/internal/domain/menu"
-	interfacemenu "starter-kit/internal/interfaces/menu"
-	"starter-kit/pkg/filter"
 
 	"gorm.io/gorm"
 )

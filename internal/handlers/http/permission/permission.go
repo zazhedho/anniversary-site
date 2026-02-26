@@ -1,18 +1,18 @@
 package handlerpermission
 
 import (
+	domainaudit "anniversary-site/internal/domain/audit"
+	"anniversary-site/internal/dto"
+	interfaceaudit "anniversary-site/internal/interfaces/audit"
+	interfacepermission "anniversary-site/internal/interfaces/permission"
+	"anniversary-site/pkg/filter"
+	"anniversary-site/pkg/logger"
+	"anniversary-site/pkg/messages"
+	"anniversary-site/pkg/response"
+	"anniversary-site/utils"
 	"fmt"
 	"net/http"
 	"reflect"
-	domainaudit "starter-kit/internal/domain/audit"
-	"starter-kit/internal/dto"
-	interfaceaudit "starter-kit/internal/interfaces/audit"
-	interfacepermission "starter-kit/internal/interfaces/permission"
-	"starter-kit/pkg/filter"
-	"starter-kit/pkg/logger"
-	"starter-kit/pkg/messages"
-	"starter-kit/pkg/response"
-	"starter-kit/utils"
 
 	"github.com/gin-gonic/gin"
 )

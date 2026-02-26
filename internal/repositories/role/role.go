@@ -1,11 +1,11 @@
 package repositoryrole
 
 import (
+	domainrole "anniversary-site/internal/domain/role"
+	interfacerole "anniversary-site/internal/interfaces/role"
+	"anniversary-site/pkg/filter"
+	"anniversary-site/utils"
 	"fmt"
-	domainrole "starter-kit/internal/domain/role"
-	interfacerole "starter-kit/internal/interfaces/role"
-	"starter-kit/pkg/filter"
-	"starter-kit/utils"
 
 	"gorm.io/gorm"
 )

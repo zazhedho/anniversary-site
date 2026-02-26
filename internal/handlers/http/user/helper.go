@@ -1,12 +1,12 @@
 package handleruser
 
 import (
+	domainaudit "anniversary-site/internal/domain/audit"
+	handlercommon "anniversary-site/internal/handlers/http/common"
+	"anniversary-site/pkg/messages"
+	"anniversary-site/pkg/response"
 	"fmt"
 	"net/http"
-	domainaudit "starter-kit/internal/domain/audit"
-	handlercommon "starter-kit/internal/handlers/http/common"
-	"starter-kit/pkg/messages"
-	"starter-kit/pkg/response"
 	"strconv"
 	"time"
 

@@ -1,10 +1,10 @@
 package repositoryuser
 
 import (
+	domainuser "anniversary-site/internal/domain/user"
+	interfaceuser "anniversary-site/internal/interfaces/user"
+	"anniversary-site/pkg/filter"
 	"fmt"
-	domainuser "starter-kit/internal/domain/user"
-	interfaceuser "starter-kit/internal/interfaces/user"
-	"starter-kit/pkg/filter"
 
 	"gorm.io/gorm"
 )

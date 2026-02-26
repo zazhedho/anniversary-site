@@ -1,0 +1,61 @@
+{
+  "brand": "Anniversary Journey",
+  "couple_names": "Nama Kamu & Pasangan",
+  "wedding_date": "2025-04-27",
+  "hero_title": "Merayakan Cinta Kita",
+  "hero_subtext": "Setiap tahun adalah bab baru. Website ini menjadi rumah kecil untuk menyimpan momen anniversary dari tahun ke tahun.",
+  "letter": "Setiap tahun bersamamu membuatku semakin yakin: kamu adalah rumah, teman, dan cinta terbaik dalam hidupku. Terima kasih untuk semua tawa, kesabaran, dan doa yang kita bagi setiap hari.",
+  "footer_text": "Dibuat khusus untuk merayakan perjalanan anniversary pernikahan kita.",
+  "music_url": "/our-song.mp3",
+  "timeline": [
+    {
+      "title": "Awal Menjadi Satu",
+      "description": "Hari di mana janji diucapkan, sekaligus titik awal petualangan paling personal dalam hidup kita."
+    },
+    {
+      "title": "Belajar Bersama",
+      "description": "Dari hal kecil sampai keputusan besar, kita saling menguatkan dan bertumbuh sebagai tim."
+    },
+    {
+      "title": "Tetap Memilih Satu Sama Lain",
+      "description": "Di setiap kondisi, rumah terbaik tetap ada pada kebersamaan kita berdua."
+    }
+  ],
+  "memory_cards": [
+    {
+      "title": "Morning Coffee",
+      "summary": "Momen kecil yang bikin hangat.",
+      "note": "Terima kasih selalu jadi alasan aku tersenyum di hari-hari biasa."
+    },
+    {
+      "title": "Late Night Talks",
+      "summary": "Cerita panjang sebelum tidur.",
+      "note": "Kita mungkin capek, tapi selalu pulang dengan hati yang lebih tenang."
+    },
+    {
+      "title": "Weekend Escape",
+      "summary": "Rencana spontan yang seru.",
+      "note": "Semoga banyak perjalanan baru yang kita jelajahi sebagai pasangan."
+    }
+  ],
+  "annual_moments": [
+    {
+      "year": 1,
+      "title": "First Anniversary",
+      "date": "2026-04-27",
+      "note": "Satu tahun pertama yang penuh belajar, tawa, dan saling menguatkan."
+    },
+    {
+      "year": 2,
+      "title": "Second Anniversary",
+      "date": "2027-04-27",
+      "note": "Saatnya menambah cerita baru dan merayakan pertumbuhan kita sebagai tim."
+    },
+    {
+      "year": 3,
+      "title": "Third Anniversary",
+      "date": "2028-04-27",
+      "note": "Tetap bertumbuh, tetap saling memilih, dan tetap pulang pada cinta yang sama."
+    }
+  ]
+}

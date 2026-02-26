@@ -1,13 +1,13 @@
 package config
 
 import (
+	"anniversary-site/pkg/logger"
+	"anniversary-site/utils"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
-	"starter-kit/pkg/logger"
-	"starter-kit/utils"
 	"strings"
 	"time"
 

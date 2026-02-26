@@ -1,12 +1,12 @@
 package servicepermission
 
 import (
+	domainpermission "anniversary-site/internal/domain/permission"
+	"anniversary-site/internal/dto"
+	interfacepermission "anniversary-site/internal/interfaces/permission"
+	"anniversary-site/pkg/filter"
+	"anniversary-site/utils"
 	"errors"
-	domainpermission "starter-kit/internal/domain/permission"
-	"starter-kit/internal/dto"
-	interfacepermission "starter-kit/internal/interfaces/permission"
-	"starter-kit/pkg/filter"
-	"starter-kit/utils"
 	"time"
 )
 

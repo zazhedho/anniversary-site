@@ -7,31 +7,32 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
-	"starter-kit/infrastructure/database"
-	locationHandler "starter-kit/internal/handlers/http/location"
-	menuHandler "starter-kit/internal/handlers/http/menu"
-	permissionHandler "starter-kit/internal/handlers/http/permission"
-	roleHandler "starter-kit/internal/handlers/http/role"
-	sessionHandler "starter-kit/internal/handlers/http/session"
-	userHandler "starter-kit/internal/handlers/http/user"
-	auditRepo "starter-kit/internal/repositories/audit"
-	authRepo "starter-kit/internal/repositories/auth"
-	menuRepo "starter-kit/internal/repositories/menu"
-	permissionRepo "starter-kit/internal/repositories/permission"
-	roleRepo "starter-kit/internal/repositories/role"
-	sessionRepo "starter-kit/internal/repositories/session"
-	userRepo "starter-kit/internal/repositories/user"
-	auditSvc "starter-kit/internal/services/audit"
-	locationSvc "starter-kit/internal/services/location"
-	menuSvc "starter-kit/internal/services/menu"
-	permissionSvc "starter-kit/internal/services/permission"
-	roleSvc "starter-kit/internal/services/role"
-	sessionSvc "starter-kit/internal/services/session"
-	userSvc "starter-kit/internal/services/user"
-	"starter-kit/middlewares"
-	"starter-kit/pkg/logger"
-	"starter-kit/pkg/security"
-	"starter-kit/utils"
+	"anniversary-site/infrastructure/database"
+	anniversaryHandler "anniversary-site/internal/handlers/http/anniversary"
+	locationHandler "anniversary-site/internal/handlers/http/location"
+	menuHandler "anniversary-site/internal/handlers/http/menu"
+	permissionHandler "anniversary-site/internal/handlers/http/permission"
+	roleHandler "anniversary-site/internal/handlers/http/role"
+	sessionHandler "anniversary-site/internal/handlers/http/session"
+	userHandler "anniversary-site/internal/handlers/http/user"
+	auditRepo "anniversary-site/internal/repositories/audit"
+	authRepo "anniversary-site/internal/repositories/auth"
+	menuRepo "anniversary-site/internal/repositories/menu"
+	permissionRepo "anniversary-site/internal/repositories/permission"
+	roleRepo "anniversary-site/internal/repositories/role"
+	sessionRepo "anniversary-site/internal/repositories/session"
+	userRepo "anniversary-site/internal/repositories/user"
+	auditSvc "anniversary-site/internal/services/audit"
+	locationSvc "anniversary-site/internal/services/location"
+	menuSvc "anniversary-site/internal/services/menu"
+	permissionSvc "anniversary-site/internal/services/permission"
+	roleSvc "anniversary-site/internal/services/role"
+	sessionSvc "anniversary-site/internal/services/session"
+	userSvc "anniversary-site/internal/services/user"
+	"anniversary-site/middlewares"
+	"anniversary-site/pkg/logger"
+	"anniversary-site/pkg/security"
+	"anniversary-site/utils"
 )
 
 type Routes struct {
@@ -57,6 +58,15 @@ func NewRoutes() *Routes {
 	return &Routes{
 		App: app,
 	}
+}
+
+func (r *Routes) AnniversaryRoutes() {
+	handler := anniversaryHandler.NewHandler(
+		utils.GetEnv("ANNIVERSARY_DATA_FILE", "./data/anniversary.json"),
+		utils.GetEnv("SETUP_TOKEN", ""),
+		utils.GetEnv("SETUP_API_ENABLED", true),
+	)
+	handler.RegisterRoutes(r.App)
 }
 
 func (r *Routes) UserRoutes() {

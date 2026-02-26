@@ -1,14 +1,14 @@
 package handlersession
 
 import (
+	interfacesession "anniversary-site/internal/interfaces/session"
+	"anniversary-site/pkg/logger"
+	"anniversary-site/pkg/messages"
+	"anniversary-site/pkg/response"
+	"anniversary-site/utils"
 	"context"
 	"fmt"
 	"net/http"
-	interfacesession "starter-kit/internal/interfaces/session"
-	"starter-kit/pkg/logger"
-	"starter-kit/pkg/messages"
-	"starter-kit/pkg/response"
-	"starter-kit/utils"
 
 	"github.com/gin-gonic/gin"
 )

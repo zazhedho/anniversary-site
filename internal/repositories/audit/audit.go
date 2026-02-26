@@ -1,8 +1,8 @@
 package repositoryaudit
 
 import (
-	domainaudit "starter-kit/internal/domain/audit"
-	interfaceaudit "starter-kit/internal/interfaces/audit"
+	domainaudit "anniversary-site/internal/domain/audit"
+	interfaceaudit "anniversary-site/internal/interfaces/audit"
 
 	"gorm.io/gorm"
 )

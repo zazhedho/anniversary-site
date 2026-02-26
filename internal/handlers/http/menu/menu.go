@@ -1,18 +1,18 @@
 package handlermenu
 
 import (
+	domainaudit "anniversary-site/internal/domain/audit"
+	"anniversary-site/internal/dto"
+	interfaceaudit "anniversary-site/internal/interfaces/audit"
+	interfacemenu "anniversary-site/internal/interfaces/menu"
+	"anniversary-site/pkg/filter"
+	"anniversary-site/pkg/logger"
+	"anniversary-site/pkg/messages"
+	"anniversary-site/pkg/response"
+	"anniversary-site/utils"
 	"fmt"
 	"net/http"
 	"reflect"
-	domainaudit "starter-kit/internal/domain/audit"
-	"starter-kit/internal/dto"
-	interfaceaudit "starter-kit/internal/interfaces/audit"
-	interfacemenu "starter-kit/internal/interfaces/menu"
-	"starter-kit/pkg/filter"
-	"starter-kit/pkg/logger"
-	"starter-kit/pkg/messages"
-	"starter-kit/pkg/response"
-	"starter-kit/utils"
 
 	"github.com/gin-gonic/gin"
 )

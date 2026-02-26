@@ -1,9 +1,9 @@
 package servicelocation
 
 import (
+	domainlocation "anniversary-site/internal/domain/location"
+	interfacelocation "anniversary-site/internal/interfaces/location"
 	"fmt"
-	domainlocation "starter-kit/internal/domain/location"
-	interfacelocation "starter-kit/internal/interfaces/location"
 )
 
 type LocationService struct{}

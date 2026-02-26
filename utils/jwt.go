@@ -1,10 +1,10 @@
 package utils
 
 import (
+	domainuser "anniversary-site/internal/domain/user"
 	"errors"
 	"fmt"
 	"os"
-	domainuser "starter-kit/internal/domain/user"
 	"strings"
 	"time"
 

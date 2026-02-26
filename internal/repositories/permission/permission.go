@@ -1,10 +1,10 @@
 package repositorypermission
 
 import (
+	domainpermission "anniversary-site/internal/domain/permission"
+	interfacepermission "anniversary-site/internal/interfaces/permission"
+	"anniversary-site/pkg/filter"
 	"fmt"
-	domainpermission "starter-kit/internal/domain/permission"
-	interfacepermission "starter-kit/internal/interfaces/permission"
-	"starter-kit/pkg/filter"
 
 	"gorm.io/gorm"
 )

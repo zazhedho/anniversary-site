@@ -1,14 +1,14 @@
 package servicerole
 
 import (
+	domainrole "anniversary-site/internal/domain/role"
+	"anniversary-site/internal/dto"
+	interfacemenu "anniversary-site/internal/interfaces/menu"
+	interfacepermission "anniversary-site/internal/interfaces/permission"
+	interfacerole "anniversary-site/internal/interfaces/role"
+	"anniversary-site/pkg/filter"
+	"anniversary-site/utils"
 	"errors"
-	domainrole "starter-kit/internal/domain/role"
-	"starter-kit/internal/dto"
-	interfacemenu "starter-kit/internal/interfaces/menu"
-	interfacepermission "starter-kit/internal/interfaces/permission"
-	interfacerole "starter-kit/internal/interfaces/role"
-	"starter-kit/pkg/filter"
-	"starter-kit/utils"
 	"time"
 )
 

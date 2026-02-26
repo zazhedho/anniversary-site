@@ -1,11 +1,11 @@
 package database
 
 import (
+	"anniversary-site/pkg/logger"
+	"anniversary-site/utils"
 	"context"
 	"fmt"
 	"os"
-	"starter-kit/pkg/logger"
-	"starter-kit/utils"
 	"time"
 
 	"github.com/redis/go-redis/v9"

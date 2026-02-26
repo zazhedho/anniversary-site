@@ -1,12 +1,12 @@
 package servicemenu
 
 import (
+	domainmenu "anniversary-site/internal/domain/menu"
+	"anniversary-site/internal/dto"
+	interfacemenu "anniversary-site/internal/interfaces/menu"
+	"anniversary-site/pkg/filter"
+	"anniversary-site/utils"
 	"errors"
-	domainmenu "starter-kit/internal/domain/menu"
-	"starter-kit/internal/dto"
-	interfacemenu "starter-kit/internal/interfaces/menu"
-	"starter-kit/pkg/filter"
-	"starter-kit/utils"
 	"time"
 )
 

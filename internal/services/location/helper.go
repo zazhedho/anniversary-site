@@ -1,12 +1,12 @@
 package servicelocation
 
 import (
+	domainlocation "anniversary-site/internal/domain/location"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"sort"
-	domainlocation "starter-kit/internal/domain/location"
 )
 
 func fetchResponseBody(url, entity string) ([]byte, error) {

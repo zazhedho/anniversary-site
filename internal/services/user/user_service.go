@@ -1,16 +1,16 @@
 package serviceuser
 
 import (
+	domainauth "anniversary-site/internal/domain/auth"
+	domainuser "anniversary-site/internal/domain/user"
+	"anniversary-site/internal/dto"
+	interfaceauth "anniversary-site/internal/interfaces/auth"
+	interfacepermission "anniversary-site/internal/interfaces/permission"
+	interfacerole "anniversary-site/internal/interfaces/role"
+	interfaceuser "anniversary-site/internal/interfaces/user"
+	"anniversary-site/pkg/filter"
+	"anniversary-site/utils"
 	"errors"
-	domainauth "starter-kit/internal/domain/auth"
-	domainuser "starter-kit/internal/domain/user"
-	"starter-kit/internal/dto"
-	interfaceauth "starter-kit/internal/interfaces/auth"
-	interfacepermission "starter-kit/internal/interfaces/permission"
-	interfacerole "starter-kit/internal/interfaces/role"
-	interfaceuser "starter-kit/internal/interfaces/user"
-	"starter-kit/pkg/filter"
-	"starter-kit/utils"
 	"strings"
 	"time"
 

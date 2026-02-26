@@ -1,8 +1,8 @@
 package handlermenu
 
 import (
-	domainaudit "starter-kit/internal/domain/audit"
-	handlercommon "starter-kit/internal/handlers/http/common"
+	domainaudit "anniversary-site/internal/domain/audit"
+	handlercommon "anniversary-site/internal/handlers/http/common"
 
 	"github.com/gin-gonic/gin"
 )

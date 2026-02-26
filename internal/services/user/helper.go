@@ -1,10 +1,10 @@
 package serviceuser
 
 import (
+	domainuser "anniversary-site/internal/domain/user"
+	interfacerole "anniversary-site/internal/interfaces/role"
 	"errors"
 	"regexp"
-	domainuser "starter-kit/internal/domain/user"
-	interfacerole "starter-kit/internal/interfaces/role"
 )
 
 func ValidatePasswordStrength(password string) error {

@@ -1,11 +1,11 @@
 package handlercommon
 
 import (
+	domainaudit "anniversary-site/internal/domain/audit"
+	interfaceaudit "anniversary-site/internal/interfaces/audit"
+	"anniversary-site/pkg/logger"
+	"anniversary-site/utils"
 	"fmt"
-	domainaudit "starter-kit/internal/domain/audit"
-	interfaceaudit "starter-kit/internal/interfaces/audit"
-	"starter-kit/pkg/logger"
-	"starter-kit/utils"
 
 	"github.com/gin-gonic/gin"
 )

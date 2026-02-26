@@ -1,9 +1,9 @@
 package response
 
 import (
+	"anniversary-site/pkg/messages"
 	"math"
 	"net/http"
-	"starter-kit/pkg/messages"
 
 	"github.com/google/uuid"
 )

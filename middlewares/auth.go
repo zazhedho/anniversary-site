@@ -1,16 +1,16 @@
 package middlewares
 
 import (
+	interfaceauth "anniversary-site/internal/interfaces/auth"
+	interfacepermission "anniversary-site/internal/interfaces/permission"
+	"anniversary-site/pkg/logger"
+	"anniversary-site/pkg/messages"
+	"anniversary-site/pkg/response"
+	"anniversary-site/utils"
 	"errors"
 	"fmt"
 	"net/http"
 	"slices"
-	interfaceauth "starter-kit/internal/interfaces/auth"
-	interfacepermission "starter-kit/internal/interfaces/permission"
-	"starter-kit/pkg/logger"
-	"starter-kit/pkg/messages"
-	"starter-kit/pkg/response"
-	"starter-kit/utils"
 	"strings"
 
 	"github.com/gin-gonic/gin"

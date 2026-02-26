@@ -1,4 +1,4 @@
-module starter-kit
+module anniversary-site
 
 go 1.26
 

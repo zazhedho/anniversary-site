@@ -1,17 +1,17 @@
 package main
 
 import (
+	"anniversary-site/infrastructure/database"
+	"anniversary-site/internal/router"
+	"anniversary-site/pkg/config"
+	"anniversary-site/pkg/logger"
+	"anniversary-site/utils"
 	"database/sql"
 	"flag"
 	"fmt"
 	"log"
 	"net"
 	"os"
-	"starter-kit/infrastructure/database"
-	"starter-kit/internal/router"
-	"starter-kit/pkg/config"
-	"starter-kit/pkg/logger"
-	"starter-kit/utils"
 	"strings"
 	"time"
 
@@ -63,46 +63,56 @@ func main() {
 	flag.StringVar(&appName, "appname", os.Getenv("APP_NAME"), "service name")
 	flag.BoolVar(&runMigrate, "migrate", false, "run database migration before starting server")
 	flag.Parse()
+	if strings.TrimSpace(port) == "" {
+		port = "8080"
+	}
 	logger.WriteLog(logger.LogLevelInfo, "APP: "+appName+"; PORT: "+port)
 
-	confID := config.GetAppConf("CONFIG_ID", "", nil)
-	logger.WriteLog(logger.LogLevelDebug, fmt.Sprintf("ConfigID: %s", confID))
+	enableAdminAPI := utils.GetEnv("ENABLE_ADMIN_API", false)
+	if enableAdminAPI {
+		confID := config.GetAppConf("CONFIG_ID", "", nil)
+		logger.WriteLog(logger.LogLevelDebug, fmt.Sprintf("ConfigID: %s", confID))
+	}
 
 	if runMigrate {
 		runMigration()
 	}
 
-	// Initialize Redis for session management (optional)
-	redisClient, err := database.InitRedis()
-	if err != nil {
-		logger.WriteLog(logger.LogLevelDebug, "Redis not available, session management will be disabled")
-	} else {
-		defer func() {
-			if closeErr := database.CloseRedis(); closeErr != nil {
-				logger.WriteLog(logger.LogLevelError, "Failed to close redis connection: "+closeErr.Error())
-			}
-		}()
-		logger.WriteLog(logger.LogLevelInfo, "Redis initialized, session management enabled")
-	}
-
 	routes := router.NewRoutes()
+	routes.AnniversaryRoutes()
 
-	routes.DB, sqlDb, err = database.ConnDb()
-	FailOnError(err, "Failed to open db")
-	defer sqlDb.Close()
+	if enableAdminAPI {
+		redisClient, redisErr := database.InitRedis()
+		if redisErr != nil {
+			logger.WriteLog(logger.LogLevelDebug, "Redis not available, session management will be disabled")
+		} else {
+			defer func() {
+				if closeErr := database.CloseRedis(); closeErr != nil {
+					logger.WriteLog(logger.LogLevelError, "Failed to close redis connection: "+closeErr.Error())
+				}
+			}()
+			logger.WriteLog(logger.LogLevelInfo, "Redis initialized, session management enabled")
+		}
 
-	routes.UserRoutes()
-	routes.RoleRoutes()
-	routes.PermissionRoutes()
-	routes.MenuRoutes()
-	routes.LocationRoutes()
+		routes.DB, sqlDb, err = database.ConnDb()
+		FailOnError(err, "Failed to open db")
+		defer sqlDb.Close()
 
-	// Register session routes if Redis is available
-	if redisClient != nil {
-		routes.SessionRoutes()
+		routes.UserRoutes()
+		routes.RoleRoutes()
+		routes.PermissionRoutes()
+		routes.MenuRoutes()
+		routes.LocationRoutes()
+
+		// Register session routes if Redis is available
+		if redisClient != nil {
+			routes.SessionRoutes()
+		}
+
+		logger.WriteLog(logger.LogLevelInfo, "All routes registered successfully")
+	} else {
+		logger.WriteLog(logger.LogLevelInfo, "ENABLE_ADMIN_API=false: running anniversary public/setup API only")
 	}
-
-	logger.WriteLog(logger.LogLevelInfo, "All routes registered successfully")
 
 	err = routes.App.Run(fmt.Sprintf(":%s", port))
 	FailOnError(err, "Failed run service")

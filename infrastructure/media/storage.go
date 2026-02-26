@@ -1,10 +1,10 @@
 package media
 
 import (
+	"anniversary-site/pkg/logger"
+	"anniversary-site/pkg/storage"
+	"anniversary-site/utils"
 	"fmt"
-	"starter-kit/pkg/logger"
-	"starter-kit/pkg/storage"
-	"starter-kit/utils"
 	"strconv"
 	"strings"
 )

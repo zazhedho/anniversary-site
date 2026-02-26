@@ -27,6 +27,7 @@ COPY entrypoint.sh ./entrypoint.sh
 
 # Copy migrations
 COPY migrations ./migrations
+COPY data ./data
 
 # Ensure entrypoint is executable
 RUN chmod +x ./entrypoint.sh

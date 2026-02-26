@@ -3,8 +3,8 @@ package interfacesession
 import (
 	"context"
 
-	domainsession "starter-kit/internal/domain/session"
-	domainuser "starter-kit/internal/domain/user"
+	domainsession "anniversary-site/internal/domain/session"
+	domainuser "anniversary-site/internal/domain/user"
 )
 
 type ServiceSessionInterface interface {
