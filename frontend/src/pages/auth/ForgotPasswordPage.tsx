@@ -2,10 +2,12 @@ import { FormEvent, useState } from "react";
 import { Link } from "react-router-dom";
 import AuthCard from "../../components/common/AuthCard";
 import { useLanguage } from "../../contexts/LocaleContext";
+import { useNotification } from "../../contexts/NotificationContext";
 import { forgotPassword } from "../../services/authService";
 
 export default function ForgotPasswordPage() {
   const { t } = useLanguage();
+  const { notifyError, notifySuccess } = useNotification();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -19,9 +21,13 @@ export default function ForgotPasswordPage() {
 
     try {
       await forgotPassword({ email });
-      setMessage(t("forgot.success"));
+      const text = t("forgot.success");
+      setMessage(text);
+      notifySuccess(text);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("forgot.error"));
+      const text = err instanceof Error ? err.message : t("forgot.error");
+      setError(text);
+      notifyError(text);
     } finally {
       setLoading(false);
     }

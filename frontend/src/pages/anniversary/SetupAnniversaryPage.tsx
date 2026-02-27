@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import PasswordInput from "../../components/common/PasswordInput";
 import { useLanguage } from "../../contexts/LocaleContext";
+import { useNotification } from "../../contexts/NotificationContext";
 import type { SetupAnnualMoment, SetupSiteConfig } from "../../types/anniversary";
 import {
   addSetupMoment,
@@ -26,6 +27,7 @@ function parseConfigJson(source: string, invalidMessage: string): SetupSiteConfi
 
 export default function SetupAnniversaryPage() {
   const { t } = useLanguage();
+  const { notifyError, notifySuccess } = useNotification();
   const [setupToken, setSetupToken] = useState("");
   const [configJson, setConfigJson] = useState("{}");
   const [fetching, setFetching] = useState(false);
@@ -51,7 +53,9 @@ export default function SetupAnniversaryPage() {
 
   function saveToken() {
     localStorage.setItem(SETUP_TOKEN_KEY, setupToken.trim());
-    setMessage(t("setup.tokenSaved"));
+    const text = t("setup.tokenSaved");
+    setMessage(text);
+    notifySuccess(text);
     setError("");
   }
 
@@ -62,9 +66,13 @@ export default function SetupAnniversaryPage() {
     try {
       const config = await getSetupConfig(setupToken);
       setConfigJson(toPrettyJson(config));
-      setMessage(t("setup.configLoaded"));
+      const text = t("setup.configLoaded");
+      setMessage(text);
+      notifySuccess(text);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("setup.configLoadFailed"));
+      const text = err instanceof Error ? err.message : t("setup.configLoadFailed");
+      setError(text);
+      notifyError(text);
     } finally {
       setFetching(false);
     }
@@ -81,9 +89,13 @@ export default function SetupAnniversaryPage() {
       await updateSetupConfig(setupToken, payload);
       const refreshed = await getSetupConfig(setupToken);
       setConfigJson(toPrettyJson(refreshed));
-      setMessage(t("setup.configSaved"));
+      const text = t("setup.configSaved");
+      setMessage(text);
+      notifySuccess(text);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("setup.configSaveFailed"));
+      const text = err instanceof Error ? err.message : t("setup.configSaveFailed");
+      setError(text);
+      notifyError(text);
     } finally {
       setSaving(false);
     }
@@ -103,9 +115,13 @@ export default function SetupAnniversaryPage() {
       await replaceSetupMoments(setupToken, payload.annual_moments);
       const refreshed = await getSetupConfig(setupToken);
       setConfigJson(toPrettyJson(refreshed));
-      setMessage(t("setup.momentsReplaced"));
+      const text = t("setup.momentsReplaced");
+      setMessage(text);
+      notifySuccess(text);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("setup.momentsReplaceFailed"));
+      const text = err instanceof Error ? err.message : t("setup.momentsReplaceFailed");
+      setError(text);
+      notifyError(text);
     } finally {
       setActionLoading(false);
     }
@@ -128,12 +144,16 @@ export default function SetupAnniversaryPage() {
       await addSetupMoment(setupToken, payload);
       const refreshed = await getSetupConfig(setupToken);
       setConfigJson(toPrettyJson(refreshed));
-      setMessage(t("setup.momentAdded", { year: momentYear }));
+      const text = t("setup.momentAdded", { year: momentYear });
+      setMessage(text);
+      notifySuccess(text);
       setMomentTitle("");
       setMomentDate("");
       setMomentNote("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("setup.momentAddFailed"));
+      const text = err instanceof Error ? err.message : t("setup.momentAddFailed");
+      setError(text);
+      notifyError(text);
     } finally {
       setActionLoading(false);
     }
@@ -148,9 +168,13 @@ export default function SetupAnniversaryPage() {
       await deleteSetupMoment(setupToken, Number(deleteYear));
       const refreshed = await getSetupConfig(setupToken);
       setConfigJson(toPrettyJson(refreshed));
-      setMessage(t("setup.momentDeleted", { year: deleteYear }));
+      const text = t("setup.momentDeleted", { year: deleteYear });
+      setMessage(text);
+      notifySuccess(text);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("setup.momentDeleteFailed"));
+      const text = err instanceof Error ? err.message : t("setup.momentDeleteFailed");
+      setError(text);
+      notifyError(text);
     } finally {
       setActionLoading(false);
     }

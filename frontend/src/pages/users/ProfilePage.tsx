@@ -1,10 +1,12 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LocaleContext";
+import { useNotification } from "../../contexts/NotificationContext";
 
 export default function ProfilePage() {
   const { user, updateCurrentUser, hasAccess } = useAuth();
   const { t } = useLanguage();
+  const { notifyError, notifySuccess } = useNotification();
   const canUpdateProfile = hasAccess({ resource: "profile", action: "update" });
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -28,9 +30,13 @@ export default function ProfilePage() {
 
     try {
       await updateCurrentUser({ name, email, phone });
-      setMessage(t("profile.saved"));
+      const text = t("profile.saved");
+      setMessage(text);
+      notifySuccess(text);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("profile.saveFailed"));
+      const text = err instanceof Error ? err.message : t("profile.saveFailed");
+      setError(text);
+      notifyError(text);
     } finally {
       setSaving(false);
     }

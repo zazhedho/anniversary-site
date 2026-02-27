@@ -5,11 +5,13 @@ import PasswordInput from "../../components/common/PasswordInput";
 import PasswordValidationHint from "../../components/common/PasswordValidationHint";
 import SiteFooter from "../../components/common/SiteFooter";
 import { useLanguage } from "../../contexts/LocaleContext";
+import { useNotification } from "../../contexts/NotificationContext";
 import { register } from "../../services/authService";
 import { isPasswordValid, validatePassword } from "../../utils/passwordValidation";
 
 export default function RegisterPage() {
   const { t } = useLanguage();
+  const { notifyError, notifySuccess } = useNotification();
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -25,11 +27,15 @@ export default function RegisterPage() {
 
     const validation = validatePassword(password);
     if (!isPasswordValid(validation)) {
-      setError(t("password.error.requirements"));
+      const text = t("password.error.requirements");
+      setError(text);
+      notifyError(text);
       return;
     }
     if (password !== confirmPassword) {
-      setError(t("password.error.mismatch"));
+      const text = t("password.error.mismatch");
+      setError(text);
+      notifyError(text);
       return;
     }
 
@@ -37,9 +43,12 @@ export default function RegisterPage() {
 
     try {
       await register({ name, email, phone, password });
+      notifySuccess(t("register.success"));
       navigate("/login", { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("register.error"));
+      const text = err instanceof Error ? err.message : t("register.error");
+      setError(text);
+      notifyError(text);
     } finally {
       setLoading(false);
     }

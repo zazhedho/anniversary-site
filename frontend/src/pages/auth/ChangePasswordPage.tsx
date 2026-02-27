@@ -3,11 +3,13 @@ import PasswordInput from "../../components/common/PasswordInput";
 import PasswordValidationHint from "../../components/common/PasswordValidationHint";
 import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LocaleContext";
+import { useNotification } from "../../contexts/NotificationContext";
 import { isPasswordValid, validatePassword } from "../../utils/passwordValidation";
 
 export default function ChangePasswordPage() {
   const { changeCurrentPassword } = useAuth();
   const { t } = useLanguage();
+  const { notifyError, notifySuccess } = useNotification();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -22,29 +24,39 @@ export default function ChangePasswordPage() {
 
     const validation = validatePassword(newPassword);
     if (!isPasswordValid(validation)) {
-      setError(t("password.error.requirements"));
+      const text = t("password.error.requirements");
+      setError(text);
+      notifyError(text);
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError(t("password.error.mismatch"));
+      const text = t("password.error.mismatch");
+      setError(text);
+      notifyError(text);
       return;
     }
 
     if (newPassword === currentPassword) {
-      setError(t("changePassword.mustDifferent"));
+      const text = t("changePassword.mustDifferent");
+      setError(text);
+      notifyError(text);
       return;
     }
 
     setSaving(true);
     try {
       await changeCurrentPassword({ current_password: currentPassword, new_password: newPassword });
-      setMessage(t("changePassword.success"));
+      const text = t("changePassword.success");
+      setMessage(text);
+      notifySuccess(text);
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("changePassword.error"));
+      const text = err instanceof Error ? err.message : t("changePassword.error");
+      setError(text);
+      notifyError(text);
     } finally {
       setSaving(false);
     }

@@ -4,6 +4,7 @@ import PasswordInput from "../../components/common/PasswordInput";
 import PasswordValidationHint from "../../components/common/PasswordValidationHint";
 import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LocaleContext";
+import { useNotification } from "../../contexts/NotificationContext";
 import { getRoles } from "../../services/rolesService";
 import type { RoleRecord } from "../../types/role";
 import { createUser, getUserById, updateUserById } from "../../services/usersService";
@@ -12,6 +13,7 @@ import { isPasswordValid, validatePassword } from "../../utils/passwordValidatio
 export default function UserFormPage() {
   const { hasAccess } = useAuth();
   const { t } = useLanguage();
+  const { notifyError, notifySuccess } = useNotification();
   const { id } = useParams();
   const navigate = useNavigate();
   const isEdit = Boolean(id);
@@ -62,7 +64,9 @@ export default function UserFormPage() {
         setRoles(data);
         setRole((prev) => prev || data[0]?.name || "");
       } catch (err) {
-        setRoleError(err instanceof Error ? err.message : t("userForm.roleLoadFailed"));
+        const text = err instanceof Error ? err.message : t("userForm.roleLoadFailed");
+        setRoleError(text);
+        notifyError(text);
       } finally {
         setLoadingRoles(false);
       }
@@ -85,7 +89,9 @@ export default function UserFormPage() {
         setPhone(user.phone || "");
         setRole(user.role || "viewer");
       } catch (err) {
-        setError(err instanceof Error ? err.message : t("userForm.detailFailed"));
+        const text = err instanceof Error ? err.message : t("userForm.detailFailed");
+        setError(text);
+        notifyError(text);
       } finally {
         setFetching(false);
       }
@@ -103,27 +109,37 @@ export default function UserFormPage() {
     try {
       if (isEdit && id) {
         await updateUserById(id, { name, email, phone, role });
-        setMessage(t("userForm.updateSuccess"));
+        const text = t("userForm.updateSuccess");
+        setMessage(text);
+        notifySuccess(text);
       } else {
         const validation = validatePassword(password);
         if (!isPasswordValid(validation)) {
-          setError(t("password.error.requirements"));
+          const text = t("password.error.requirements");
+          setError(text);
+          notifyError(text);
           setLoading(false);
           return;
         }
         if (password !== confirmPassword) {
-          setError(t("password.error.mismatch"));
+          const text = t("password.error.mismatch");
+          setError(text);
+          notifyError(text);
           setLoading(false);
           return;
         }
 
         await createUser({ name, email, phone, role, password });
-        setMessage(t("userForm.createSuccess"));
+        const text = t("userForm.createSuccess");
+        setMessage(text);
+        notifySuccess(text);
         setPassword("");
         setConfirmPassword("");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("userForm.saveFailed"));
+      const text = err instanceof Error ? err.message : t("userForm.saveFailed");
+      setError(text);
+      notifyError(text);
     } finally {
       setLoading(false);
     }

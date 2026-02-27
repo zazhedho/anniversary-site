@@ -5,10 +5,12 @@ import PasswordInput from "../../components/common/PasswordInput";
 import SiteFooter from "../../components/common/SiteFooter";
 import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LocaleContext";
+import { useNotification } from "../../contexts/NotificationContext";
 
 export default function LoginPage() {
   const { loginUser } = useAuth();
   const { t } = useLanguage();
+  const { notifyError } = useNotification();
   const navigate = useNavigate();
   const location = useLocation();
   const [email, setEmail] = useState("");
@@ -26,7 +28,9 @@ export default function LoginPage() {
       const destination = (location.state as { from?: string } | undefined)?.from || "/dashboard";
       navigate(destination, { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("login.error"));
+      const text = err instanceof Error ? err.message : t("login.error");
+      setError(text);
+      notifyError(text);
     } finally {
       setLoading(false);
     }

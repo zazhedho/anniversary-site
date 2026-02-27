@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LocaleContext";
+import { useNotification } from "../../contexts/NotificationContext";
 import { getRoles } from "../../services/rolesService";
 import { getUsers } from "../../services/usersService";
 import type { RoleRecord } from "../../types/role";
@@ -10,6 +11,7 @@ import type { UserRecord } from "../../types/user";
 export default function UserListPage() {
   const { hasAccess } = useAuth();
   const { t } = useLanguage();
+  const { notifyError } = useNotification();
   const canCreateUser = hasAccess({ resource: "users", action: "create" });
   const canUpdateUser = hasAccess({ resource: "users", action: "update" });
 
@@ -39,7 +41,9 @@ export default function UserListPage() {
         });
         setRoles(data);
       } catch (err) {
-        setRoleError(err instanceof Error ? err.message : t("userList.roleLoadFailed"));
+        const text = err instanceof Error ? err.message : t("userList.roleLoadFailed");
+        setRoleError(text);
+        notifyError(text);
       }
     }
 
@@ -65,7 +69,9 @@ export default function UserListPage() {
         setTotalPages(response.total_pages || 1);
         setTotalData(response.total_data || 0);
       } catch (err) {
-        setError(err instanceof Error ? err.message : t("userList.loadFailed"));
+        const text = err instanceof Error ? err.message : t("userList.loadFailed");
+        setError(text);
+        notifyError(text);
       } finally {
         setLoading(false);
       }
