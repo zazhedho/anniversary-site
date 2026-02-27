@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import AnniversaryShowcase from "../../components/anniversary/AnniversaryShowcase";
+import SiteFooter from "../../components/common/SiteFooter";
 
 export default function PublicAnniversaryPage() {
   return (
@@ -13,6 +14,7 @@ export default function PublicAnniversaryPage() {
           </div>
         </div>
         <AnniversaryShowcase />
+        <SiteFooter className="mt-6" />
       </div>
     </main>
   );

@@ -44,6 +44,11 @@ func BuildPublicPayload(cfg dto.AnniversarySiteConfig, now time.Time, loc *time.
 
 	momentViews := make([]dto.AnniversaryMomentView, 0, len(cfg.Moments))
 	for _, moment := range cfg.Moments {
+		// Progressive reveal: hide future annual moments beyond the current anniversary phase.
+		if moment.Year > nextNumber {
+			continue
+		}
+
 		momentDate, err := time.ParseInLocation(dateLayout, moment.Date, loc)
 		if err != nil {
 			continue

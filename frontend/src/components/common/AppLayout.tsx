@@ -1,5 +1,6 @@
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import SiteFooter from "./SiteFooter";
 
 export default function AppLayout() {
   const { user, logoutUser, hasAccess, hasAnyAccess } = useAuth();
@@ -22,7 +23,7 @@ export default function AppLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#fff9f3] via-[#ffece1] to-[#f5d4c8] text-[#2b2220]">
+    <div className="flex min-h-screen flex-col bg-gradient-to-br from-[#fff9f3] via-[#ffece1] to-[#f5d4c8] text-[#2b2220]">
       <header className="border-b border-black/10 bg-white/55 backdrop-blur">
         <div className="mx-auto flex w-[min(1120px,94vw)] items-center justify-between py-4">
           <Link to={homePath} className="font-display text-3xl leading-none">Anniv Control</Link>
@@ -64,10 +65,13 @@ export default function AppLayout() {
         </div>
       </header>
 
-      <main className="mx-auto w-[min(1120px,94vw)] py-6">
+      <main className="mx-auto w-[min(1120px,94vw)] flex-1 py-6">
         <p className="mb-4 text-xs uppercase tracking-[0.12em] text-[#2b2220]/60">Signed in as {user?.name || "User"}</p>
         <Outlet />
       </main>
+      <div className="mx-auto w-[min(1120px,94vw)] pb-6">
+        <SiteFooter />
+      </div>
     </div>
   );
 }

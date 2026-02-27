@@ -38,7 +38,7 @@ export default function ChangePasswordPage() {
     <section className="rounded-2xl border border-[#9c4f46]/20 bg-white/65 p-5 max-w-xl">
       <p className="text-xs uppercase tracking-[0.12em] text-[#6f332f]">Security</p>
       <h1 className="mt-2 font-display text-4xl leading-none">Change Password</h1>
-      <p className="mt-2 text-sm text-[#2b2220]/70">Endpoint: <code>PUT /api/user/change/password</code></p>
+      <p className="mt-2 text-sm text-[#2b2220]/70">Perbarui kata sandi agar akunmu tetap aman.</p>
 
       <form onSubmit={onSubmit} className="mt-4 space-y-3">
         <label className="block">

@@ -86,7 +86,7 @@ export default function UserListPage() {
             <p className="text-xs uppercase tracking-[0.12em] text-[#6f332f]">Users</p>
             <h1 className="mt-1 font-display text-4xl leading-none">User Management</h1>
             <p className="mt-2 text-sm text-[#2b2220]/70">
-              Endpoint: <code>GET /api/users</code>, <code>POST /api/user</code>, <code>PUT /api/user/:id</code>
+              Atur akun yang bisa membantu mengelola website anniversary ini.
             </p>
           </div>
           {canCreateUser ? (

@@ -42,7 +42,7 @@ export default function ProfilePage() {
         <div className="mt-4 space-y-2 text-sm">
           <p><span className="font-semibold">Role:</span> {user?.role || "-"}</p>
           <p><span className="font-semibold">Permissions:</span> {user?.permissions?.length || 0}</p>
-          <p className="text-[#2b2220]/70">Endpoint: <code>GET /api/user</code>, <code>PUT /api/user</code></p>
+          <p className="text-[#2b2220]/70">Perbarui data profilmu di sini kapan saja.</p>
           {!canUpdateProfile ? <p className="text-amber-700">Kamu hanya punya akses view profile.</p> : null}
         </div>
       </article>

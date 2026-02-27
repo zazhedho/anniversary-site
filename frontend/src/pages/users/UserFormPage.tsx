@@ -115,9 +115,7 @@ export default function UserFormPage() {
       <article className="rounded-2xl border border-[#9c4f46]/20 bg-white/65 p-5">
         <p className="text-xs uppercase tracking-[0.12em] text-[#6f332f]">Users</p>
         <h1 className="mt-2 font-display text-4xl leading-none">{title}</h1>
-        <p className="mt-2 text-sm text-[#2b2220]/70">
-          Endpoint: {isEdit ? <code>PUT /api/user/:id</code> : <code>POST /api/user</code>}
-        </p>
+        <p className="mt-2 text-sm text-[#2b2220]/70">Lengkapi data akun dan peran yang dibutuhkan.</p>
       </article>
 
       <form onSubmit={onSubmit} className="max-w-2xl rounded-2xl border border-[#9c4f46]/20 bg-white/65 p-5 space-y-3">

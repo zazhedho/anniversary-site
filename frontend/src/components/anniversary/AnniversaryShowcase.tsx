@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { fetchPublicAnniversary } from "../../services/publicService";
 import type { MemoryCard, PublicPayload } from "../../types/anniversary";
 
-type CountdownState = { days: number; hours: number; minutes: number };
+type CountdownState = { days: number; hours: number; minutes: number; seconds: number };
 
 const dateFormatter = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "long", year: "numeric" });
 
@@ -18,11 +18,23 @@ function formatDate(value: string): string {
 
 function toCountdown(target: Date): CountdownState {
   const diff = Math.max(0, target.getTime() - Date.now());
-  const totalMinutes = Math.floor(diff / 1000 / 60);
+  const totalSeconds = Math.floor(diff / 1000);
   return {
-    days: Math.floor(totalMinutes / (60 * 24)),
-    hours: Math.floor((totalMinutes % (60 * 24)) / 60),
-    minutes: totalMinutes % 60,
+    days: Math.floor(totalSeconds / (60 * 60 * 24)),
+    hours: Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60)),
+    minutes: Math.floor((totalSeconds % (60 * 60)) / 60),
+    seconds: totalSeconds % 60,
+  };
+}
+
+function toElapsed(start: Date): CountdownState {
+  const diff = Math.max(0, Date.now() - start.getTime());
+  const totalSeconds = Math.floor(diff / 1000);
+  return {
+    days: Math.floor(totalSeconds / (60 * 60 * 24)),
+    hours: Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60)),
+    minutes: Math.floor((totalSeconds % (60 * 60)) / 60),
+    seconds: totalSeconds % 60,
   };
 }
 
@@ -37,7 +49,8 @@ export default function AnniversaryShowcase() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedNote, setSelectedNote] = useState("Klik salah satu kartu untuk lihat pesan spesial.");
-  const [countdown, setCountdown] = useState<CountdownState>({ days: 0, hours: 0, minutes: 0 });
+  const [countdown, setCountdown] = useState<CountdownState>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [elapsed, setElapsed] = useState<CountdownState>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -64,12 +77,21 @@ export default function AnniversaryShowcase() {
   }, []);
 
   useEffect(() => {
-    if (!payload || payload.next_anniversary.is_today) return;
+    if (!payload) return;
 
     const target = parseDate(payload.next_anniversary.date);
-    if (!target) return;
+    const weddingDate = parseDate(payload.config.wedding_date);
 
-    const update = () => setCountdown(toCountdown(target));
+    const update = () => {
+      if (weddingDate) {
+        setElapsed(toElapsed(weddingDate));
+      }
+      if (payload.next_anniversary.is_today || !target) {
+        setCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        return;
+      }
+      setCountdown(toCountdown(target));
+    };
     update();
 
     const timer = window.setInterval(update, 1000);
@@ -112,7 +134,6 @@ export default function AnniversaryShowcase() {
   }
 
   const { config, moments, next_anniversary: next } = payload;
-
   return (
     <div className="relative overflow-hidden rounded-[30px] border border-[#9c4f46]/20 bg-gradient-to-br from-[#fff8f1] via-[#ffe8d9] to-[#f4d0c4] p-5 sm:p-8">
       <div className="pointer-events-none absolute -right-14 top-10 h-48 w-48 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.85),rgba(156,79,70,0.2))] blur-sm" />
@@ -136,21 +157,41 @@ export default function AnniversaryShowcase() {
         </h2>
         <p className="mt-3 max-w-3xl text-sm text-[#2b2220]/75">{config.hero_subtext}</p>
 
-        <div className="mt-6 grid max-w-md grid-cols-3 gap-2">
-          {[
-            ["Hari", countdown.days],
-            ["Jam", countdown.hours],
-            ["Menit", countdown.minutes],
-          ].map(([label, value]) => (
-            <div key={String(label)} className="rounded-2xl border border-[#9c4f46]/20 bg-white/60 p-3 text-center">
-              <p className="font-display text-3xl text-[#6f332f]">{String(value).padStart(2, "0")}</p>
-              <p className="text-[10px] uppercase tracking-[0.12em] text-[#2b2220]/65">{label}</p>
-            </div>
-          ))}
+        <div className="mt-6 flex justify-center">
+          <div className="grid w-full max-w-xl grid-cols-2 gap-2 sm:grid-cols-4">
+            {[
+              ["Hari", countdown.days],
+              ["Jam", countdown.hours],
+              ["Menit", countdown.minutes],
+              ["Detik", countdown.seconds],
+            ].map(([label, value]) => (
+              <div key={String(label)} className="rounded-2xl border border-[#9c4f46]/20 bg-white/60 p-3 text-center">
+                <p className="font-display text-3xl text-[#6f332f]">{String(value).padStart(2, "0")}</p>
+                <p className="text-[10px] uppercase tracking-[0.12em] text-[#2b2220]/65">{label}</p>
+              </div>
+            ))}
+          </div>
         </div>
-        <p className="mt-3 text-sm text-[#2b2220]/70">
+        <p className="mt-3 text-center text-sm text-[#2b2220]/70">
           {next.is_today ? `Selamat ${next.label}! Hari ini hari spesial kalian.` : `Menghitung mundur ke ${next.label}.`}
         </p>
+
+        <p className="mt-5 text-center text-sm text-[#2b2220]/75">Bersama sejak {formatDate(config.wedding_date)}</p>
+        <div className="mt-3 flex justify-center">
+          <div className="grid w-full max-w-xl grid-cols-2 gap-2 sm:grid-cols-4">
+            {[
+              ["Hari", elapsed.days],
+              ["Jam", elapsed.hours],
+              ["Menit", elapsed.minutes],
+              ["Detik", elapsed.seconds],
+            ].map(([label, value]) => (
+              <div key={`elapsed-${String(label)}`} className="rounded-2xl border border-[#9c4f46]/20 bg-white/60 p-3 text-center">
+                <p className="font-display text-3xl text-[#6f332f]">{String(value).padStart(2, "0")}</p>
+                <p className="text-[10px] uppercase tracking-[0.12em] text-[#2b2220]/65">{label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </header>
 
       <section className="mt-7">
@@ -204,7 +245,7 @@ export default function AnniversaryShowcase() {
         <p className="mt-3 rounded-2xl border border-[#9c4f46]/20 bg-white/60 p-4 text-sm leading-relaxed text-[#2b2220]/75">{config.letter}</p>
       </section>
 
-      <footer className="mt-6 border-t border-black/10 pt-4 text-sm text-[#2b2220]/70">{config.footer_text}</footer>
+      <p className="mt-6 border-t border-black/10 pt-4 text-sm text-[#2b2220]/70">{config.footer_text}</p>
       <audio ref={audioRef} src={config.music_url || ""} preload="none" />
     </div>
   );

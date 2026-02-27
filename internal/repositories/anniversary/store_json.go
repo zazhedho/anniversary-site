@@ -178,13 +178,13 @@ func sanitizeConfig(cfg dto.AnniversarySiteConfig, loc *time.Location) (dto.Anni
 
 func defaultConfig() dto.AnniversarySiteConfig {
 	return dto.AnniversarySiteConfig{
-		Brand:       "Anniversary Journey",
-		CoupleNames: "Nama Kamu & Pasangan",
+		Brand:       "My another Z • I'm YourZ",
+		CoupleNames: "Zaidus Zhuhur & Zaqia Khana Meriza",
 		WeddingDate: "2025-04-27",
-		HeroTitle:   "Merayakan Cinta Kita",
-		HeroSubtext: "Setiap tahun adalah bab baru. Website ini menjadi rumah kecil untuk menyimpan momen anniversary dari tahun ke tahun.",
-		Letter:      "Setiap tahun bersamamu membuatku semakin yakin: kamu adalah rumah, teman, dan cinta terbaik dalam hidupku. Terima kasih untuk semua tawa, kesabaran, dan doa yang kita bagi setiap hari.",
-		FooterText:  "Dibuat khusus untuk merayakan perjalanan anniversary pernikahan kita.",
+		HeroTitle:   "My another Z, I'm YourZ",
+		HeroSubtext: "First anniversary ini jadi bab pertama perjalanan resmi kita sebagai suami istri. Dari 27 April 2025 sampai hari ini, setiap langkah kita selalu terasa lebih berarti karena dijalani berdua.",
+		Letter:      "Untuk Zaqia Khana Meriza, terima kasih sudah menjadi rumah terbaikku. Di anniversary pertama ini, aku tetap memilihmu setiap hari. My another Z, I'm YourZ, hari ini dan seterusnya.",
+		FooterText:  "Dibuat oleh Zaidus Zhuhur untuk Zaqia Khana Meriza, di anniversary pertama kita.",
 		MusicURL:    "/our-song.mp3",
 		Timeline: []dto.AnniversaryTimelineItem{
 			{Title: "Awal Menjadi Satu", Description: "Hari di mana janji diucapkan, sekaligus titik awal petualangan paling personal dalam hidup kita."},
@@ -197,7 +197,7 @@ func defaultConfig() dto.AnniversarySiteConfig {
 			{Title: "Weekend Escape", Summary: "Rencana spontan yang seru.", Note: "Semoga banyak perjalanan baru yang kita jelajahi sebagai pasangan."},
 		},
 		Moments: []dto.AnniversaryMoment{
-			{Year: 1, Title: "First Anniversary", Date: "2026-04-27", Note: "Satu tahun pertama yang penuh belajar, tawa, dan saling menguatkan."},
+			{Year: 1, Title: "First Anniversary", Date: "2026-04-27", Note: "Satu tahun pertama bersama: My another Z, I'm YourZ."},
 			{Year: 2, Title: "Second Anniversary", Date: "2027-04-27", Note: "Saatnya menambah cerita baru dan merayakan pertumbuhan kita sebagai tim."},
 			{Year: 3, Title: "Third Anniversary", Date: "2028-04-27", Note: "Tetap bertumbuh, tetap saling memilih, dan tetap pulang pada cinta yang sama."},
 		},
