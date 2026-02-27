@@ -16,6 +16,21 @@ export type PublicMemoryCard = {
   note: string;
 };
 
+export type PublicGalleryPhoto = {
+  id?: string;
+  title: string;
+  caption: string;
+  image_url: string;
+};
+
+export type PublicGalleryVideo = {
+  id?: string;
+  title: string;
+  description: string;
+  video_url: string;
+  poster_url?: string;
+};
+
 export type PublicAnnualMoment = {
   year: number;
   title: string;
@@ -32,6 +47,21 @@ export type SetupMemoryCard = {
   title: LocalizedText;
   summary: LocalizedText;
   note: LocalizedText;
+};
+
+export type SetupGalleryPhoto = {
+  id?: string;
+  title: LocalizedText;
+  caption: LocalizedText;
+  image_url: string;
+};
+
+export type SetupGalleryVideo = {
+  id?: string;
+  title: LocalizedText;
+  description: LocalizedText;
+  video_url: string;
+  poster_url?: string;
 };
 
 export type SetupAnnualMoment = {
@@ -57,6 +87,8 @@ export type PublicSiteConfig = {
   timeline: PublicTimelineItem[];
   memory_cards: PublicMemoryCard[];
   annual_moments: PublicAnnualMoment[];
+  gallery_photos?: PublicGalleryPhoto[];
+  gallery_videos?: PublicGalleryVideo[];
 };
 
 export type SetupSiteConfig = {
@@ -71,6 +103,8 @@ export type SetupSiteConfig = {
   timeline: SetupTimelineItem[];
   memory_cards: SetupMemoryCard[];
   annual_moments: SetupAnnualMoment[];
+  gallery_photos?: SetupGalleryPhoto[];
+  gallery_videos?: SetupGalleryVideo[];
 };
 
 export type NextAnniversary = {

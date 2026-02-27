@@ -12,8 +12,9 @@ export default function PublicAnniversaryPage() {
       <div className="mx-auto w-[min(1120px,96vw)]">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <p className="text-xs uppercase tracking-[0.14em] text-[#6f332f]">{t("public.tag")}</p>
-          <div className="space-x-2 text-sm">
+          <div className="flex flex-wrap items-center gap-2 text-sm">
             <LanguageSwitcher className="align-middle" />
+            <Link to="/anniversary/game" className="rounded-full border border-[#9c4f46]/30 bg-white/70 px-3 py-1.5 font-semibold">{t("public.game")}</Link>
             <Link to="/login" className="rounded-full border border-[#9c4f46]/30 bg-white/70 px-3 py-1.5 font-semibold">{t("public.login")}</Link>
             <Link to="/dashboard" className="rounded-full bg-[#9c4f46] px-3 py-1.5 font-semibold text-white">{t("public.dashboard")}</Link>
           </div>
