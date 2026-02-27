@@ -109,6 +109,10 @@ func sanitizeConfig(cfg dto.AnniversarySiteConfig, loc *time.Location) (dto.Anni
 	if cfg.WeddingDate == "" {
 		cfg.WeddingDate = def.WeddingDate
 	}
+	cfg.CoverBadge = fallbackLocalized(cfg.CoverBadge, def.CoverBadge)
+	cfg.CoverTitle = fallbackLocalized(cfg.CoverTitle, def.CoverTitle)
+	cfg.CoverSubtext = fallbackLocalized(cfg.CoverSubtext, def.CoverSubtext)
+	cfg.CoverCTA = fallbackLocalized(cfg.CoverCTA, def.CoverCTA)
 
 	weddingDate, err := time.ParseInLocation(dateLayout, cfg.WeddingDate, loc)
 	if err != nil {
@@ -193,7 +197,20 @@ func defaultConfig() dto.AnniversarySiteConfig {
 		Brand:       dto.NewLocalizedText("My another Z • I'm YourZ"),
 		CoupleNames: dto.NewLocalizedText("Zaidus Zhuhur & Zaqia Khana Meriza"),
 		WeddingDate: "2025-04-27",
-		HeroTitle:   dto.NewLocalizedText("My another Z, I'm YourZ"),
+		CoverBadge:  dto.NewLocalizedText("My another Z • I'm YourZ"),
+		CoverTitle: dto.LocalizedText{
+			ID: "Untuk My another Z",
+			EN: "For My another Z",
+		}.Normalize(),
+		CoverSubtext: dto.LocalizedText{
+			ID: "Aku sudah menyiapkan perjalanan kecil untukmu. Tidak perlu buru-buru, cukup klik mulai dan ikuti alurnya.",
+			EN: "I prepared a little journey for you. No need to rush, just start and follow the flow.",
+		}.Normalize(),
+		CoverCTA: dto.LocalizedText{
+			ID: "Mulai Perjalanan",
+			EN: "Start The Journey",
+		}.Normalize(),
+		HeroTitle: dto.NewLocalizedText("My another Z, I'm YourZ"),
 		HeroSubtext: dto.LocalizedText{
 			ID: "First anniversary ini jadi bab pertama perjalanan resmi kita sebagai suami istri. Dari 27 April 2025 sampai hari ini, setiap langkah kita selalu terasa lebih berarti karena dijalani berdua.",
 			EN: "This first anniversary is the first chapter of our official journey as husband and wife. Since April 27, 2025, every step has felt more meaningful because we walk it together.",

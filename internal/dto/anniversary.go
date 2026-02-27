@@ -147,31 +147,39 @@ type AnniversaryPublicMemoryCard struct {
 }
 
 type AnniversarySiteConfig struct {
-	Brand       LocalizedText             `json:"brand"`
-	CoupleNames LocalizedText             `json:"couple_names"`
-	WeddingDate string                    `json:"wedding_date"`
-	HeroTitle   LocalizedText             `json:"hero_title"`
-	HeroSubtext LocalizedText             `json:"hero_subtext"`
-	Letter      LocalizedText             `json:"letter"`
-	FooterText  LocalizedText             `json:"footer_text"`
-	MusicURL    string                    `json:"music_url"`
-	Timeline    []AnniversaryTimelineItem `json:"timeline"`
-	MemoryCards []AnniversaryMemoryCard   `json:"memory_cards"`
-	Moments     []AnniversaryMoment       `json:"annual_moments"`
+	Brand        LocalizedText             `json:"brand"`
+	CoupleNames  LocalizedText             `json:"couple_names"`
+	WeddingDate  string                    `json:"wedding_date"`
+	CoverBadge   LocalizedText             `json:"cover_badge"`
+	CoverTitle   LocalizedText             `json:"cover_title"`
+	CoverSubtext LocalizedText             `json:"cover_subtext"`
+	CoverCTA     LocalizedText             `json:"cover_cta"`
+	HeroTitle    LocalizedText             `json:"hero_title"`
+	HeroSubtext  LocalizedText             `json:"hero_subtext"`
+	Letter       LocalizedText             `json:"letter"`
+	FooterText   LocalizedText             `json:"footer_text"`
+	MusicURL     string                    `json:"music_url"`
+	Timeline     []AnniversaryTimelineItem `json:"timeline"`
+	MemoryCards  []AnniversaryMemoryCard   `json:"memory_cards"`
+	Moments      []AnniversaryMoment       `json:"annual_moments"`
 }
 
 type AnniversaryPublicSiteConfig struct {
-	Brand       string                          `json:"brand"`
-	CoupleNames string                          `json:"couple_names"`
-	WeddingDate string                          `json:"wedding_date"`
-	HeroTitle   string                          `json:"hero_title"`
-	HeroSubtext string                          `json:"hero_subtext"`
-	Letter      string                          `json:"letter"`
-	FooterText  string                          `json:"footer_text"`
-	MusicURL    string                          `json:"music_url"`
-	Timeline    []AnniversaryPublicTimelineItem `json:"timeline"`
-	MemoryCards []AnniversaryPublicMemoryCard   `json:"memory_cards"`
-	Moments     []AnniversaryPublicMoment       `json:"annual_moments"`
+	Brand        string                          `json:"brand"`
+	CoupleNames  string                          `json:"couple_names"`
+	WeddingDate  string                          `json:"wedding_date"`
+	CoverBadge   string                          `json:"cover_badge"`
+	CoverTitle   string                          `json:"cover_title"`
+	CoverSubtext string                          `json:"cover_subtext"`
+	CoverCTA     string                          `json:"cover_cta"`
+	HeroTitle    string                          `json:"hero_title"`
+	HeroSubtext  string                          `json:"hero_subtext"`
+	Letter       string                          `json:"letter"`
+	FooterText   string                          `json:"footer_text"`
+	MusicURL     string                          `json:"music_url"`
+	Timeline     []AnniversaryPublicTimelineItem `json:"timeline"`
+	MemoryCards  []AnniversaryPublicMemoryCard   `json:"memory_cards"`
+	Moments      []AnniversaryPublicMoment       `json:"annual_moments"`
 }
 
 type AnniversaryCountdown struct {

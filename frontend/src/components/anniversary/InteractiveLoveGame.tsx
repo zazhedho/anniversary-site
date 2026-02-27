@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { buildJourneyPhotos, buildJourneyVideos } from "../../data/romanceJourney";
 import type { PublicSiteConfig } from "../../types/anniversary";
 import SurpriseEnvelope from "./SurpriseEnvelope";
@@ -28,8 +29,10 @@ type InteractiveLoveGameProps = {
 const NO_LIMIT = 10;
 const ROMANTIC_LINE_TOTAL = 3;
 const SURPRISE_TOTAL = 5;
+const PHOTO_AUTO_SLIDE_MS = 3200;
 
 export default function InteractiveLoveGame({ t, config }: InteractiveLoveGameProps) {
+  const navigate = useNavigate();
   const [noCount, setNoCount] = useState(0);
   const [yesAccepted, setYesAccepted] = useState(false);
   const [noFloating, setNoFloating] = useState(false);
@@ -90,10 +93,11 @@ export default function InteractiveLoveGame({ t, config }: InteractiveLoveGamePr
       return { width: undefined, height: undefined, fontSize: undefined, borderRadius: undefined };
     }
 
-    const width = Math.min(180 + noCount * 140, Math.max(240, viewport.width - 24));
-    const height = Math.min(54 + noCount * 16, Math.max(68, Math.floor(viewport.height * 0.44)));
-    const fontSize = Math.min(16 + noCount * 2.35, 40);
-    const borderRadius = Math.max(26 - noCount * 2.2, 6);
+    const growth = noCount * noCount;
+    const width = Math.min(180 + growth * 34 + noCount * 46, Math.max(240, viewport.width - 18));
+    const height = Math.min(54 + growth * 3 + noCount * 10, Math.max(68, Math.floor(viewport.height * 0.52)));
+    const fontSize = Math.min(16 + growth * 0.65 + noCount * 0.9, 56);
+    const borderRadius = Math.max(28 - noCount * 2.7, 2);
 
     return { width, height, fontSize, borderRadius };
   }, [fullScreenYes, noCount, viewport.height, viewport.width]);
@@ -111,13 +115,20 @@ export default function InteractiveLoveGame({ t, config }: InteractiveLoveGamePr
   }, [photoIndex, photos.length]);
 
   useEffect(() => {
+    if (step !== "journey" || journeyStage !== "photos" || photos.length < 2) return;
+    const slider = window.setInterval(() => {
+      setPhotoIndex((prev) => (prev + 1) % photos.length);
+    }, PHOTO_AUTO_SLIDE_MS);
+    return () => window.clearInterval(slider);
+  }, [journeyStage, photos.length, step]);
+
+  useEffect(() => {
     if (videoIndex <= videos.length - 1) return;
     setVideoIndex(0);
   }, [videoIndex, videos.length]);
 
   useEffect(() => {
     if (step !== "journey" || journeyStage !== "surprise") return;
-
     setIsEnvelopeOpen(false);
     const timer = window.setTimeout(() => {
       setIsEnvelopeOpen(true);
@@ -272,7 +283,6 @@ export default function InteractiveLoveGame({ t, config }: InteractiveLoveGamePr
           </span>
         ))}
       </div>
-
       <style>{`
         @keyframes floatUp{0%{transform:translateY(0) scale(0.9);opacity:.9;}100%{transform:translateY(-90px) scale(1.2);opacity:0;}}
         @keyframes stepEnter{0%{transform:translateY(18px) scale(.985);opacity:0;}100%{transform:translateY(0) scale(1);opacity:1;}}
@@ -281,17 +291,14 @@ export default function InteractiveLoveGame({ t, config }: InteractiveLoveGamePr
         @keyframes stageSlideInPrev{0%{transform:translateX(-28px);opacity:0;}100%{transform:translateX(0);opacity:1;}}
         @keyframes warmPulse{0%,100%{box-shadow:0 0 0 0 rgba(156,79,70,0.16);}50%{box-shadow:0 0 0 10px rgba(156,79,70,0);}}
       `}</style>
-
       <div className="relative z-10">
         {step === "challenge" ? (
           <div className="animate-[stepEnter_420ms_cubic-bezier(0.16,1,0.3,1)]">
             <h3 className="font-display text-3xl sm:text-4xl">{t("showcase.game.chaseTitle")}</h3>
             <p className="mt-1 text-sm text-[#2b2220]/70">{t("showcase.game.chaseSubtitle")}</p>
-
             <article className="mt-3 rounded-xl border border-[#9c4f46]/20 bg-white/75 p-4">
               <p className="text-sm font-semibold text-[#2b2220]">{t("showcase.game.chasePrompt")}</p>
-
-              <div className="mt-3 flex flex-wrap items-center gap-2">
+              <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
                 <button
                   type="button"
                   onClick={handleYesClick}
@@ -309,7 +316,6 @@ export default function InteractiveLoveGame({ t, config }: InteractiveLoveGamePr
                 >
                   {fullScreenYes ? t("showcase.game.fullYes") : t("showcase.game.yes")}
                 </button>
-
                 {!noHidden && !noFloating ? (
                   <button
                     type="button"
@@ -329,7 +335,6 @@ export default function InteractiveLoveGame({ t, config }: InteractiveLoveGamePr
             <p className="text-xs uppercase tracking-[0.14em] text-[#6f332f]">{t("showcase.game.romanticTag")}</p>
             <h3 className="mt-2 font-display text-4xl leading-[0.95] sm:text-5xl">{t("showcase.game.romanticTitle")}</h3>
             <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-[#2b2220]/80">{romanticLines[romanticLineIndex]}</p>
-
             <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
               <button
                 type="button"
@@ -338,7 +343,6 @@ export default function InteractiveLoveGame({ t, config }: InteractiveLoveGamePr
               >
                 {t("showcase.game.anotherLine")}
               </button>
-
               <button
                 type="button"
                 onClick={moveToJourney}
@@ -354,17 +358,12 @@ export default function InteractiveLoveGame({ t, config }: InteractiveLoveGamePr
           <article className="animate-[stepEnter_420ms_cubic-bezier(0.16,1,0.3,1)] rounded-2xl border border-[#9c4f46]/20 bg-[linear-gradient(150deg,rgba(255,255,255,0.92),rgba(244,208,196,0.55))] p-4 sm:p-5">
             <h3 className="font-display text-3xl sm:text-4xl">{t("showcase.game.journeyTitle")}</h3>
             <p className="mt-1 text-sm text-[#2b2220]/75">{t("showcase.game.journeySubtitle")}</p>
-
-            <p className="mt-3 inline-flex rounded-full border border-[#9c4f46]/30 bg-white/70 px-3 py-1 text-xs font-semibold text-[#6f332f]">
-              {journeyIndex + 1}/{journeyFlow.length}
-            </p>
-
             <div
               key={`${journeyStage}-${journeyDirection}`}
               className={`mt-4 ${journeyDirection === "next" ? "animate-[stageSlideInNext_420ms_cubic-bezier(0.16,1,0.3,1)]" : "animate-[stageSlideInPrev_420ms_cubic-bezier(0.16,1,0.3,1)]"}`}
             >
               {journeyStage === "photos" ? (
-                <div>
+                <div className="mx-auto w-full max-w-3xl">
                   <div className="overflow-hidden rounded-2xl border border-[#9c4f46]/20 bg-white">
                     <img src={photos[photoIndex].image_url} alt={photos[photoIndex].title} className="h-56 w-full object-cover sm:h-72 md:h-[24rem]" />
                   </div>
@@ -386,20 +385,22 @@ export default function InteractiveLoveGame({ t, config }: InteractiveLoveGamePr
                     </button>
                   </div>
 
-                  <p className="mt-3 font-display text-3xl">{photos[photoIndex].title}</p>
-                  <p className="text-sm text-[#2b2220]/75">{photos[photoIndex].caption || t("showcase.game.photoCaptionDefault")}</p>
+                  <p className="mt-3 text-center font-display text-3xl">{photos[photoIndex].title}</p>
+                  <p className="text-center text-sm text-[#2b2220]/75">{photos[photoIndex].caption || t("showcase.game.photoCaptionDefault")}</p>
 
-                  <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
-                    {photos.map((photo, index) => (
-                      <button
-                        key={photo.id}
-                        type="button"
-                        onClick={() => setPhotoIndex(index)}
-                        className={`overflow-hidden rounded-xl border ${photoIndex === index ? "border-[#9c4f46] ring-2 ring-[#9c4f46]/25" : "border-[#9c4f46]/20"}`}
-                      >
-                        <img src={photo.image_url} alt={photo.title} className="h-16 w-full object-cover sm:h-20" />
-                      </button>
-                    ))}
+                  <div className="mt-3 flex justify-center">
+                    <div className="grid w-fit grid-cols-3 gap-2 sm:grid-cols-4">
+                      {photos.map((photo, index) => (
+                        <button
+                          key={photo.id}
+                          type="button"
+                          onClick={() => setPhotoIndex(index)}
+                          className={`overflow-hidden rounded-xl border ${photoIndex === index ? "border-[#9c4f46] ring-2 ring-[#9c4f46]/25" : "border-[#9c4f46]/20"}`}
+                        >
+                          <img src={photo.image_url} alt={photo.title} className="h-16 w-20 object-cover sm:h-20 sm:w-24" />
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               ) : null}
@@ -457,7 +458,15 @@ export default function InteractiveLoveGame({ t, config }: InteractiveLoveGamePr
                 >
                   {t("showcase.game.next")}
                 </button>
-              ) : null}
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => navigate("/anniversary/showcase")}
+                  className="rounded-full bg-[#9c4f46] px-5 py-2 text-sm font-semibold text-white sm:px-6"
+                >
+                  {t("showcase.game.finish")}
+                </button>
+              )}
             </div>
           </article>
         ) : null}

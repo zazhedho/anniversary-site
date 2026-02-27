@@ -7,6 +7,7 @@ import { LocaleProvider } from "./contexts/LocaleContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import PublicAnniversaryGamePage from "./pages/anniversary/PublicAnniversaryGamePage";
 import PublicAnniversaryPage from "./pages/anniversary/PublicAnniversaryPage";
+import PublicAnniversaryShowcasePage from "./pages/anniversary/PublicAnniversaryShowcasePage";
 import SetupAnniversaryPage from "./pages/anniversary/SetupAnniversaryPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import ChangePasswordPage from "./pages/auth/ChangePasswordPage";
@@ -34,6 +35,7 @@ export default function App() {
           <Route path="/" element={<Navigate to="/anniversary" replace />} />
           <Route path="/anniversary" element={<PublicAnniversaryPage />} />
           <Route path="/anniversary/game" element={<PublicAnniversaryGamePage />} />
+          <Route path="/anniversary/showcase" element={<PublicAnniversaryShowcasePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />

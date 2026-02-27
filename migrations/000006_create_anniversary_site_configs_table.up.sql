@@ -18,6 +18,22 @@ SELECT
   "brand": "My another Z • I'm YourZ",
   "couple_names": "Zaidus Zhuhur \u0026 Zaqia Khana Meriza",
   "wedding_date": "2025-04-27",
+  "cover_badge": {
+    "id": "My another Z • I'm YourZ",
+    "en": "My another Z • I'm YourZ"
+  },
+  "cover_title": {
+    "id": "Untuk My another Z",
+    "en": "For My another Z"
+  },
+  "cover_subtext": {
+    "id": "Aku sudah menyiapkan perjalanan kecil untukmu. Tidak perlu buru-buru, cukup klik mulai dan ikuti alurnya.",
+    "en": "I prepared a little journey for you. No need to rush, just start and follow the flow."
+  },
+  "cover_cta": {
+    "id": "Mulai Perjalanan",
+    "en": "Start The Journey"
+  },
   "hero_title": {
     "id": "Selamat Anniversary Pertama, My Another Z",
     "en": "Happy 1st Anniversary, My Another Z"

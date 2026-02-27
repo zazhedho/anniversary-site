@@ -79,6 +79,10 @@ export type PublicSiteConfig = {
   brand: string;
   couple_names: string;
   wedding_date: string;
+  cover_badge: string;
+  cover_title: string;
+  cover_subtext: string;
+  cover_cta: string;
   hero_title: string;
   hero_subtext: string;
   letter: string;
@@ -95,6 +99,10 @@ export type SetupSiteConfig = {
   brand: LocalizedText;
   couple_names: LocalizedText;
   wedding_date: string;
+  cover_badge: LocalizedText;
+  cover_title: LocalizedText;
+  cover_subtext: LocalizedText;
+  cover_cta: LocalizedText;
   hero_title: LocalizedText;
   hero_subtext: LocalizedText;
   letter: LocalizedText;

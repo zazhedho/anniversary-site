@@ -15,6 +15,42 @@ export default function SetupStorySection({ t, form, editLanguage, onLocalizedFi
 
       <div className="grid gap-3 md:grid-cols-2">
         <label className="block">
+          <span className="mb-1 block text-sm font-semibold">{t("setup.coverBadge")}</span>
+          <input
+            type="text"
+            value={form.cover_badge[editLanguage]}
+            onChange={(event) => onLocalizedFieldChange("cover_badge", event.target.value)}
+            placeholder={t("setup.placeholder.coverBadge")}
+            className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#9c4f46]"
+            required
+          />
+        </label>
+
+        <label className="block">
+          <span className="mb-1 block text-sm font-semibold">{t("setup.coverCta")}</span>
+          <input
+            type="text"
+            value={form.cover_cta[editLanguage]}
+            onChange={(event) => onLocalizedFieldChange("cover_cta", event.target.value)}
+            placeholder={t("setup.placeholder.coverCta")}
+            className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#9c4f46]"
+            required
+          />
+        </label>
+
+        <label className="block">
+          <span className="mb-1 block text-sm font-semibold">{t("setup.coverTitle")}</span>
+          <input
+            type="text"
+            value={form.cover_title[editLanguage]}
+            onChange={(event) => onLocalizedFieldChange("cover_title", event.target.value)}
+            placeholder={t("setup.placeholder.coverTitle")}
+            className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#9c4f46]"
+            required
+          />
+        </label>
+
+        <label className="block">
           <span className="mb-1 block text-sm font-semibold">{t("setup.heroTitle")}</span>
           <input
             type="text"
@@ -38,6 +74,17 @@ export default function SetupStorySection({ t, form, editLanguage, onLocalizedFi
           />
         </label>
       </div>
+
+      <label className="block">
+        <span className="mb-1 block text-sm font-semibold">{t("setup.coverSubtext")}</span>
+        <textarea
+          value={form.cover_subtext[editLanguage]}
+          onChange={(event) => onLocalizedFieldChange("cover_subtext", event.target.value)}
+          placeholder={t("setup.placeholder.coverSubtext")}
+          className="min-h-[88px] w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#9c4f46]"
+          required
+        />
+      </label>
 
       <label className="block">
         <span className="mb-1 block text-sm font-semibold">{t("setup.heroSubtext")}</span>

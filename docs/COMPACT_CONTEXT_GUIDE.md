@@ -93,6 +93,18 @@ Field teks setup menerima:
 - Jika salah satu bahasa kosong, akan fallback ke yang tersedia.
 - Public payload selalu dikembalikan sebagai string sesuai `lang`.
 
+### Field media opsional (public config)
+
+- `gallery_photos` (opsional): dipakai untuk flow foto di `/anniversary/game`.
+- `gallery_videos` (opsional): jika ada, stage video ditampilkan; jika kosong, stage video disembunyikan.
+- Jika `gallery_photos` kosong, frontend fallback menggunakan `memory_cards` + placeholder image.
+
+### Field cover custom (public config)
+
+- `cover_badge`, `cover_title`, `cover_subtext`, `cover_cta`.
+- Dipakai oleh halaman cover `/anniversary` (Start Journey) dan seluruhnya bisa diatur dari Setup.
+- Jika field cover kosong, frontend fallback ke nilai aman (`brand` / `hero_title` / `hero_subtext`).
+
 Referensi:
 - `internal/dto/anniversary.go`
 - `internal/services/anniversary/payload.go`
@@ -121,7 +133,9 @@ Referensi:
 ## 7) Alur Frontend
 
 Routing utama:
-- Public: `/anniversary`
+- Public cover: `/anniversary` (single CTA ke game)
+- Public interactive: `/anniversary/game`
+- Public showcase: `/anniversary/showcase` (menampilkan `AnniversaryShowcase` dari DB/JSON)
 - Auth: `/login`, `/register`, `/forgot-password`, `/reset-password`
 - Protected: `/dashboard`, `/users`, `/roles`, `/menus`, `/profile`, `/change-password`, `/setup/anniversary`
 - Protected form routes:
@@ -137,6 +151,16 @@ I18n:
 - `LocaleContext` menyimpan pilihan bahasa ke `localStorage` (`anniv_language`)
 - Public showcase refetch payload saat bahasa berubah
 
+Public interactive flow:
+- Step `Yes/No` challenge (`No` random move, `Yes` progressively grows, full-screen at 10x `No`).
+- Setelah `Yes`: masuk ke layar romantis, lanjut ke flow linear:
+  - envelope love-note animation,
+  - foto bersama,
+  - video (hanya jika data video tersedia).
+- Pada step terakhir, tombol `Finish` menuju `/anniversary/showcase` (public, tanpa login).
+- Tidak ada progress indicator di UI flow game (dibuat misterius).
+- Komponen amplop dipisah ke `SurpriseEnvelope.tsx` agar file utama tetap <500 baris.
+
 Setup Anniversary UI:
 - Halaman `/setup/anniversary` memakai alur non-teknis: simpan token, load data, edit form per section, lalu save.
 - Token setup disimpan lokal di browser (`anniv_setup_token`).
@@ -147,6 +171,9 @@ Referensi:
 - `frontend/src/contexts/AuthContext.tsx`
 - `frontend/src/contexts/LocaleContext.tsx`
 - `frontend/src/components/anniversary/AnniversaryShowcase.tsx`
+- `frontend/src/components/anniversary/InteractiveLoveGame.tsx`
+- `frontend/src/components/anniversary/SurpriseEnvelope.tsx`
+- `frontend/src/data/romanceJourney.ts`
 - `frontend/src/services/publicService.ts`
 
 ## 8) Permission-Driven Access (Bukan Role-Driven)

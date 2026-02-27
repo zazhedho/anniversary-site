@@ -1,25 +1,72 @@
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import AnniversaryShowcase from "../../components/anniversary/AnniversaryShowcase";
 import LanguageSwitcher from "../../components/common/LanguageSwitcher";
 import SiteFooter from "../../components/common/SiteFooter";
 import { useLanguage } from "../../contexts/LocaleContext";
+import { fetchPublicAnniversary } from "../../services/publicService";
+import type { PublicSiteConfig } from "../../types/anniversary";
 
 export default function PublicAnniversaryPage() {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
+  const [config, setConfig] = useState<PublicSiteConfig | undefined>(undefined);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function load() {
+      try {
+        const payload = await fetchPublicAnniversary(language);
+        if (!mounted) return;
+        setConfig(payload.config);
+      } catch {
+        if (!mounted) return;
+        setConfig(undefined);
+      }
+    }
+
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, [language]);
+
+  const coverBadge = useMemo(() => config?.cover_badge || config?.brand || "My another Z • I'm YourZ", [config]);
+  const coverTitle = useMemo(() => config?.cover_title || config?.hero_title || t("public.coverTitle"), [config, t]);
+  const coverSubtext = useMemo(() => config?.cover_subtext || config?.hero_subtext || t("public.coverSubtitle"), [config, t]);
+  const coverCTA = useMemo(() => config?.cover_cta || t("public.startJourney"), [config, t]);
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#fff9f3] via-[#ffece1] to-[#f5d4c8] px-5 py-6 text-[#2b2220]">
-      <div className="mx-auto w-[min(1120px,96vw)]">
+      <div className="mx-auto w-[min(960px,96vw)]">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <p className="text-xs uppercase tracking-[0.14em] text-[#6f332f]">{t("public.tag")}</p>
           <div className="flex flex-wrap items-center gap-2 text-sm">
             <LanguageSwitcher className="align-middle" />
-            <Link to="/anniversary/game" className="rounded-full border border-[#9c4f46]/30 bg-white/70 px-3 py-1.5 font-semibold">{t("public.game")}</Link>
             <Link to="/login" className="rounded-full border border-[#9c4f46]/30 bg-white/70 px-3 py-1.5 font-semibold">{t("public.login")}</Link>
             <Link to="/dashboard" className="rounded-full bg-[#9c4f46] px-3 py-1.5 font-semibold text-white">{t("public.dashboard")}</Link>
           </div>
         </div>
-        <AnniversaryShowcase />
+
+        <section className="relative overflow-hidden rounded-[30px] border border-[#9c4f46]/20 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.92),rgba(244,208,196,0.58))] p-6 text-center sm:p-10">
+          <div className="pointer-events-none absolute -left-12 top-8 h-36 w-36 rounded-full bg-white/45 blur-2xl" />
+          <div className="pointer-events-none absolute -right-10 bottom-8 h-40 w-40 rounded-full bg-[#f0b9a4]/45 blur-2xl" />
+
+          <div className="relative mx-auto max-w-2xl">
+            <p className="text-xs uppercase tracking-[0.18em] text-[#6f332f]/75">{coverBadge}</p>
+            <h1 className="mt-3 font-display text-5xl leading-[0.94] sm:text-6xl">{coverTitle}</h1>
+            <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-[#2b2220]/78 sm:text-base">{coverSubtext}</p>
+
+            <div className="mt-7">
+              <Link
+                to="/anniversary/game"
+                className="inline-flex items-center justify-center rounded-full bg-[#9c4f46] px-7 py-3 text-sm font-semibold text-white shadow-[0_10px_28px_rgba(111,51,47,0.35)] transition hover:-translate-y-0.5"
+              >
+                {coverCTA}
+              </Link>
+            </div>
+          </div>
+        </section>
+
         <SiteFooter className="mt-6" />
       </div>
     </main>

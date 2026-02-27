@@ -140,6 +140,11 @@ export default function AnniversaryShowcase() {
   }
 
   const { config, moments, next_anniversary: next } = payload;
+  const coupleNames = config.couple_names
+    .split("&")
+    .map((item) => item.trim())
+    .filter(Boolean);
+
   return (
     <div className="relative overflow-hidden rounded-[30px] border border-[#9c4f46]/20 bg-gradient-to-br from-[#fff8f1] via-[#ffe8d9] to-[#f4d0c4] p-5 sm:p-8">
       <div className="pointer-events-none absolute -right-14 top-10 h-48 w-48 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.85),rgba(156,79,70,0.2))] blur-sm" />
@@ -157,11 +162,33 @@ export default function AnniversaryShowcase() {
           </button>
         </div>
 
-        <p className="mt-4 inline-flex rounded-full border border-[#9c4f46]/30 bg-white/60 px-3 py-1 text-xs text-[#6f332f]">{tagText}</p>
-        <h2 className="mt-3 font-display text-4xl leading-[0.95] sm:text-6xl">
-          {config.hero_title}, <span>{config.couple_names}</span>
-        </h2>
-        <p className="mt-3 max-w-3xl text-sm text-[#2b2220]/75">{config.hero_subtext}</p>
+        <p className="mt-4 mx-auto w-fit rounded-full border border-[#9c4f46]/30 bg-white/60 px-3 py-1 text-xs text-[#6f332f]">{tagText}</p>
+        <h2 className="mt-3 text-center font-display text-4xl leading-[0.95] sm:text-6xl">{config.hero_title}</h2>
+        <div className="mt-6 flex flex-col items-center text-center sm:mt-7">
+          <div className="mb-2 flex items-center gap-3 text-[#9c4f46]/55">
+            <span className="h-px w-10 bg-gradient-to-r from-transparent to-[#9c4f46]/60 sm:w-14" />
+            <span className="h-2 w-2 rounded-full bg-[#9c4f46]/50" />
+            <span className="h-px w-10 bg-gradient-to-l from-transparent to-[#9c4f46]/60 sm:w-14" />
+          </div>
+          {coupleNames.length > 1 ? (
+            <>
+              <p className="font-display text-3xl leading-tight sm:text-4xl">
+                <span className="bg-gradient-to-r from-[#8f3c36] via-[#b75c52] to-[#7a2d28] bg-clip-text text-transparent drop-shadow-[0_1px_0_rgba(255,255,255,0.5)]">
+                  {coupleNames[0]}
+                </span>
+              </p>
+              <span className="my-0.5 text-sm font-semibold text-[#8f3c36]/80">&</span>
+              <p className="font-display text-3xl leading-tight sm:text-4xl">
+                <span className="bg-gradient-to-r from-[#7a2d28] via-[#b75c52] to-[#8f3c36] bg-clip-text text-transparent drop-shadow-[0_1px_0_rgba(255,255,255,0.5)]">
+                  {coupleNames.slice(1).join(" & ")}
+                </span>
+              </p>
+            </>
+          ) : (
+            <p className="font-display text-3xl leading-tight text-[#6f332f] sm:text-4xl">{config.couple_names}</p>
+          )}
+        </div>
+        <p className="mx-auto mt-3 max-w-3xl text-center text-sm text-[#2b2220]/75">{config.hero_subtext}</p>
 
         <div className="mt-6 flex justify-center">
           <div className="grid w-full max-w-xl grid-cols-2 gap-2 sm:grid-cols-4">

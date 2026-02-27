@@ -8,7 +8,9 @@ Struktur (mirip safety-riding):
 - `src/pages/auth`, `src/pages/dashboard`, `src/pages/users`, `src/pages/roles`, `src/pages/menus`, `src/pages/anniversary`, `src/pages/system` untuk screen
 
 Route utama:
-- `/anniversary` (public)
+- `/anniversary` (public cover page, single CTA to start linear journey)
+- `/anniversary/game` (public interactive flow: yes/no -> romantic note -> envelope note -> photos -> optional videos)
+- `/anniversary/showcase` (public anniversary showcase from DB/JSON, shown after finishing game)
 - `/login`, `/register`, `/forgot-password`, `/reset-password`
 - `/dashboard`, `/profile`, `/change-password` (protected)
 - `/users`, `/users/new`, `/users/:id/edit` (protected, admin-style flow)
@@ -75,6 +77,7 @@ Jika kosong, frontend akan menggunakan path relatif (`/api/...`).
 - `GET /api/permissions/me` (untuk evaluasi akses resource/action)
 - `PUT /api/user/change/password`
 - `GET /api/public/anniversary`
+- `GET /api/public/anniversary/moments`
 - `GET /api/setup/anniversary` (`X-Setup-Token`)
 - `PUT /api/setup/anniversary` (`X-Setup-Token`)
 - `PUT /api/setup/anniversary/moments` (`X-Setup-Token`)
@@ -82,3 +85,7 @@ Jika kosong, frontend akan menggunakan path relatif (`/api/...`).
 - `DELETE /api/setup/anniversary/moments/:year` (`X-Setup-Token`)
 
 Pastikan backend dijalankan dengan `ENABLE_ADMIN_API=true` jika ingin memakai endpoint auth (`/api/user/*`).
+
+Catatan setup cover public:
+- Konten halaman `/anniversary` bisa diubah dari setup payload melalui key:
+`cover_badge`, `cover_title`, `cover_subtext`, `cover_cta`.

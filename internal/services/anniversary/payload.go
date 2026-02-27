@@ -78,17 +78,21 @@ func BuildPublicPayload(cfg dto.AnniversarySiteConfig, now time.Time, loc *time.
 	})
 
 	publicConfig := dto.AnniversaryPublicSiteConfig{
-		Brand:       cfg.Brand.Value(language),
-		CoupleNames: cfg.CoupleNames.Value(language),
-		WeddingDate: cfg.WeddingDate,
-		HeroTitle:   cfg.HeroTitle.Value(language),
-		HeroSubtext: cfg.HeroSubtext.Value(language),
-		Letter:      cfg.Letter.Value(language),
-		FooterText:  cfg.FooterText.Value(language),
-		MusicURL:    cfg.MusicURL,
-		Timeline:    make([]dto.AnniversaryPublicTimelineItem, 0, len(cfg.Timeline)),
-		MemoryCards: make([]dto.AnniversaryPublicMemoryCard, 0, len(cfg.MemoryCards)),
-		Moments:     make([]dto.AnniversaryPublicMoment, 0, len(cfg.Moments)),
+		Brand:        cfg.Brand.Value(language),
+		CoupleNames:  cfg.CoupleNames.Value(language),
+		WeddingDate:  cfg.WeddingDate,
+		CoverBadge:   cfg.CoverBadge.Value(language),
+		CoverTitle:   cfg.CoverTitle.Value(language),
+		CoverSubtext: cfg.CoverSubtext.Value(language),
+		CoverCTA:     cfg.CoverCTA.Value(language),
+		HeroTitle:    cfg.HeroTitle.Value(language),
+		HeroSubtext:  cfg.HeroSubtext.Value(language),
+		Letter:       cfg.Letter.Value(language),
+		FooterText:   cfg.FooterText.Value(language),
+		MusicURL:     cfg.MusicURL,
+		Timeline:     make([]dto.AnniversaryPublicTimelineItem, 0, len(cfg.Timeline)),
+		MemoryCards:  make([]dto.AnniversaryPublicMemoryCard, 0, len(cfg.MemoryCards)),
+		Moments:      make([]dto.AnniversaryPublicMoment, 0, len(cfg.Moments)),
 	}
 
 	for _, item := range cfg.Timeline {
