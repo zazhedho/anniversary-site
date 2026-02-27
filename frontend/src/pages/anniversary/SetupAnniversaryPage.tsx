@@ -1,46 +1,42 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import PasswordInput from "../../components/common/PasswordInput";
 import { useLanguage } from "../../contexts/LocaleContext";
 import { useNotification } from "../../contexts/NotificationContext";
-import type { SetupAnnualMoment, SetupSiteConfig } from "../../types/anniversary";
-import {
-  addSetupMoment,
-  deleteSetupMoment,
-  getSetupConfig,
-  replaceSetupMoments,
-  updateSetupConfig,
-} from "../../services/setupService";
+import { getSetupConfig, updateSetupConfig } from "../../services/setupService";
+import { normalizeConfig, parseConfigJson, toPayload, toPrettyJson } from "./setup/mapper";
+import SetupAdvancedJsonSection from "./setup/sections/SetupAdvancedJsonSection";
+import SetupAccessCard from "./setup/sections/SetupAccessCard";
+import SetupBasicSection from "./setup/sections/SetupBasicSection";
+import SetupHeaderCard from "./setup/sections/SetupHeaderCard";
+import SetupLanguageCard from "./setup/sections/SetupLanguageCard";
+import SetupMemoriesSection from "./setup/sections/SetupMemoriesSection";
+import SetupMomentsSection from "./setup/sections/SetupMomentsSection";
+import SetupSaveSection from "./setup/sections/SetupSaveSection";
+import SetupStorySection from "./setup/sections/SetupStorySection";
+import SetupTimelineSection from "./setup/sections/SetupTimelineSection";
+import type {
+  EditLanguage,
+  MemoryFormItem,
+  MomentFormItem,
+  RootLocalizedKey,
+  SetupForm,
+  TimelineFormItem,
+} from "./setup/types";
+import { EMPTY_SETUP_FORM } from "./setup/types";
 
 const SETUP_TOKEN_KEY = "anniv_setup_token";
 
-function toPrettyJson(value: unknown): string {
-  return JSON.stringify(value, null, 2);
-}
-
-function parseConfigJson(source: string, invalidMessage: string): SetupSiteConfig {
-  const parsed = JSON.parse(source) as SetupSiteConfig;
-  if (!parsed || typeof parsed !== "object") {
-    throw new Error(invalidMessage);
-  }
-  return parsed;
-}
-
 export default function SetupAnniversaryPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { notifyError, notifySuccess } = useNotification();
+
   const [setupToken, setSetupToken] = useState("");
-  const [configJson, setConfigJson] = useState("{}");
+  const [editLanguage, setEditLanguage] = useState<EditLanguage>(language);
+  const [form, setForm] = useState<SetupForm>(EMPTY_SETUP_FORM);
+  const [advancedJson, setAdvancedJson] = useState("{}");
   const [fetching, setFetching] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [actionLoading, setActionLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-
-  const [momentYear, setMomentYear] = useState(1);
-  const [momentTitle, setMomentTitle] = useState("");
-  const [momentDate, setMomentDate] = useState("");
-  const [momentNote, setMomentNote] = useState("");
-  const [deleteYear, setDeleteYear] = useState(1);
 
   const tokenMissing = useMemo(() => setupToken.trim() === "", [setupToken]);
 
@@ -51,21 +47,131 @@ export default function SetupAnniversaryPage() {
     }
   }, []);
 
+  useEffect(() => {
+    setEditLanguage(language);
+  }, [language]);
+
+  useEffect(() => {
+    setAdvancedJson(toPrettyJson(toPayload(form)));
+  }, [form]);
+
+  function setLocalizedField(key: RootLocalizedKey, value: string) {
+    setForm((prev) => ({
+      ...prev,
+      [key]: {
+        ...prev[key],
+        [editLanguage]: value,
+      },
+    }));
+  }
+
+  function setTimelineField(index: number, key: keyof TimelineFormItem, value: string) {
+    setForm((prev) => {
+      const next = [...prev.timeline];
+      next[index] = {
+        ...next[index],
+        [key]: {
+          ...next[index][key],
+          [editLanguage]: value,
+        },
+      };
+      return { ...prev, timeline: next };
+    });
+  }
+
+  function setMemoryField(index: number, key: keyof MemoryFormItem, value: string) {
+    setForm((prev) => {
+      const next = [...prev.memory_cards];
+      next[index] = {
+        ...next[index],
+        [key]: {
+          ...next[index][key],
+          [editLanguage]: value,
+        },
+      };
+      return { ...prev, memory_cards: next };
+    });
+  }
+
+  function setMomentField(index: number, key: keyof MomentFormItem, value: string | number) {
+    setForm((prev) => {
+      const next = [...prev.annual_moments];
+      if (key === "year") {
+        next[index] = { ...next[index], year: Number(value) || 1 };
+      } else if (key === "date") {
+        next[index] = { ...next[index], date: String(value) };
+      } else {
+        const localizedKey = key as "title" | "note";
+        next[index] = {
+          ...next[index],
+          [localizedKey]: {
+            ...next[index][localizedKey],
+            [editLanguage]: String(value),
+          },
+        };
+      }
+      return { ...prev, annual_moments: next };
+    });
+  }
+
+  function addTimeline() {
+    setForm((prev) => ({
+      ...prev,
+      timeline: [...prev.timeline, { title: { id: "", en: "" }, description: { id: "", en: "" } }],
+    }));
+  }
+
+  function addMemory() {
+    setForm((prev) => ({
+      ...prev,
+      memory_cards: [...prev.memory_cards, { title: { id: "", en: "" }, summary: { id: "", en: "" }, note: { id: "", en: "" } }],
+    }));
+  }
+
+  function addMoment() {
+    setForm((prev) => ({
+      ...prev,
+      annual_moments: [
+        ...prev.annual_moments,
+        {
+          year: prev.annual_moments.length + 1,
+          title: { id: "", en: "" },
+          date: "",
+          note: { id: "", en: "" },
+        },
+      ],
+    }));
+  }
+
+  function removeTimeline(index: number) {
+    setForm((prev) => ({ ...prev, timeline: prev.timeline.filter((_, idx) => idx !== index) }));
+  }
+
+  function removeMemory(index: number) {
+    setForm((prev) => ({ ...prev, memory_cards: prev.memory_cards.filter((_, idx) => idx !== index) }));
+  }
+
+  function removeMoment(index: number) {
+    setForm((prev) => ({ ...prev, annual_moments: prev.annual_moments.filter((_, idx) => idx !== index) }));
+  }
+
   function saveToken() {
     localStorage.setItem(SETUP_TOKEN_KEY, setupToken.trim());
     const text = t("setup.tokenSaved");
     setMessage(text);
-    notifySuccess(text);
     setError("");
+    notifySuccess(text);
   }
 
   async function loadConfig() {
     setMessage("");
     setError("");
     setFetching(true);
+
     try {
       const config = await getSetupConfig(setupToken);
-      setConfigJson(toPrettyJson(config));
+      const normalized = normalizeConfig(config);
+      setForm(normalized);
       const text = t("setup.configLoaded");
       setMessage(text);
       notifySuccess(text);
@@ -85,10 +191,7 @@ export default function SetupAnniversaryPage() {
     setSaving(true);
 
     try {
-      const payload = parseConfigJson(configJson, t("setup.invalidJson"));
-      await updateSetupConfig(setupToken, payload);
-      const refreshed = await getSetupConfig(setupToken);
-      setConfigJson(toPrettyJson(refreshed));
+      await updateSetupConfig(setupToken, toPayload(form));
       const text = t("setup.configSaved");
       setMessage(text);
       notifySuccess(text);
@@ -101,235 +204,87 @@ export default function SetupAnniversaryPage() {
     }
   }
 
-  async function onReplaceMomentsFromJson() {
-    setMessage("");
-    setError("");
-    setActionLoading(true);
-
+  function applyJsonToForm() {
     try {
-      const payload = parseConfigJson(configJson, t("setup.invalidJson"));
-      if (!Array.isArray(payload.annual_moments)) {
-        throw new Error(t("setup.momentsArrayRequired"));
-      }
-
-      await replaceSetupMoments(setupToken, payload.annual_moments);
-      const refreshed = await getSetupConfig(setupToken);
-      setConfigJson(toPrettyJson(refreshed));
-      const text = t("setup.momentsReplaced");
-      setMessage(text);
-      notifySuccess(text);
+      const parsed = parseConfigJson(advancedJson, t("setup.invalidJson"));
+      setForm(normalizeConfig(parsed));
+      notifySuccess(t("setup.jsonApplied"));
     } catch (err) {
-      const text = err instanceof Error ? err.message : t("setup.momentsReplaceFailed");
-      setError(text);
+      const text = err instanceof Error ? err.message : t("setup.invalidJson");
       notifyError(text);
-    } finally {
-      setActionLoading(false);
-    }
-  }
-
-  async function onAddMoment(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setMessage("");
-    setError("");
-    setActionLoading(true);
-
-    try {
-      const payload: SetupAnnualMoment = {
-        year: Number(momentYear),
-        title: momentTitle,
-        date: momentDate,
-        note: momentNote,
-      };
-
-      await addSetupMoment(setupToken, payload);
-      const refreshed = await getSetupConfig(setupToken);
-      setConfigJson(toPrettyJson(refreshed));
-      const text = t("setup.momentAdded", { year: momentYear });
-      setMessage(text);
-      notifySuccess(text);
-      setMomentTitle("");
-      setMomentDate("");
-      setMomentNote("");
-    } catch (err) {
-      const text = err instanceof Error ? err.message : t("setup.momentAddFailed");
-      setError(text);
-      notifyError(text);
-    } finally {
-      setActionLoading(false);
-    }
-  }
-
-  async function onDeleteMoment() {
-    setMessage("");
-    setError("");
-    setActionLoading(true);
-
-    try {
-      await deleteSetupMoment(setupToken, Number(deleteYear));
-      const refreshed = await getSetupConfig(setupToken);
-      setConfigJson(toPrettyJson(refreshed));
-      const text = t("setup.momentDeleted", { year: deleteYear });
-      setMessage(text);
-      notifySuccess(text);
-    } catch (err) {
-      const text = err instanceof Error ? err.message : t("setup.momentDeleteFailed");
-      setError(text);
-      notifyError(text);
-    } finally {
-      setActionLoading(false);
     }
   }
 
   return (
     <section className="space-y-4">
-      <article className="rounded-2xl border border-[#9c4f46]/20 bg-white/65 p-5">
-        <p className="text-xs uppercase tracking-[0.12em] text-[#6f332f]">{t("setup.tag")}</p>
-        <h1 className="mt-2 font-display text-4xl leading-none">{t("setup.title")}</h1>
-        <p className="mt-2 text-sm text-[#2b2220]/70">
-          {t("setup.subtitle")}
-        </p>
-      </article>
+      <SetupHeaderCard t={t} />
 
-      <article className="rounded-2xl border border-[#9c4f46]/20 bg-white/65 p-4">
-        <div className="grid gap-3 md:grid-cols-[1fr_auto_auto] md:items-end">
-          <label className="block">
-            <span className="mb-1 block text-sm font-semibold">{t("setup.tokenLabel")}</span>
-            <PasswordInput
-              value={setupToken}
-              onChange={(event) => setSetupToken(event.target.value)}
-              className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#9c4f46]"
-              placeholder={t("setup.tokenPlaceholder")}
-            />
-          </label>
-          <button
-            type="button"
-            onClick={saveToken}
-            disabled={tokenMissing}
-            className="rounded-xl border border-[#9c4f46]/30 bg-white px-4 py-2.5 text-sm font-semibold disabled:opacity-60"
-          >
-            {t("setup.saveToken")}
-          </button>
-          <button
-            type="button"
-            onClick={loadConfig}
-            disabled={tokenMissing || fetching}
-            className="rounded-xl bg-[#9c4f46] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
-          >
-            {fetching ? t("setup.loading") : t("setup.loadConfig")}
-          </button>
-        </div>
-      </article>
+      <SetupAccessCard
+        t={t}
+        setupToken={setupToken}
+        tokenMissing={tokenMissing}
+        fetching={fetching}
+        onSetupTokenChange={setSetupToken}
+        onSaveToken={saveToken}
+        onLoadConfig={loadConfig}
+      />
+
+      <SetupLanguageCard t={t} editLanguage={editLanguage} onChangeLanguage={setEditLanguage} />
 
       {message ? <p className="rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{message}</p> : null}
       {error ? <p className="rounded-xl border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p> : null}
 
-      <form onSubmit={onSaveConfig} className="rounded-2xl border border-[#9c4f46]/20 bg-white/65 p-4 space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-sm font-semibold">{t("setup.fullJsonEditor")}</p>
-          <button
-            type="submit"
-            disabled={tokenMissing || saving}
-            className="rounded-xl bg-gradient-to-r from-[#9c4f46] to-[#6f332f] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
-          >
-            {saving ? t("setup.saving") : t("setup.saveFullConfig")}
-          </button>
-        </div>
-        <textarea
-          value={configJson}
-          onChange={(event) => setConfigJson(event.target.value)}
-          className="min-h-[420px] w-full rounded-xl border border-[#9c4f46]/20 bg-[#2b2220] p-3 font-mono text-xs text-[#ffe8d9] outline-none focus:border-[#9c4f46]"
-          spellCheck={false}
+      <form onSubmit={onSaveConfig} className="space-y-4">
+        <SetupBasicSection
+          t={t}
+          form={form}
+          editLanguage={editLanguage}
+          saving={saving}
+          tokenMissing={tokenMissing}
+          onLocalizedFieldChange={setLocalizedField}
+          onWeddingDateChange={(value) => setForm((prev) => ({ ...prev, wedding_date: value }))}
+          onMusicUrlChange={(value) => setForm((prev) => ({ ...prev, music_url: value }))}
         />
+
+        <SetupStorySection t={t} form={form} editLanguage={editLanguage} onLocalizedFieldChange={setLocalizedField} />
+
+        <SetupTimelineSection
+          t={t}
+          editLanguage={editLanguage}
+          timeline={form.timeline}
+          onAddTimeline={addTimeline}
+          onRemoveTimeline={removeTimeline}
+          onTimelineFieldChange={setTimelineField}
+        />
+
+        <SetupMemoriesSection
+          t={t}
+          editLanguage={editLanguage}
+          memoryCards={form.memory_cards}
+          onAddMemory={addMemory}
+          onRemoveMemory={removeMemory}
+          onMemoryFieldChange={setMemoryField}
+        />
+
+        <SetupMomentsSection
+          t={t}
+          editLanguage={editLanguage}
+          annualMoments={form.annual_moments}
+          onAddMoment={addMoment}
+          onRemoveMoment={removeMoment}
+          onMomentFieldChange={setMomentField}
+        />
+
+        <SetupSaveSection t={t} saving={saving} tokenMissing={tokenMissing} />
       </form>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <form onSubmit={onAddMoment} className="rounded-2xl border border-[#9c4f46]/20 bg-white/65 p-4 space-y-3">
-          <p className="text-sm font-semibold">{t("setup.addAnnualMoment")}</p>
-          <label className="block">
-            <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em]">{t("setup.year")}</span>
-            <input
-              type="number"
-              min={1}
-              value={momentYear}
-              onChange={(event) => setMomentYear(Number(event.target.value))}
-              className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
-              required
-            />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em]">{t("setup.titleField")}</span>
-            <input
-              type="text"
-              value={momentTitle}
-              onChange={(event) => setMomentTitle(event.target.value)}
-              className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
-              required
-            />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em]">{t("setup.dateField")}</span>
-            <input
-              type="date"
-              value={momentDate}
-              onChange={(event) => setMomentDate(event.target.value)}
-              className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
-              required
-            />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em]">{t("setup.noteField")}</span>
-            <textarea
-              value={momentNote}
-              onChange={(event) => setMomentNote(event.target.value)}
-              className="min-h-[96px] w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
-              required
-            />
-          </label>
-          <button
-            type="submit"
-            disabled={tokenMissing || actionLoading}
-            className="rounded-xl bg-[#9c4f46] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
-          >
-            {actionLoading ? t("setup.processing") : t("setup.addMoment")}
-          </button>
-        </form>
-
-        <article className="rounded-2xl border border-[#9c4f46]/20 bg-white/65 p-4 space-y-3">
-          <p className="text-sm font-semibold">{t("setup.momentUtilities")}</p>
-          <label className="block">
-            <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em]">{t("setup.deleteByYear")}</span>
-            <input
-              type="number"
-              min={1}
-              value={deleteYear}
-              onChange={(event) => setDeleteYear(Number(event.target.value))}
-              className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
-            />
-          </label>
-
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={onDeleteMoment}
-            disabled={tokenMissing || actionLoading}
-            className="rounded-xl border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 disabled:opacity-60"
-          >
-              {t("setup.deleteMoment")}
-            </button>
-            <button
-              type="button"
-              onClick={onReplaceMomentsFromJson}
-              disabled={tokenMissing || actionLoading}
-              className="rounded-xl border border-[#9c4f46]/30 bg-white px-4 py-2 text-sm font-semibold disabled:opacity-60"
-            >
-              {t("setup.replaceFromJson")}
-            </button>
-          </div>
-          <p className="text-xs text-[#2b2220]/65">
-            {t("setup.tips")}
-          </p>
-        </article>
-      </div>
+      <SetupAdvancedJsonSection
+        t={t}
+        advancedJson={advancedJson}
+        onAdvancedJsonChange={setAdvancedJson}
+        onApplyJson={applyJsonToForm}
+        onRefreshJson={() => setAdvancedJson(toPrettyJson(toPayload(form)))}
+      />
     </section>
   );
 }

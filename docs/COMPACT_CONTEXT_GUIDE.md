@@ -132,6 +132,11 @@ I18n:
 - `LocaleContext` menyimpan pilihan bahasa ke `localStorage` (`anniv_language`)
 - Public showcase refetch payload saat bahasa berubah
 
+Setup Anniversary UI:
+- Halaman `/setup/anniversary` memakai alur non-teknis: simpan token, load data, edit form per section, lalu save.
+- Token setup disimpan lokal di browser (`anniv_setup_token`).
+- Editor JSON tetap ada sebagai `advanced mode` (opsional), bukan alur utama user.
+
 Referensi:
 - `frontend/src/App.tsx`
 - `frontend/src/contexts/AuthContext.tsx`
@@ -230,3 +235,9 @@ Jika menambah menu/tombol admin:
 2. Lindungi endpoint backend dengan `PermissionMiddleware(resource, action)`.
 3. Lindungi route + tombol frontend memakai `hasAccess`.
 4. Jangan kontrol akses berdasarkan role name.
+
+## 13) Rule Ukuran File (Mulai Sekarang)
+
+1. File baru **tidak boleh** lebih dari 500 baris.
+2. Untuk file lama yang saat ini sudah >500 baris: **boleh dibiarkan** (tidak wajib langsung dipecah).
+3. Saat menambah fitur baru, prioritaskan pecah logic ke modul/komponen kecil agar file tetap mudah dibaca.
