@@ -62,14 +62,24 @@ Setup (token protected):
 - `PUT /api/setup/anniversary/moments`
 - `POST /api/setup/anniversary/moments`
 - `DELETE /api/setup/anniversary/moments/:year`
+- `POST /api/setup/anniversary/media/upload` (multipart upload foto/video/poster)
 
 Auth setup token:
 - Header `X-Setup-Token: <token>`
 - atau `Authorization: Bearer <token>`
 
+Catatan upload media:
+- Form-data:
+  - `file`: berkas yang diupload
+  - `type`: `photo` | `video` | `poster`
+- URL hasil upload kembali di response `data.url` dan bisa langsung disimpan ke `gallery_photos[].image_url`, `gallery_videos[].video_url`, atau `gallery_videos[].poster_url`.
+- Upload menggunakan storage provider dari `infrastructure/media.InitStorage()` (MinIO/R2), sama pola dengan project `safety-riding`.
+- Konfigurasi upload mengikuti env `STORAGE_*` (`STORAGE_PROVIDER`, `STORAGE_ENDPOINT`, `STORAGE_BASE_URL`, dst).
+
 Referensi:
 - `internal/router/router.go`
 - `internal/handlers/http/anniversary/handler.go`
+- `middlewares/setup_token.go`
 
 ## 5) Kontrak Data Bilingual
 
@@ -165,6 +175,7 @@ Setup Anniversary UI:
 - Halaman `/setup/anniversary` memakai alur non-teknis: simpan token, load data, edit form per section, lalu save.
 - Token setup disimpan lokal di browser (`anniv_setup_token`).
 - Editor JSON tetap ada sebagai `advanced mode` (opsional), bukan alur utama user.
+- Section gallery sudah tersedia untuk input link foto/video + upload langsung ke backend media (URL terisi otomatis setelah upload sukses).
 
 Referensi:
 - `frontend/src/App.tsx`

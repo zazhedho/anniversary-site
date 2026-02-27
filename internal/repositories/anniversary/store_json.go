@@ -156,6 +156,47 @@ func sanitizeConfig(cfg dto.AnniversarySiteConfig, loc *time.Location) (dto.Anni
 		cfg.MemoryCards[idx].Note = fallbackLocalized(cfg.MemoryCards[idx].Note, noteFallback)
 	}
 
+	if cfg.GalleryPhotos == nil {
+		cfg.GalleryPhotos = make([]dto.AnniversaryGalleryPhoto, 0)
+	}
+	sanitizedPhotos := make([]dto.AnniversaryGalleryPhoto, 0, len(cfg.GalleryPhotos))
+	for idx := range cfg.GalleryPhotos {
+		cfg.GalleryPhotos[idx].ID = strings.TrimSpace(cfg.GalleryPhotos[idx].ID)
+		cfg.GalleryPhotos[idx].ImageURL = strings.TrimSpace(cfg.GalleryPhotos[idx].ImageURL)
+		if cfg.GalleryPhotos[idx].ImageURL == "" {
+			continue
+		}
+
+		titleFallback := dto.NewLocalizedText(fmt.Sprintf("Foto %d", idx+1))
+		captionFallback := dto.NewLocalizedText("")
+		cfg.GalleryPhotos[idx].Title = fallbackLocalized(cfg.GalleryPhotos[idx].Title, titleFallback)
+		cfg.GalleryPhotos[idx].Caption = fallbackLocalized(cfg.GalleryPhotos[idx].Caption, captionFallback)
+
+		sanitizedPhotos = append(sanitizedPhotos, cfg.GalleryPhotos[idx])
+	}
+	cfg.GalleryPhotos = sanitizedPhotos
+
+	if cfg.GalleryVideos == nil {
+		cfg.GalleryVideos = make([]dto.AnniversaryGalleryVideo, 0)
+	}
+	sanitizedVideos := make([]dto.AnniversaryGalleryVideo, 0, len(cfg.GalleryVideos))
+	for idx := range cfg.GalleryVideos {
+		cfg.GalleryVideos[idx].ID = strings.TrimSpace(cfg.GalleryVideos[idx].ID)
+		cfg.GalleryVideos[idx].VideoURL = strings.TrimSpace(cfg.GalleryVideos[idx].VideoURL)
+		cfg.GalleryVideos[idx].PosterURL = strings.TrimSpace(cfg.GalleryVideos[idx].PosterURL)
+		if cfg.GalleryVideos[idx].VideoURL == "" {
+			continue
+		}
+
+		titleFallback := dto.NewLocalizedText(fmt.Sprintf("Video %d", idx+1))
+		descriptionFallback := dto.NewLocalizedText("")
+		cfg.GalleryVideos[idx].Title = fallbackLocalized(cfg.GalleryVideos[idx].Title, titleFallback)
+		cfg.GalleryVideos[idx].Description = fallbackLocalized(cfg.GalleryVideos[idx].Description, descriptionFallback)
+
+		sanitizedVideos = append(sanitizedVideos, cfg.GalleryVideos[idx])
+	}
+	cfg.GalleryVideos = sanitizedVideos
+
 	if len(cfg.Moments) == 0 {
 		cfg.Moments = def.Moments
 	}
@@ -273,6 +314,8 @@ func defaultConfig() dto.AnniversarySiteConfig {
 				}.Normalize(),
 			},
 		},
+		GalleryPhotos: []dto.AnniversaryGalleryPhoto{},
+		GalleryVideos: []dto.AnniversaryGalleryVideo{},
 		Moments: []dto.AnniversaryMoment{
 			{
 				Year:  1,

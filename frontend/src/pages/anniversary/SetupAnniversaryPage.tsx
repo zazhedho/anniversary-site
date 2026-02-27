@@ -1,11 +1,12 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useLanguage } from "../../contexts/LocaleContext";
 import { useNotification } from "../../contexts/NotificationContext";
-import { getSetupConfig, updateSetupConfig } from "../../services/setupService";
+import { getSetupConfig, updateSetupConfig, uploadSetupMedia } from "../../services/setupService";
 import { normalizeConfig, parseConfigJson, toPayload, toPrettyJson } from "./setup/mapper";
 import SetupAdvancedJsonSection from "./setup/sections/SetupAdvancedJsonSection";
 import SetupAccessCard from "./setup/sections/SetupAccessCard";
 import SetupBasicSection from "./setup/sections/SetupBasicSection";
+import SetupGallerySection from "./setup/sections/SetupGallerySection";
 import SetupHeaderCard from "./setup/sections/SetupHeaderCard";
 import SetupLanguageCard from "./setup/sections/SetupLanguageCard";
 import SetupMemoriesSection from "./setup/sections/SetupMemoriesSection";
@@ -15,6 +16,8 @@ import SetupStorySection from "./setup/sections/SetupStorySection";
 import SetupTimelineSection from "./setup/sections/SetupTimelineSection";
 import type {
   EditLanguage,
+  GalleryPhotoFormItem,
+  GalleryVideoFormItem,
   MemoryFormItem,
   MomentFormItem,
   RootLocalizedKey,
@@ -35,6 +38,9 @@ export default function SetupAnniversaryPage() {
   const [advancedJson, setAdvancedJson] = useState("{}");
   const [fetching, setFetching] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadingPhotoIndex, setUploadingPhotoIndex] = useState<number | null>(null);
+  const [uploadingVideoIndex, setUploadingVideoIndex] = useState<number | null>(null);
+  const [uploadingPosterIndex, setUploadingPosterIndex] = useState<number | null>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -114,6 +120,56 @@ export default function SetupAnniversaryPage() {
     });
   }
 
+  function setGalleryPhotoLocalizedField(index: number, key: "title" | "caption", value: string) {
+    setForm((prev) => {
+      const next = [...prev.gallery_photos];
+      next[index] = {
+        ...next[index],
+        [key]: {
+          ...next[index][key],
+          [editLanguage]: value,
+        },
+      };
+      return { ...prev, gallery_photos: next };
+    });
+  }
+
+  function setGalleryPhotoField(index: number, key: "id" | "image_url", value: string) {
+    setForm((prev) => {
+      const next = [...prev.gallery_photos];
+      next[index] = {
+        ...next[index],
+        [key]: value,
+      };
+      return { ...prev, gallery_photos: next };
+    });
+  }
+
+  function setGalleryVideoLocalizedField(index: number, key: "title" | "description", value: string) {
+    setForm((prev) => {
+      const next = [...prev.gallery_videos];
+      next[index] = {
+        ...next[index],
+        [key]: {
+          ...next[index][key],
+          [editLanguage]: value,
+        },
+      };
+      return { ...prev, gallery_videos: next };
+    });
+  }
+
+  function setGalleryVideoField(index: number, key: "id" | "video_url" | "poster_url", value: string) {
+    setForm((prev) => {
+      const next = [...prev.gallery_videos];
+      next[index] = {
+        ...next[index],
+        [key]: value,
+      };
+      return { ...prev, gallery_videos: next };
+    });
+  }
+
   function addTimeline() {
     setForm((prev) => ({
       ...prev,
@@ -143,6 +199,20 @@ export default function SetupAnniversaryPage() {
     }));
   }
 
+  function addPhoto() {
+    setForm((prev) => ({
+      ...prev,
+      gallery_photos: [...prev.gallery_photos, emptyPhotoFormItem(prev.gallery_photos.length)],
+    }));
+  }
+
+  function addVideo() {
+    setForm((prev) => ({
+      ...prev,
+      gallery_videos: [...prev.gallery_videos, emptyVideoFormItem(prev.gallery_videos.length)],
+    }));
+  }
+
   function removeTimeline(index: number) {
     setForm((prev) => ({ ...prev, timeline: prev.timeline.filter((_, idx) => idx !== index) }));
   }
@@ -153,6 +223,14 @@ export default function SetupAnniversaryPage() {
 
   function removeMoment(index: number) {
     setForm((prev) => ({ ...prev, annual_moments: prev.annual_moments.filter((_, idx) => idx !== index) }));
+  }
+
+  function removePhoto(index: number) {
+    setForm((prev) => ({ ...prev, gallery_photos: prev.gallery_photos.filter((_, idx) => idx !== index) }));
+  }
+
+  function removeVideo(index: number) {
+    setForm((prev) => ({ ...prev, gallery_videos: prev.gallery_videos.filter((_, idx) => idx !== index) }));
   }
 
   function saveToken() {
@@ -201,6 +279,60 @@ export default function SetupAnniversaryPage() {
       notifyError(text);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function uploadPhoto(index: number, file: File) {
+    if (tokenMissing) {
+      notifyError(t("setup.tokenRequired"));
+      return;
+    }
+
+    setUploadingPhotoIndex(index);
+    try {
+      const result = await uploadSetupMedia(setupToken, file, "photo");
+      setGalleryPhotoField(index, "image_url", result.url);
+      notifySuccess(t("setup.uploadSuccess"));
+    } catch (err) {
+      notifyError(err instanceof Error ? err.message : t("setup.uploadFailed"));
+    } finally {
+      setUploadingPhotoIndex(null);
+    }
+  }
+
+  async function uploadVideo(index: number, file: File) {
+    if (tokenMissing) {
+      notifyError(t("setup.tokenRequired"));
+      return;
+    }
+
+    setUploadingVideoIndex(index);
+    try {
+      const result = await uploadSetupMedia(setupToken, file, "video");
+      setGalleryVideoField(index, "video_url", result.url);
+      notifySuccess(t("setup.uploadSuccess"));
+    } catch (err) {
+      notifyError(err instanceof Error ? err.message : t("setup.uploadFailed"));
+    } finally {
+      setUploadingVideoIndex(null);
+    }
+  }
+
+  async function uploadPoster(index: number, file: File) {
+    if (tokenMissing) {
+      notifyError(t("setup.tokenRequired"));
+      return;
+    }
+
+    setUploadingPosterIndex(index);
+    try {
+      const result = await uploadSetupMedia(setupToken, file, "poster");
+      setGalleryVideoField(index, "poster_url", result.url);
+      notifySuccess(t("setup.uploadSuccess"));
+    } catch (err) {
+      notifyError(err instanceof Error ? err.message : t("setup.uploadFailed"));
+    } finally {
+      setUploadingPosterIndex(null);
     }
   }
 
@@ -275,6 +407,27 @@ export default function SetupAnniversaryPage() {
           onMomentFieldChange={setMomentField}
         />
 
+        <SetupGallerySection
+          t={t}
+          editLanguage={editLanguage}
+          galleryPhotos={form.gallery_photos}
+          galleryVideos={form.gallery_videos}
+          uploadingPhotoIndex={uploadingPhotoIndex}
+          uploadingVideoIndex={uploadingVideoIndex}
+          uploadingPosterIndex={uploadingPosterIndex}
+          onAddPhoto={addPhoto}
+          onRemovePhoto={removePhoto}
+          onPhotoLocalizedFieldChange={setGalleryPhotoLocalizedField}
+          onPhotoFieldChange={setGalleryPhotoField}
+          onUploadPhoto={uploadPhoto}
+          onAddVideo={addVideo}
+          onRemoveVideo={removeVideo}
+          onVideoLocalizedFieldChange={setGalleryVideoLocalizedField}
+          onVideoFieldChange={setGalleryVideoField}
+          onUploadVideo={uploadVideo}
+          onUploadPoster={uploadPoster}
+        />
+
         <SetupSaveSection t={t} saving={saving} tokenMissing={tokenMissing} />
       </form>
 
@@ -287,4 +440,23 @@ export default function SetupAnniversaryPage() {
       />
     </section>
   );
+}
+
+function emptyPhotoFormItem(index: number): GalleryPhotoFormItem {
+  return {
+    id: `photo-${index + 1}`,
+    title: { id: "", en: "" },
+    caption: { id: "", en: "" },
+    image_url: "",
+  };
+}
+
+function emptyVideoFormItem(index: number): GalleryVideoFormItem {
+  return {
+    id: `video-${index + 1}`,
+    title: { id: "", en: "" },
+    description: { id: "", en: "" },
+    video_url: "",
+    poster_url: "",
+  };
 }

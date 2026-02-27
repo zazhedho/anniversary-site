@@ -78,21 +78,23 @@ func BuildPublicPayload(cfg dto.AnniversarySiteConfig, now time.Time, loc *time.
 	})
 
 	publicConfig := dto.AnniversaryPublicSiteConfig{
-		Brand:        cfg.Brand.Value(language),
-		CoupleNames:  cfg.CoupleNames.Value(language),
-		WeddingDate:  cfg.WeddingDate,
-		CoverBadge:   cfg.CoverBadge.Value(language),
-		CoverTitle:   cfg.CoverTitle.Value(language),
-		CoverSubtext: cfg.CoverSubtext.Value(language),
-		CoverCTA:     cfg.CoverCTA.Value(language),
-		HeroTitle:    cfg.HeroTitle.Value(language),
-		HeroSubtext:  cfg.HeroSubtext.Value(language),
-		Letter:       cfg.Letter.Value(language),
-		FooterText:   cfg.FooterText.Value(language),
-		MusicURL:     cfg.MusicURL,
-		Timeline:     make([]dto.AnniversaryPublicTimelineItem, 0, len(cfg.Timeline)),
-		MemoryCards:  make([]dto.AnniversaryPublicMemoryCard, 0, len(cfg.MemoryCards)),
-		Moments:      make([]dto.AnniversaryPublicMoment, 0, len(cfg.Moments)),
+		Brand:         cfg.Brand.Value(language),
+		CoupleNames:   cfg.CoupleNames.Value(language),
+		WeddingDate:   cfg.WeddingDate,
+		CoverBadge:    cfg.CoverBadge.Value(language),
+		CoverTitle:    cfg.CoverTitle.Value(language),
+		CoverSubtext:  cfg.CoverSubtext.Value(language),
+		CoverCTA:      cfg.CoverCTA.Value(language),
+		HeroTitle:     cfg.HeroTitle.Value(language),
+		HeroSubtext:   cfg.HeroSubtext.Value(language),
+		Letter:        cfg.Letter.Value(language),
+		FooterText:    cfg.FooterText.Value(language),
+		MusicURL:      cfg.MusicURL,
+		Timeline:      make([]dto.AnniversaryPublicTimelineItem, 0, len(cfg.Timeline)),
+		MemoryCards:   make([]dto.AnniversaryPublicMemoryCard, 0, len(cfg.MemoryCards)),
+		GalleryPhotos: make([]dto.AnniversaryPublicGalleryPhoto, 0, len(cfg.GalleryPhotos)),
+		GalleryVideos: make([]dto.AnniversaryPublicGalleryVideo, 0, len(cfg.GalleryVideos)),
+		Moments:       make([]dto.AnniversaryPublicMoment, 0, len(cfg.Moments)),
 	}
 
 	for _, item := range cfg.Timeline {
@@ -107,6 +109,25 @@ func BuildPublicPayload(cfg dto.AnniversarySiteConfig, now time.Time, loc *time.
 			Title:   item.Title.Value(language),
 			Summary: item.Summary.Value(language),
 			Note:    item.Note.Value(language),
+		})
+	}
+
+	for _, item := range cfg.GalleryPhotos {
+		publicConfig.GalleryPhotos = append(publicConfig.GalleryPhotos, dto.AnniversaryPublicGalleryPhoto{
+			ID:       item.ID,
+			Title:    item.Title.Value(language),
+			Caption:  item.Caption.Value(language),
+			ImageURL: item.ImageURL,
+		})
+	}
+
+	for _, item := range cfg.GalleryVideos {
+		publicConfig.GalleryVideos = append(publicConfig.GalleryVideos, dto.AnniversaryPublicGalleryVideo{
+			ID:          item.ID,
+			Title:       item.Title.Value(language),
+			Description: item.Description.Value(language),
+			VideoURL:    item.VideoURL,
+			PosterURL:   item.PosterURL,
 		})
 	}
 

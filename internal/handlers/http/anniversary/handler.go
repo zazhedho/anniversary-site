@@ -4,8 +4,9 @@ import (
 	"anniversary-site/internal/dto"
 	interfaceanniversary "anniversary-site/internal/interfaces/anniversary"
 	serviceanniversary "anniversary-site/internal/services/anniversary"
-	"crypto/subtle"
+	"anniversary-site/pkg/storage"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -14,16 +15,24 @@ import (
 )
 
 type Handler struct {
-	service     interfaceanniversary.ServiceAnniversaryInterface
-	setupToken  string
-	setupEnable bool
+	service         interfaceanniversary.ServiceAnniversaryInterface
+	storageProvider storage.StorageProvider
+	maxUploadMB     int64
 }
 
-func NewHandler(service interfaceanniversary.ServiceAnniversaryInterface, setupToken string, setupEnable bool) *Handler {
+func NewHandler(
+	service interfaceanniversary.ServiceAnniversaryInterface,
+	storageProvider storage.StorageProvider,
+	maxUploadMB int64,
+) *Handler {
+	if maxUploadMB <= 0 {
+		maxUploadMB = 50
+	}
+
 	return &Handler{
-		service:     service,
-		setupToken:  strings.TrimSpace(setupToken),
-		setupEnable: setupEnable,
+		service:         service,
+		storageProvider: storageProvider,
+		maxUploadMB:     maxUploadMB,
 	}
 }
 
@@ -159,35 +168,64 @@ func (h *Handler) DeleteMoment(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"status": true, "message": "moment deleted", "data": moments})
 }
 
-func (h *Handler) SetupAuthMiddleware() gin.HandlerFunc {
-	return h.setupAuthMiddleware()
-}
-
-func (h *Handler) setupAuthMiddleware() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		if !h.setupEnable {
-			ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"status": false, "message": "setup API disabled"})
-			return
-		}
-
-		if h.setupToken == "" {
-			ctx.AbortWithStatusJSON(http.StatusServiceUnavailable, gin.H{"status": false, "message": "SETUP_TOKEN is not configured"})
-			return
-		}
-
-		provided := strings.TrimSpace(ctx.GetHeader("X-Setup-Token"))
-		if provided == "" {
-			auth := strings.TrimSpace(ctx.GetHeader("Authorization"))
-			if strings.HasPrefix(strings.ToLower(auth), "bearer ") {
-				provided = strings.TrimSpace(auth[7:])
-			}
-		}
-
-		if subtle.ConstantTimeCompare([]byte(provided), []byte(h.setupToken)) != 1 {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"status": false, "message": "invalid setup token"})
-			return
-		}
-
-		ctx.Next()
+func (h *Handler) UploadMedia(ctx *gin.Context) {
+	if h.storageProvider == nil {
+		ctx.JSON(http.StatusServiceUnavailable, gin.H{
+			"status":  false,
+			"message": "storage provider is not initialized",
+		})
+		return
 	}
+
+	fileHeader, err := ctx.FormFile("file")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"status": false, "message": "file is required"})
+		return
+	}
+
+	maxBytes := h.maxUploadMB * 1024 * 1024
+	if fileHeader.Size > maxBytes {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": fmt.Sprintf("file is too large (max %dMB)", h.maxUploadMB),
+		})
+		return
+	}
+
+	mediaType := normalizeUploadType(ctx.PostForm("type"))
+	detectedType, _, err := validateUploadFile(fileHeader, mediaType)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"status": false, "message": err.Error()})
+		return
+	}
+
+	folder := "anniversary-photos"
+	if mediaType == "video" {
+		folder = "anniversary-videos"
+	}
+
+	file, err := fileHeader.Open()
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"status": false, "message": "failed opening upload file"})
+		return
+	}
+	defer file.Close()
+
+	fileURL, err := h.storageProvider.UploadFile(ctx, file, fileHeader, folder)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"status": false, "message": fmt.Sprintf("failed upload media: %v", err)})
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, gin.H{
+		"status":  true,
+		"message": "media uploaded",
+		"data": gin.H{
+			"url":       fileURL,
+			"type":      mediaType,
+			"mime_type": detectedType,
+			"size":      fileHeader.Size,
+			"filename":  fileHeader.Filename,
+		},
+	})
 }

@@ -118,6 +118,8 @@ SELECT
       }
     }
   ],
+  "gallery_photos": [],
+  "gallery_videos": [],
   "annual_moments": [
     {
       "year": 1,

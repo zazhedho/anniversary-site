@@ -1,6 +1,7 @@
 package router
 
 import (
+	"anniversary-site/infrastructure/media"
 	"net/http"
 	"strings"
 	"time"
@@ -91,10 +92,15 @@ func (r *Routes) AnniversaryRoutes() {
 	}
 
 	svc := anniversarySvc.NewAnniversaryService(repo, loc)
+	storageProvider, storageErr := media.InitStorage()
+	if storageErr != nil {
+		logger.WriteLog(logger.LogLevelError, "Failed to initialize storage provider for anniversary upload: "+storageErr.Error())
+	}
+
 	h := anniversaryHandler.NewHandler(
 		svc,
-		utils.GetEnv("SETUP_TOKEN", ""),
-		utils.GetEnv("SETUP_API_ENABLED", true),
+		storageProvider,
+		int64(utils.GetEnv("ANNIVERSARY_UPLOAD_MAX_MB", 50)),
 	)
 
 	public := r.App.Group("/api/public")
@@ -104,13 +110,17 @@ func (r *Routes) AnniversaryRoutes() {
 	}
 
 	setup := r.App.Group("/api/setup")
-	setup.Use(h.SetupAuthMiddleware())
+	setup.Use(middlewares.SetupTokenMiddleware(
+		utils.GetEnv("SETUP_API_ENABLED", true),
+		utils.GetEnv("SETUP_TOKEN", ""),
+	))
 	{
 		setup.GET("/anniversary", h.GetSetup)
 		setup.PUT("/anniversary", h.UpdateConfig)
 		setup.PUT("/anniversary/moments", h.ReplaceMoments)
 		setup.POST("/anniversary/moments", h.AddMoment)
 		setup.DELETE("/anniversary/moments/:year", h.DeleteMoment)
+		setup.POST("/anniversary/media/upload", h.UploadMedia)
 	}
 }
 

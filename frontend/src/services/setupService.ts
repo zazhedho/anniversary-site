@@ -1,6 +1,8 @@
 import { apiRequest } from "./api";
 import type { PublicPayload, SetupAnnualMoment, SetupSiteConfig } from "../types/anniversary";
 
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+
 function setupHeaders(setupToken: string): Record<string, string> {
   const token = setupToken.trim();
   if (!token) {
@@ -11,6 +13,21 @@ function setupHeaders(setupToken: string): Record<string, string> {
     "X-Setup-Token": token,
   };
 }
+
+function buildUrl(path: string): string {
+  if (path.startsWith("http://") || path.startsWith("https://")) return path;
+  return `${API_BASE}${path}`;
+}
+
+export type SetupUploadType = "photo" | "video" | "poster";
+
+export type SetupUploadResponse = {
+  url: string;
+  type: SetupUploadType;
+  mime_type: string;
+  size: number;
+  filename: string;
+};
 
 export async function getSetupConfig(setupToken: string): Promise<SetupSiteConfig> {
   const response = await apiRequest<SetupSiteConfig>("/api/setup/anniversary", {
@@ -68,4 +85,32 @@ export async function deleteSetupMoment(setupToken: string, year: number): Promi
   });
 
   return response.data || [];
+}
+
+export async function uploadSetupMedia(
+  setupToken: string,
+  file: File,
+  type: SetupUploadType
+): Promise<SetupUploadResponse> {
+  const payload = new FormData();
+  payload.append("file", file);
+  payload.append("type", type);
+
+  const response = await fetch(buildUrl("/api/setup/anniversary/media/upload"), {
+    method: "POST",
+    headers: setupHeaders(setupToken),
+    body: payload,
+  });
+
+  const result = (await response.json()) as {
+    status?: boolean;
+    message?: string;
+    data?: SetupUploadResponse;
+  };
+
+  if (!response.ok || result.status === false || !result.data) {
+    throw new Error(result.message || "Upload media gagal");
+  }
+
+  return result.data;
 }

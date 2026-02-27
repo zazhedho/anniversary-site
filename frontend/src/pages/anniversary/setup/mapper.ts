@@ -1,4 +1,6 @@
 import type {
+  SetupGalleryPhoto,
+  SetupGalleryVideo,
   LocalizedText,
   SetupAnnualMoment,
   SetupMemoryCard,
@@ -45,6 +47,19 @@ export function normalizeConfig(config: SetupSiteConfig): SetupForm {
       summary: toTextPair(item.summary),
       note: toTextPair(item.note),
     })),
+    gallery_photos: (config.gallery_photos || []).map((item: SetupGalleryPhoto) => ({
+      id: item.id || "",
+      title: toTextPair(item.title),
+      caption: toTextPair(item.caption),
+      image_url: item.image_url || "",
+    })),
+    gallery_videos: (config.gallery_videos || []).map((item: SetupGalleryVideo) => ({
+      id: item.id || "",
+      title: toTextPair(item.title),
+      description: toTextPair(item.description),
+      video_url: item.video_url || "",
+      poster_url: item.poster_url || "",
+    })),
     annual_moments: (config.annual_moments || []).map((item: SetupAnnualMoment) => ({
       year: Number(item.year) || 1,
       title: toTextPair(item.title),
@@ -76,6 +91,19 @@ export function toPayload(form: SetupForm): SetupSiteConfig {
       title: { id: item.title.id, en: item.title.en },
       summary: { id: item.summary.id, en: item.summary.en },
       note: { id: item.note.id, en: item.note.en },
+    })),
+    gallery_photos: form.gallery_photos.map((item) => ({
+      id: item.id || undefined,
+      title: { id: item.title.id, en: item.title.en },
+      caption: { id: item.caption.id, en: item.caption.en },
+      image_url: item.image_url,
+    })),
+    gallery_videos: form.gallery_videos.map((item) => ({
+      id: item.id || undefined,
+      title: { id: item.title.id, en: item.title.en },
+      description: { id: item.description.id, en: item.description.en },
+      video_url: item.video_url,
+      poster_url: item.poster_url || undefined,
     })),
     annual_moments: form.annual_moments.map((item) => ({
       year: Number(item.year) || 1,

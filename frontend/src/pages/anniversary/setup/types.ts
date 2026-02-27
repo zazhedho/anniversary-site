@@ -23,6 +23,21 @@ export type MomentFormItem = {
   note: LocalizedForm;
 };
 
+export type GalleryPhotoFormItem = {
+  id: string;
+  title: LocalizedForm;
+  caption: LocalizedForm;
+  image_url: string;
+};
+
+export type GalleryVideoFormItem = {
+  id: string;
+  title: LocalizedForm;
+  description: LocalizedForm;
+  video_url: string;
+  poster_url: string;
+};
+
 export type RootLocalizedKey =
   | "brand"
   | "couple_names"
@@ -50,6 +65,8 @@ export type SetupForm = {
   music_url: string;
   timeline: TimelineFormItem[];
   memory_cards: MemoryFormItem[];
+  gallery_photos: GalleryPhotoFormItem[];
+  gallery_videos: GalleryVideoFormItem[];
   annual_moments: MomentFormItem[];
 };
 
@@ -70,5 +87,7 @@ export const EMPTY_SETUP_FORM: SetupForm = {
   music_url: "",
   timeline: [],
   memory_cards: [],
+  gallery_photos: [],
+  gallery_videos: [],
   annual_moments: [],
 };
