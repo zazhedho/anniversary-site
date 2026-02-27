@@ -3,11 +3,13 @@ import { Link } from "react-router-dom";
 import InteractiveLoveGame from "../../components/anniversary/InteractiveLoveGame";
 import LanguageSwitcher from "../../components/common/LanguageSwitcher";
 import SiteFooter from "../../components/common/SiteFooter";
+import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LocaleContext";
 import { fetchPublicAnniversary } from "../../services/publicService";
 import type { PublicSiteConfig } from "../../types/anniversary";
 
 export default function PublicAnniversaryGamePage() {
+  const { isAuthenticated, loading, hasAccess } = useAuth();
   const { language, t } = useLanguage();
   const [config, setConfig] = useState<PublicSiteConfig | undefined>(undefined);
 
@@ -31,6 +33,11 @@ export default function PublicAnniversaryGamePage() {
     };
   }, [language]);
 
+  const canViewDashboard = hasAccess({ resource: "dashboard", action: "view" });
+  const canViewProfile = hasAccess({ resource: "profile", action: "view" });
+  const authDestination = canViewDashboard ? "/dashboard" : canViewProfile ? "/profile" : "/anniversary";
+  const authLabel = canViewDashboard ? t("public.dashboard") : t("nav.profile");
+
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_20%_20%,#fff3e9_0%,#ffe2d1_44%,#f2cbbf_100%)] px-5 py-6 text-[#2b2220]">
       <div className="mx-auto w-[min(960px,96vw)]">
@@ -39,7 +46,13 @@ export default function PublicAnniversaryGamePage() {
           <div className="flex flex-wrap items-center gap-2 text-sm">
             <LanguageSwitcher className="align-middle" />
             <Link to="/anniversary" className="rounded-full border border-[#9c4f46]/30 bg-white/70 px-3 py-1.5 font-semibold">{t("game.backPublic")}</Link>
-            <Link to="/login" className="rounded-full border border-[#9c4f46]/30 bg-white/70 px-3 py-1.5 font-semibold">{t("public.login")}</Link>
+            {!loading ? (
+              isAuthenticated ? (
+                <Link to={authDestination} className="rounded-full bg-[#9c4f46] px-3 py-1.5 font-semibold text-white">{authLabel}</Link>
+              ) : (
+                <Link to="/login" className="rounded-full border border-[#9c4f46]/30 bg-white/70 px-3 py-1.5 font-semibold">{t("public.login")}</Link>
+              )
+            ) : null}
           </div>
         </div>
 

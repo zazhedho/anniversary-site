@@ -2,11 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import LanguageSwitcher from "../../components/common/LanguageSwitcher";
 import SiteFooter from "../../components/common/SiteFooter";
+import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LocaleContext";
 import { fetchPublicAnniversary } from "../../services/publicService";
 import type { PublicSiteConfig } from "../../types/anniversary";
 
 export default function PublicAnniversaryPage() {
+  const { isAuthenticated, loading, hasAccess } = useAuth();
   const { language, t } = useLanguage();
   const [config, setConfig] = useState<PublicSiteConfig | undefined>(undefined);
 
@@ -34,6 +36,10 @@ export default function PublicAnniversaryPage() {
   const coverTitle = useMemo(() => config?.cover_title || config?.hero_title || t("public.coverTitle"), [config, t]);
   const coverSubtext = useMemo(() => config?.cover_subtext || config?.hero_subtext || t("public.coverSubtitle"), [config, t]);
   const coverCTA = useMemo(() => config?.cover_cta || t("public.startJourney"), [config, t]);
+  const canViewDashboard = hasAccess({ resource: "dashboard", action: "view" });
+  const canViewProfile = hasAccess({ resource: "profile", action: "view" });
+  const authDestination = canViewDashboard ? "/dashboard" : canViewProfile ? "/profile" : "/anniversary";
+  const authLabel = canViewDashboard ? t("public.dashboard") : t("nav.profile");
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#fff9f3] via-[#ffece1] to-[#f5d4c8] px-5 py-6 text-[#2b2220]">
@@ -42,8 +48,13 @@ export default function PublicAnniversaryPage() {
           <p className="text-xs uppercase tracking-[0.14em] text-[#6f332f]">{t("public.tag")}</p>
           <div className="flex flex-wrap items-center gap-2 text-sm">
             <LanguageSwitcher className="align-middle" />
-            <Link to="/login" className="rounded-full border border-[#9c4f46]/30 bg-white/70 px-3 py-1.5 font-semibold">{t("public.login")}</Link>
-            <Link to="/dashboard" className="rounded-full bg-[#9c4f46] px-3 py-1.5 font-semibold text-white">{t("public.dashboard")}</Link>
+            {!loading ? (
+              isAuthenticated ? (
+                <Link to={authDestination} className="rounded-full bg-[#9c4f46] px-3 py-1.5 font-semibold text-white">{authLabel}</Link>
+              ) : (
+                <Link to="/login" className="rounded-full border border-[#9c4f46]/30 bg-white/70 px-3 py-1.5 font-semibold">{t("public.login")}</Link>
+              )
+            ) : null}
           </div>
         </div>
 

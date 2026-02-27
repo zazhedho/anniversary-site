@@ -2,10 +2,16 @@ import { Link } from "react-router-dom";
 import AnniversaryShowcase from "../../components/anniversary/AnniversaryShowcase";
 import LanguageSwitcher from "../../components/common/LanguageSwitcher";
 import SiteFooter from "../../components/common/SiteFooter";
+import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LocaleContext";
 
 export default function PublicAnniversaryShowcasePage() {
+  const { isAuthenticated, loading, hasAccess } = useAuth();
   const { t } = useLanguage();
+  const canViewDashboard = hasAccess({ resource: "dashboard", action: "view" });
+  const canViewProfile = hasAccess({ resource: "profile", action: "view" });
+  const authDestination = canViewDashboard ? "/dashboard" : canViewProfile ? "/profile" : "/anniversary";
+  const authLabel = canViewDashboard ? t("public.dashboard") : t("nav.profile");
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#fff9f3] via-[#ffece1] to-[#f5d4c8] px-5 py-6 text-[#2b2220]">
@@ -17,9 +23,17 @@ export default function PublicAnniversaryShowcasePage() {
             <Link to="/anniversary" className="rounded-full border border-[#9c4f46]/30 bg-white/70 px-3 py-1.5 font-semibold">
               {t("public.startJourney")}
             </Link>
-            <Link to="/login" className="rounded-full border border-[#9c4f46]/30 bg-white/70 px-3 py-1.5 font-semibold">
-              {t("public.login")}
-            </Link>
+            {!loading ? (
+              isAuthenticated ? (
+                <Link to={authDestination} className="rounded-full bg-[#9c4f46] px-3 py-1.5 font-semibold text-white">
+                  {authLabel}
+                </Link>
+              ) : (
+                <Link to="/login" className="rounded-full border border-[#9c4f46]/30 bg-white/70 px-3 py-1.5 font-semibold">
+                  {t("public.login")}
+                </Link>
+              )
+            ) : null}
           </div>
         </div>
 
