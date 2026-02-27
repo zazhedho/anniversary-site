@@ -4,6 +4,10 @@ import { fetchPublicAnniversary } from "../../services/publicService";
 import type { PublicMemoryCard, PublicPayload } from "../../types/anniversary";
 
 type CountdownState = { days: number; hours: number; minutes: number; seconds: number };
+type MusicSource =
+  | { kind: "none" }
+  | { kind: "audio"; url: string }
+  | { kind: "youtube"; url: string; embedUrl: string };
 
 function parseDate(value: string): Date | null {
   const parsed = new Date(`${value}T00:00:00+07:00`);
@@ -36,6 +40,42 @@ function statusLabel(status: "done" | "today" | "upcoming", t: (key: string) => 
   if (status === "done") return t("showcase.status.done");
   if (status === "today") return t("showcase.status.today");
   return t("showcase.status.upcoming");
+}
+
+function extractYoutubeVideoId(value: string): string | null {
+  const raw = value.trim();
+  if (!raw) return null;
+
+  const patterns = [
+    /youtu\.be\/([a-zA-Z0-9_-]{11})/,
+    /youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/,
+    /youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/,
+    /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
+    /youtube\.com\/.*[?&]v=([a-zA-Z0-9_-]{11})/,
+  ];
+
+  for (const pattern of patterns) {
+    const match = raw.match(pattern);
+    if (match?.[1]) return match[1];
+  }
+
+  return null;
+}
+
+function resolveMusicSource(value?: string): MusicSource {
+  const url = (value || "").trim();
+  if (!url) return { kind: "none" };
+
+  const youtubeId = extractYoutubeVideoId(url);
+  if (youtubeId) {
+    return {
+      kind: "youtube",
+      url,
+      embedUrl: `https://www.youtube.com/embed/${youtubeId}?rel=0&modestbranding=1`,
+    };
+  }
+
+  return { kind: "audio", url };
 }
 
 export default function AnniversaryShowcase() {
@@ -111,11 +151,11 @@ export default function AnniversaryShowcase() {
       nextDate: formatDate(payload.next_anniversary.date),
     });
   }, [payload, t]);
-
-  const musicDisabled = !payload?.config.music_url;
+  const musicSource = useMemo(() => resolveMusicSource(payload?.config.music_url), [payload?.config.music_url]);
+  const musicDisabled = musicSource.kind === "none";
 
   async function toggleMusic() {
-    if (!audioRef.current || musicDisabled) return;
+    if (!audioRef.current || musicSource.kind !== "audio" || musicDisabled) return;
 
     try {
       if (isPlaying) {
@@ -130,6 +170,14 @@ export default function AnniversaryShowcase() {
       setIsPlaying(false);
     }
   }
+
+  useEffect(() => {
+    if (musicSource.kind === "audio") return;
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+    setIsPlaying(false);
+  }, [musicSource.kind]);
 
   if (loading) {
     return <p className="rounded-2xl border border-[#9c4f46]/20 bg-white/60 p-4 text-sm">{t("showcase.loading")}</p>;
@@ -152,14 +200,33 @@ export default function AnniversaryShowcase() {
       <header>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs uppercase tracking-[0.14em] text-[#2b2220]/70">{config.brand}</p>
-          <button
-            type="button"
-            onClick={toggleMusic}
-            disabled={musicDisabled}
-            className="w-fit rounded-full border border-black/15 bg-white/70 px-4 py-2 text-sm font-semibold transition enabled:hover:-translate-y-0.5 disabled:opacity-60"
-          >
-            {musicDisabled ? t("showcase.musicNotSet") : isPlaying ? t("showcase.pauseSong") : t("showcase.playSong")}
-          </button>
+          {musicSource.kind === "audio" ? (
+            <button
+              type="button"
+              onClick={toggleMusic}
+              disabled={musicDisabled}
+              className="w-fit rounded-full border border-black/15 bg-white/70 px-4 py-2 text-sm font-semibold transition enabled:hover:-translate-y-0.5 disabled:opacity-60"
+            >
+              {musicDisabled ? t("showcase.musicNotSet") : isPlaying ? t("showcase.pauseSong") : t("showcase.playSong")}
+            </button>
+          ) : musicSource.kind === "youtube" ? (
+            <a
+              href={musicSource.url}
+              target="_blank"
+              rel="noreferrer"
+              className="w-fit rounded-full border border-black/15 bg-white/70 px-4 py-2 text-sm font-semibold transition hover:-translate-y-0.5"
+            >
+              {t("showcase.openYoutube")}
+            </a>
+          ) : (
+            <button
+              type="button"
+              disabled
+              className="w-fit rounded-full border border-black/15 bg-white/70 px-4 py-2 text-sm font-semibold opacity-60"
+            >
+              {t("showcase.musicNotSet")}
+            </button>
+          )}
         </div>
 
         <p className="mt-4 mx-auto w-fit rounded-full border border-[#9c4f46]/30 bg-white/60 px-3 py-1 text-xs text-[#6f332f]">{tagText}</p>
@@ -189,6 +256,22 @@ export default function AnniversaryShowcase() {
           )}
         </div>
         <p className="mx-auto mt-3 max-w-3xl text-center text-sm text-[#2b2220]/75">{config.hero_subtext}</p>
+
+        {musicSource.kind === "youtube" ? (
+          <div className="mx-auto mt-5 max-w-2xl overflow-hidden rounded-2xl border border-[#9c4f46]/20 bg-black/5 p-2">
+            <div className="aspect-video w-full overflow-hidden rounded-xl">
+              <iframe
+                src={musicSource.embedUrl}
+                title="YouTube Music"
+                className="h-full w-full"
+                loading="lazy"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        ) : null}
 
         <div className="mt-6 flex justify-center">
           <div className="grid w-full max-w-xl grid-cols-2 gap-2 sm:grid-cols-4">
@@ -279,7 +362,7 @@ export default function AnniversaryShowcase() {
       </section>
 
       <p className="mt-6 border-t border-black/10 pt-4 text-sm text-[#2b2220]/70">{config.footer_text}</p>
-      <audio ref={audioRef} src={config.music_url || ""} preload="none" />
+      {musicSource.kind === "audio" ? <audio ref={audioRef} src={musicSource.url} preload="none" /> : null}
     </div>
   );
 }
