@@ -28,6 +28,7 @@ Frontend (React + TS + Tailwind):
 - `frontend/src/App.tsx`: route utama aplikasi.
 - `frontend/src/contexts/AuthContext.tsx`: auth + permission state.
 - `frontend/src/contexts/LocaleContext.tsx`: i18n `id/en`.
+- `frontend/src/contexts/NotificationContext.tsx`: global toast notification.
 - `frontend/src/services/*`: API client per domain.
 - `frontend/src/pages/*`: halaman per fitur.
 - `frontend/src/components/common/*`: layout, guard, footer, language switcher.
@@ -117,7 +118,11 @@ Referensi:
 Routing utama:
 - Public: `/anniversary`
 - Auth: `/login`, `/register`, `/forgot-password`, `/reset-password`
-- Protected: `/dashboard`, `/users`, `/profile`, `/change-password`, `/setup/anniversary`
+- Protected: `/dashboard`, `/users`, `/roles`, `/menus`, `/profile`, `/change-password`, `/setup/anniversary`
+- Protected form routes:
+  - `/users/new`, `/users/:id/edit`
+  - `/roles/new`, `/roles/:id/edit`
+  - `/menus/new`, `/menus/:id/edit`
 
 Permission guard:
 - Route-level: `ProtectedRoute` + `PermissionRoute`
@@ -140,6 +145,8 @@ Permission menggunakan pasangan `resource + action`.
 Contoh yang dipakai UI:
 - `dashboard:view`
 - `users:list`, `users:create`, `users:update`
+- `roles:list`, `roles:create`, `roles:update`, `roles:delete`, `roles:assign_permissions`, `roles:assign_menus`
+- `menus:list`, `menus:create`, `menus:update`, `menus:delete`
 - `profile:view`, `profile:update`, `profile:update_password`
 
 Sumber permission:
@@ -177,8 +184,13 @@ Urutan baca tercepat:
 8. `frontend/src/App.tsx`
 9. `frontend/src/contexts/AuthContext.tsx`
 10. `frontend/src/contexts/LocaleContext.tsx`
-11. `frontend/src/components/anniversary/AnniversaryShowcase.tsx`
-12. `migrations/000005_sync_rbac_permissions.up.sql`
+11. `frontend/src/contexts/NotificationContext.tsx`
+12. `frontend/src/components/anniversary/AnniversaryShowcase.tsx`
+13. `frontend/src/pages/roles/RoleListPage.tsx`
+14. `frontend/src/pages/roles/RoleFormPage.tsx`
+15. `frontend/src/pages/menus/MenuListPage.tsx`
+16. `frontend/src/pages/menus/MenuFormPage.tsx`
+17. `migrations/000005_sync_rbac_permissions.up.sql`
 
 ## 11) Quick Commands
 

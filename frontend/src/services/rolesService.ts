@@ -1,5 +1,13 @@
-import { apiPaginatedRequest } from "./api";
-import type { RoleListQuery, RoleRecord } from "../types/role";
+import { apiPaginatedRequest, apiRequest } from "./api";
+import type {
+  AssignMenusPayload,
+  AssignPermissionsPayload,
+  RoleCreatePayload,
+  RoleDetail,
+  RoleListQuery,
+  RoleRecord,
+  RoleUpdatePayload,
+} from "../types/role";
 
 function withQuery(path: string, query: RoleListQuery): string {
   const params = new URLSearchParams();
@@ -20,4 +28,73 @@ export async function getRoles(query: RoleListQuery = {}): Promise<RoleRecord[]>
   });
 
   return response.data || [];
+}
+
+export async function getRolesPage(query: RoleListQuery = {}) {
+  return apiPaginatedRequest<RoleRecord[]>(withQuery("/api/roles", query), {
+    auth: true,
+  });
+}
+
+export async function getRoleById(id: string): Promise<RoleDetail> {
+  const response = await apiRequest<RoleDetail>(`/api/role/${id}`, {
+    auth: true,
+  });
+
+  if (!response.data) {
+    throw new Error("Role tidak ditemukan");
+  }
+
+  return response.data;
+}
+
+export async function createRole(payload: RoleCreatePayload): Promise<RoleRecord> {
+  const response = await apiRequest<RoleRecord>("/api/role", {
+    method: "POST",
+    auth: true,
+    body: payload,
+  });
+
+  if (!response.data) {
+    throw new Error("Gagal membuat role");
+  }
+
+  return response.data;
+}
+
+export async function updateRole(id: string, payload: RoleUpdatePayload): Promise<RoleRecord> {
+  const response = await apiRequest<RoleRecord>(`/api/role/${id}`, {
+    method: "PUT",
+    auth: true,
+    body: payload,
+  });
+
+  if (!response.data) {
+    throw new Error("Gagal memperbarui role");
+  }
+
+  return response.data;
+}
+
+export async function deleteRole(id: string): Promise<void> {
+  await apiRequest<null>(`/api/role/${id}`, {
+    method: "DELETE",
+    auth: true,
+  });
+}
+
+export async function assignRolePermissions(id: string, payload: AssignPermissionsPayload): Promise<void> {
+  await apiRequest<null>(`/api/role/${id}/permissions`, {
+    method: "POST",
+    auth: true,
+    body: payload,
+  });
+}
+
+export async function assignRoleMenus(id: string, payload: AssignMenusPayload): Promise<void> {
+  await apiRequest<null>(`/api/role/${id}/menus`, {
+    method: "POST",
+    auth: true,
+    body: payload,
+  });
 }

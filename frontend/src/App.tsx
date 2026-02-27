@@ -13,6 +13,10 @@ import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 import DashboardPage from "./pages/dashboard/DashboardPage";
+import MenuFormPage from "./pages/menus/MenuFormPage";
+import MenuListPage from "./pages/menus/MenuListPage";
+import RoleFormPage from "./pages/roles/RoleFormPage";
+import RoleListPage from "./pages/roles/RoleListPage";
 import NotFoundPage from "./pages/system/NotFoundPage";
 import UnauthorizedPage from "./pages/system/UnauthorizedPage";
 import ProfilePage from "./pages/users/ProfilePage";
@@ -49,6 +53,54 @@ export default function App() {
                 element={
                   <PermissionRoute requiredAccess={{ resource: "dashboard", action: "view" }}>
                     <SetupAnniversaryPage />
+                  </PermissionRoute>
+                }
+              />
+              <Route
+                path="/roles"
+                element={
+                  <PermissionRoute requiredAccess={{ resource: "roles", action: "list" }}>
+                    <RoleListPage />
+                  </PermissionRoute>
+                }
+              />
+              <Route
+                path="/roles/new"
+                element={
+                  <PermissionRoute requiredAccess={{ resource: "roles", action: "create" }}>
+                    <RoleFormPage />
+                  </PermissionRoute>
+                }
+              />
+              <Route
+                path="/roles/:id/edit"
+                element={
+                  <PermissionRoute requiredAccess={{ resource: "roles", action: "update" }}>
+                    <RoleFormPage />
+                  </PermissionRoute>
+                }
+              />
+              <Route
+                path="/menus"
+                element={
+                  <PermissionRoute requiredAccess={{ resource: "menus", action: "list" }}>
+                    <MenuListPage />
+                  </PermissionRoute>
+                }
+              />
+              <Route
+                path="/menus/new"
+                element={
+                  <PermissionRoute requiredAccess={{ resource: "menus", action: "create" }}>
+                    <MenuFormPage />
+                  </PermissionRoute>
+                }
+              />
+              <Route
+                path="/menus/:id/edit"
+                element={
+                  <PermissionRoute requiredAccess={{ resource: "menus", action: "update" }}>
+                    <MenuFormPage />
                   </PermissionRoute>
                 }
               />

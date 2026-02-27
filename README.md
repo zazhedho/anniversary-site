@@ -44,6 +44,7 @@ Atau gunakan proxy default Vite (`/api` -> `http://localhost:8080`).
 
 - `ENABLE_ADMIN_API=false`: only anniversary public/setup API + responsive frontend (default).
 - `ENABLE_ADMIN_API=true`: also enable existing admin RBAC APIs (needs DB/Redis setup).
+  - frontend modules available: Users, Roles, Menus, Profile, Change Password.
 
 ## Public API
 

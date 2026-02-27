@@ -10,6 +10,8 @@ export default function AppLayout() {
   const navigate = useNavigate();
   const canViewDashboard = hasAccess({ resource: "dashboard", action: "view" });
   const canListUsers = hasAccess({ resource: "users", action: "list" });
+  const canListRoles = hasAccess({ resource: "roles", action: "list" });
+  const canListMenus = hasAccess({ resource: "menus", action: "list" });
   const canViewProfile = hasAccess({ resource: "profile", action: "view" });
   const canChangePassword = hasAccess({ resource: "profile", action: "update_password" });
   const canSetupAnniversary = hasAccess({ resource: "dashboard", action: "view" });
@@ -39,6 +41,16 @@ export default function AppLayout() {
             {canListUsers ? (
               <NavLink to="/users" className={({ isActive }) => `rounded-full px-3 py-1.5 ${isActive ? "bg-[#9c4f46] text-white" : "hover:bg-white/70"}`}>
                 {t("nav.users")}
+              </NavLink>
+            ) : null}
+            {canListRoles ? (
+              <NavLink to="/roles" className={({ isActive }) => `rounded-full px-3 py-1.5 ${isActive ? "bg-[#9c4f46] text-white" : "hover:bg-white/70"}`}>
+                {t("nav.roles")}
+              </NavLink>
+            ) : null}
+            {canListMenus ? (
+              <NavLink to="/menus" className={({ isActive }) => `rounded-full px-3 py-1.5 ${isActive ? "bg-[#9c4f46] text-white" : "hover:bg-white/70"}`}>
+                {t("nav.menus")}
               </NavLink>
             ) : null}
             {canSetupAnniversary ? (
