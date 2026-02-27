@@ -2,6 +2,11 @@
 
 Backend + frontend anniversary website.
 
+## Dokumentasi Penting
+
+- Compact context / handover guide:
+  - `docs/COMPACT_CONTEXT_GUIDE.md`
+
 Struktur (mengacu pola `safety-riding/frontend`):
 - backend: root project Go (`main.go`, `internal`, dll.)
 - frontend: app React TypeScript + Tailwind (`frontend/src`, `frontend/src/services`, `frontend/src/types`)

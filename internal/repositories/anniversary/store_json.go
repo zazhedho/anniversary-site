@@ -103,8 +103,8 @@ func (r *repo) write(cfg dto.AnniversarySiteConfig) error {
 func sanitizeConfig(cfg dto.AnniversarySiteConfig, loc *time.Location) (dto.AnniversarySiteConfig, error) {
 	def := defaultConfig()
 
-	cfg.Brand = fallbackText(cfg.Brand, def.Brand)
-	cfg.CoupleNames = fallbackText(cfg.CoupleNames, def.CoupleNames)
+	cfg.Brand = fallbackLocalized(cfg.Brand, def.Brand)
+	cfg.CoupleNames = fallbackLocalized(cfg.CoupleNames, def.CoupleNames)
 	cfg.WeddingDate = strings.TrimSpace(cfg.WeddingDate)
 	if cfg.WeddingDate == "" {
 		cfg.WeddingDate = def.WeddingDate
@@ -115,33 +115,41 @@ func sanitizeConfig(cfg dto.AnniversarySiteConfig, loc *time.Location) (dto.Anni
 		return dto.AnniversarySiteConfig{}, fmt.Errorf("invalid wedding_date format, use YYYY-MM-DD: %w", err)
 	}
 
-	cfg.HeroTitle = fallbackText(cfg.HeroTitle, def.HeroTitle)
-	cfg.HeroSubtext = fallbackText(cfg.HeroSubtext, def.HeroSubtext)
-	cfg.Letter = fallbackText(cfg.Letter, def.Letter)
-	cfg.FooterText = fallbackText(cfg.FooterText, def.FooterText)
+	cfg.HeroTitle = fallbackLocalized(cfg.HeroTitle, def.HeroTitle)
+	cfg.HeroSubtext = fallbackLocalized(cfg.HeroSubtext, def.HeroSubtext)
+	cfg.Letter = fallbackLocalized(cfg.Letter, def.Letter)
+	cfg.FooterText = fallbackLocalized(cfg.FooterText, def.FooterText)
 	cfg.MusicURL = strings.TrimSpace(cfg.MusicURL)
 
 	if len(cfg.Timeline) == 0 {
 		cfg.Timeline = def.Timeline
 	}
 	for idx := range cfg.Timeline {
-		cfg.Timeline[idx].Title = strings.TrimSpace(cfg.Timeline[idx].Title)
-		cfg.Timeline[idx].Description = strings.TrimSpace(cfg.Timeline[idx].Description)
-		if cfg.Timeline[idx].Title == "" {
-			cfg.Timeline[idx].Title = fmt.Sprintf("Momen %d", idx+1)
+		titleFallback := dto.NewLocalizedText(fmt.Sprintf("Momen %d", idx+1))
+		descriptionFallback := dto.NewLocalizedText("")
+		if idx < len(def.Timeline) {
+			titleFallback = def.Timeline[idx].Title
+			descriptionFallback = def.Timeline[idx].Description
 		}
+		cfg.Timeline[idx].Title = fallbackLocalized(cfg.Timeline[idx].Title, titleFallback)
+		cfg.Timeline[idx].Description = fallbackLocalized(cfg.Timeline[idx].Description, descriptionFallback)
 	}
 
 	if len(cfg.MemoryCards) == 0 {
 		cfg.MemoryCards = def.MemoryCards
 	}
 	for idx := range cfg.MemoryCards {
-		cfg.MemoryCards[idx].Title = strings.TrimSpace(cfg.MemoryCards[idx].Title)
-		cfg.MemoryCards[idx].Summary = strings.TrimSpace(cfg.MemoryCards[idx].Summary)
-		cfg.MemoryCards[idx].Note = strings.TrimSpace(cfg.MemoryCards[idx].Note)
-		if cfg.MemoryCards[idx].Title == "" {
-			cfg.MemoryCards[idx].Title = fmt.Sprintf("Kenangan %d", idx+1)
+		titleFallback := dto.NewLocalizedText(fmt.Sprintf("Kenangan %d", idx+1))
+		summaryFallback := dto.NewLocalizedText("")
+		noteFallback := dto.NewLocalizedText("")
+		if idx < len(def.MemoryCards) {
+			titleFallback = def.MemoryCards[idx].Title
+			summaryFallback = def.MemoryCards[idx].Summary
+			noteFallback = def.MemoryCards[idx].Note
 		}
+		cfg.MemoryCards[idx].Title = fallbackLocalized(cfg.MemoryCards[idx].Title, titleFallback)
+		cfg.MemoryCards[idx].Summary = fallbackLocalized(cfg.MemoryCards[idx].Summary, summaryFallback)
+		cfg.MemoryCards[idx].Note = fallbackLocalized(cfg.MemoryCards[idx].Note, noteFallback)
 	}
 
 	if len(cfg.Moments) == 0 {
@@ -152,8 +160,6 @@ func sanitizeConfig(cfg dto.AnniversarySiteConfig, loc *time.Location) (dto.Anni
 			cfg.Moments[idx].Year = idx + 1
 		}
 
-		cfg.Moments[idx].Title = strings.TrimSpace(cfg.Moments[idx].Title)
-		cfg.Moments[idx].Note = strings.TrimSpace(cfg.Moments[idx].Note)
 		cfg.Moments[idx].Date = strings.TrimSpace(cfg.Moments[idx].Date)
 
 		if cfg.Moments[idx].Date == "" {
@@ -164,9 +170,15 @@ func sanitizeConfig(cfg dto.AnniversarySiteConfig, loc *time.Location) (dto.Anni
 			return dto.AnniversarySiteConfig{}, fmt.Errorf("invalid annual_moments[%d].date format, use YYYY-MM-DD", idx)
 		}
 
-		if cfg.Moments[idx].Title == "" {
-			cfg.Moments[idx].Title = fmt.Sprintf("Anniversary ke-%d", cfg.Moments[idx].Year)
+		titleFallback := dto.NewLocalizedText(fmt.Sprintf("Anniversary ke-%d", cfg.Moments[idx].Year))
+		noteFallback := dto.NewLocalizedText("")
+		if idx < len(def.Moments) {
+			titleFallback = def.Moments[idx].Title
+			noteFallback = def.Moments[idx].Note
 		}
+
+		cfg.Moments[idx].Title = fallbackLocalized(cfg.Moments[idx].Title, titleFallback)
+		cfg.Moments[idx].Note = fallbackLocalized(cfg.Moments[idx].Note, noteFallback)
 	}
 
 	sort.Slice(cfg.Moments, func(i, j int) bool {
@@ -178,28 +190,100 @@ func sanitizeConfig(cfg dto.AnniversarySiteConfig, loc *time.Location) (dto.Anni
 
 func defaultConfig() dto.AnniversarySiteConfig {
 	return dto.AnniversarySiteConfig{
-		Brand:       "My another Z • I'm YourZ",
-		CoupleNames: "Zaidus Zhuhur & Zaqia Khana Meriza",
+		Brand:       dto.NewLocalizedText("My another Z • I'm YourZ"),
+		CoupleNames: dto.NewLocalizedText("Zaidus Zhuhur & Zaqia Khana Meriza"),
 		WeddingDate: "2025-04-27",
-		HeroTitle:   "My another Z, I'm YourZ",
-		HeroSubtext: "First anniversary ini jadi bab pertama perjalanan resmi kita sebagai suami istri. Dari 27 April 2025 sampai hari ini, setiap langkah kita selalu terasa lebih berarti karena dijalani berdua.",
-		Letter:      "Untuk Zaqia Khana Meriza, terima kasih sudah menjadi rumah terbaikku. Di anniversary pertama ini, aku tetap memilihmu setiap hari. My another Z, I'm YourZ, hari ini dan seterusnya.",
-		FooterText:  "Dibuat oleh Zaidus Zhuhur untuk Zaqia Khana Meriza, di anniversary pertama kita.",
-		MusicURL:    "/our-song.mp3",
+		HeroTitle:   dto.NewLocalizedText("My another Z, I'm YourZ"),
+		HeroSubtext: dto.LocalizedText{
+			ID: "First anniversary ini jadi bab pertama perjalanan resmi kita sebagai suami istri. Dari 27 April 2025 sampai hari ini, setiap langkah kita selalu terasa lebih berarti karena dijalani berdua.",
+			EN: "This first anniversary is the first chapter of our official journey as husband and wife. Since April 27, 2025, every step has felt more meaningful because we walk it together.",
+		}.Normalize(),
+		Letter: dto.LocalizedText{
+			ID: "Untuk Zaqia Khana Meriza, terima kasih sudah menjadi rumah terbaikku. Di anniversary pertama ini, aku tetap memilihmu setiap hari. My another Z, I'm YourZ, hari ini dan seterusnya.",
+			EN: "For Zaqia Khana Meriza, thank you for being my safest home. On our first anniversary, I still choose you every day. My another Z, I'm YourZ, today and always.",
+		}.Normalize(),
+		FooterText: dto.LocalizedText{
+			ID: "Dibuat oleh Zaidus Zhuhur untuk Zaqia Khana Meriza, di anniversary pertama kita.",
+			EN: "Made by Zaidus Zhuhur for Zaqia Khana Meriza, on our first anniversary.",
+		}.Normalize(),
+		MusicURL: "/our-song.mp3",
 		Timeline: []dto.AnniversaryTimelineItem{
-			{Title: "Awal Menjadi Satu", Description: "Hari di mana janji diucapkan, sekaligus titik awal petualangan paling personal dalam hidup kita."},
-			{Title: "Belajar Bersama", Description: "Dari hal kecil sampai keputusan besar, kita saling menguatkan dan bertumbuh sebagai tim."},
-			{Title: "Tetap Memilih Satu Sama Lain", Description: "Di setiap kondisi, rumah terbaik tetap ada pada kebersamaan kita berdua."},
+			{
+				Title: dto.LocalizedText{ID: "Awal Menjadi Satu", EN: "The Beginning as One"}.Normalize(),
+				Description: dto.LocalizedText{
+					ID: "Hari di mana janji diucapkan, sekaligus titik awal petualangan paling personal dalam hidup kita.",
+					EN: "The day we said our vows and started the most personal journey of our lives.",
+				}.Normalize(),
+			},
+			{
+				Title: dto.LocalizedText{ID: "Belajar Bersama", EN: "Growing Together"}.Normalize(),
+				Description: dto.LocalizedText{
+					ID: "Dari hal kecil sampai keputusan besar, kita saling menguatkan dan bertumbuh sebagai tim.",
+					EN: "From little things to big decisions, we support each other and grow as a team.",
+				}.Normalize(),
+			},
+			{
+				Title: dto.LocalizedText{ID: "Tetap Memilih Satu Sama Lain", EN: "Choosing Each Other Every Day"}.Normalize(),
+				Description: dto.LocalizedText{
+					ID: "Di setiap kondisi, rumah terbaik tetap ada pada kebersamaan kita berdua.",
+					EN: "In every situation, the best home is still found in our togetherness.",
+				}.Normalize(),
+			},
 		},
 		MemoryCards: []dto.AnniversaryMemoryCard{
-			{Title: "Morning Coffee", Summary: "Momen kecil yang bikin hangat.", Note: "Terima kasih selalu jadi alasan aku tersenyum di hari-hari biasa."},
-			{Title: "Late Night Talks", Summary: "Cerita panjang sebelum tidur.", Note: "Kita mungkin capek, tapi selalu pulang dengan hati yang lebih tenang."},
-			{Title: "Weekend Escape", Summary: "Rencana spontan yang seru.", Note: "Semoga banyak perjalanan baru yang kita jelajahi sebagai pasangan."},
+			{
+				Title:   dto.NewLocalizedText("Morning Coffee"),
+				Summary: dto.LocalizedText{ID: "Momen kecil yang bikin hangat.", EN: "A tiny moment that always feels warm."}.Normalize(),
+				Note: dto.LocalizedText{
+					ID: "Terima kasih selalu jadi alasan aku tersenyum di hari-hari biasa.",
+					EN: "Thank you for always being the reason I smile on ordinary days.",
+				}.Normalize(),
+			},
+			{
+				Title:   dto.NewLocalizedText("Late Night Talks"),
+				Summary: dto.LocalizedText{ID: "Cerita panjang sebelum tidur.", EN: "Long conversations before sleep."}.Normalize(),
+				Note: dto.LocalizedText{
+					ID: "Kita mungkin capek, tapi selalu pulang dengan hati yang lebih tenang.",
+					EN: "We may be tired, but we always end the night with calmer hearts.",
+				}.Normalize(),
+			},
+			{
+				Title:   dto.NewLocalizedText("Weekend Escape"),
+				Summary: dto.LocalizedText{ID: "Rencana spontan yang seru.", EN: "A fun spontaneous plan."}.Normalize(),
+				Note: dto.LocalizedText{
+					ID: "Semoga banyak perjalanan baru yang kita jelajahi sebagai pasangan.",
+					EN: "May we explore many more new journeys together as a couple.",
+				}.Normalize(),
+			},
 		},
 		Moments: []dto.AnniversaryMoment{
-			{Year: 1, Title: "First Anniversary", Date: "2026-04-27", Note: "Satu tahun pertama bersama: My another Z, I'm YourZ."},
-			{Year: 2, Title: "Second Anniversary", Date: "2027-04-27", Note: "Saatnya menambah cerita baru dan merayakan pertumbuhan kita sebagai tim."},
-			{Year: 3, Title: "Third Anniversary", Date: "2028-04-27", Note: "Tetap bertumbuh, tetap saling memilih, dan tetap pulang pada cinta yang sama."},
+			{
+				Year:  1,
+				Title: dto.NewLocalizedText("First Anniversary"),
+				Date:  "2026-04-27",
+				Note: dto.LocalizedText{
+					ID: "Satu tahun pertama bersama: My another Z, I'm YourZ.",
+					EN: "Our very first year together: My another Z, I'm YourZ.",
+				}.Normalize(),
+			},
+			{
+				Year:  2,
+				Title: dto.NewLocalizedText("Second Anniversary"),
+				Date:  "2027-04-27",
+				Note: dto.LocalizedText{
+					ID: "Saatnya menambah cerita baru dan merayakan pertumbuhan kita sebagai tim.",
+					EN: "Time to add new stories and celebrate how we grow as a team.",
+				}.Normalize(),
+			},
+			{
+				Year:  3,
+				Title: dto.NewLocalizedText("Third Anniversary"),
+				Date:  "2028-04-27",
+				Note: dto.LocalizedText{
+					ID: "Tetap bertumbuh, tetap saling memilih, dan tetap pulang pada cinta yang sama.",
+					EN: "Keep growing, keep choosing each other, and keep coming home to the same love.",
+				}.Normalize(),
+			},
 		},
 	}
 }
@@ -210,12 +294,12 @@ func anniversaryDateForYear(weddingDate time.Time, yearNumber int, loc *time.Loc
 	return anniversary.Format(dateLayout)
 }
 
-func fallbackText(value, fallback string) string {
-	trimmed := strings.TrimSpace(value)
-	if trimmed == "" {
-		return fallback
+func fallbackLocalized(value, fallback dto.LocalizedText) dto.LocalizedText {
+	normalized := value.Normalize()
+	if normalized.IsEmpty() {
+		return fallback.Normalize()
 	}
-	return trimmed
+	return normalized
 }
 
 var _ interfaceanniversary.RepoAnniversaryInterface = (*repo)(nil)

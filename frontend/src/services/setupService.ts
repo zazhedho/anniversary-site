@@ -1,5 +1,5 @@
 import { apiRequest } from "./api";
-import type { AnnualMomentConfig, PublicPayload, SiteConfig } from "../types/anniversary";
+import type { PublicPayload, SetupAnnualMoment, SetupSiteConfig } from "../types/anniversary";
 
 function setupHeaders(setupToken: string): Record<string, string> {
   const token = setupToken.trim();
@@ -12,8 +12,8 @@ function setupHeaders(setupToken: string): Record<string, string> {
   };
 }
 
-export async function getSetupConfig(setupToken: string): Promise<SiteConfig> {
-  const response = await apiRequest<SiteConfig>("/api/setup/anniversary", {
+export async function getSetupConfig(setupToken: string): Promise<SetupSiteConfig> {
+  const response = await apiRequest<SetupSiteConfig>("/api/setup/anniversary", {
     headers: setupHeaders(setupToken),
   });
 
@@ -24,7 +24,7 @@ export async function getSetupConfig(setupToken: string): Promise<SiteConfig> {
   return response.data;
 }
 
-export async function updateSetupConfig(setupToken: string, payload: SiteConfig): Promise<PublicPayload> {
+export async function updateSetupConfig(setupToken: string, payload: SetupSiteConfig): Promise<PublicPayload> {
   const response = await apiRequest<PublicPayload>("/api/setup/anniversary", {
     method: "PUT",
     headers: setupHeaders(setupToken),
@@ -40,9 +40,9 @@ export async function updateSetupConfig(setupToken: string, payload: SiteConfig)
 
 export async function replaceSetupMoments(
   setupToken: string,
-  payload: AnnualMomentConfig[]
-): Promise<AnnualMomentConfig[]> {
-  const response = await apiRequest<AnnualMomentConfig[]>("/api/setup/anniversary/moments", {
+  payload: SetupAnnualMoment[]
+): Promise<SetupAnnualMoment[]> {
+  const response = await apiRequest<SetupAnnualMoment[]>("/api/setup/anniversary/moments", {
     method: "PUT",
     headers: setupHeaders(setupToken),
     body: payload,
@@ -51,8 +51,8 @@ export async function replaceSetupMoments(
   return response.data || [];
 }
 
-export async function addSetupMoment(setupToken: string, payload: AnnualMomentConfig): Promise<AnnualMomentConfig[]> {
-  const response = await apiRequest<AnnualMomentConfig[]>("/api/setup/anniversary/moments", {
+export async function addSetupMoment(setupToken: string, payload: SetupAnnualMoment): Promise<SetupAnnualMoment[]> {
+  const response = await apiRequest<SetupAnnualMoment[]>("/api/setup/anniversary/moments", {
     method: "POST",
     headers: setupHeaders(setupToken),
     body: payload,
@@ -61,8 +61,8 @@ export async function addSetupMoment(setupToken: string, payload: AnnualMomentCo
   return response.data || [];
 }
 
-export async function deleteSetupMoment(setupToken: string, year: number): Promise<AnnualMomentConfig[]> {
-  const response = await apiRequest<AnnualMomentConfig[]>(`/api/setup/anniversary/moments/${year}`, {
+export async function deleteSetupMoment(setupToken: string, year: number): Promise<SetupAnnualMoment[]> {
+  const response = await apiRequest<SetupAnnualMoment[]>(`/api/setup/anniversary/moments/${year}`, {
     method: "DELETE",
     headers: setupHeaders(setupToken),
   });

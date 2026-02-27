@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import { useLanguage } from "../../contexts/LocaleContext";
 import { getRoles } from "../../services/rolesService";
 import { getUsers } from "../../services/usersService";
 import type { RoleRecord } from "../../types/role";
@@ -8,6 +9,7 @@ import type { UserRecord } from "../../types/user";
 
 export default function UserListPage() {
   const { hasAccess } = useAuth();
+  const { t } = useLanguage();
   const canCreateUser = hasAccess({ resource: "users", action: "create" });
   const canUpdateUser = hasAccess({ resource: "users", action: "update" });
 
@@ -37,7 +39,7 @@ export default function UserListPage() {
         });
         setRoles(data);
       } catch (err) {
-        setRoleError(err instanceof Error ? err.message : "Gagal memuat opsi role");
+        setRoleError(err instanceof Error ? err.message : t("userList.roleLoadFailed"));
       }
     }
 
@@ -63,7 +65,7 @@ export default function UserListPage() {
         setTotalPages(response.total_pages || 1);
         setTotalData(response.total_data || 0);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Gagal memuat user list");
+        setError(err instanceof Error ? err.message : t("userList.loadFailed"));
       } finally {
         setLoading(false);
       }
@@ -83,19 +85,19 @@ export default function UserListPage() {
       <article className="rounded-2xl border border-[#9c4f46]/20 bg-white/65 p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-xs uppercase tracking-[0.12em] text-[#6f332f]">Users</p>
-            <h1 className="mt-1 font-display text-4xl leading-none">User Management</h1>
+            <p className="text-xs uppercase tracking-[0.12em] text-[#6f332f]">{t("userList.tag")}</p>
+            <h1 className="mt-1 font-display text-4xl leading-none">{t("userList.title")}</h1>
             <p className="mt-2 text-sm text-[#2b2220]/70">
-              Atur akun yang bisa membantu mengelola website anniversary ini.
+              {t("userList.subtitle")}
             </p>
           </div>
           {canCreateUser ? (
             <Link to="/users/new" className="rounded-xl bg-[#9c4f46] px-4 py-2 text-sm font-semibold text-white">
-              Add User
+              {t("userList.addUser")}
             </Link>
           ) : (
             <span className="rounded-xl border border-[#9c4f46]/20 bg-white px-4 py-2 text-sm text-[#2b2220]/60">
-              No create permission
+              {t("userList.noCreatePermission")}
             </span>
           )}
         </div>
@@ -108,7 +110,7 @@ export default function UserListPage() {
             value={searchInput}
             onChange={(event) => setSearchInput(event.target.value)}
             className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#9c4f46]"
-            placeholder="Cari nama / email / phone"
+            placeholder={t("userList.searchPlaceholder")}
           />
 
           <select
@@ -119,7 +121,7 @@ export default function UserListPage() {
             }}
             className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#9c4f46]"
           >
-            <option value="">Semua Role</option>
+            <option value="">{t("userList.allRoles")}</option>
             {roles.map((item) => (
               <option key={item.id} value={item.name}>
                 {item.display_name || item.name}
@@ -131,7 +133,7 @@ export default function UserListPage() {
             type="submit"
             className="rounded-xl bg-gradient-to-r from-[#9c4f46] to-[#6f332f] px-4 py-2.5 text-sm font-semibold text-white"
           >
-            Search
+            {t("userList.search")}
           </button>
         </div>
       </form>
@@ -141,19 +143,19 @@ export default function UserListPage() {
 
       <article className="rounded-2xl border border-[#9c4f46]/20 bg-white/65 p-4">
         {loading ? (
-          <p className="text-sm text-[#2b2220]/70">Loading users...</p>
+          <p className="text-sm text-[#2b2220]/70">{t("userList.loadingUsers")}</p>
         ) : users.length === 0 ? (
-          <p className="text-sm text-[#2b2220]/70">Belum ada data user.</p>
+          <p className="text-sm text-[#2b2220]/70">{t("userList.noUsers")}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-[#9c4f46]/15 text-[#6f332f]">
-                  <th className="px-2 py-2 font-semibold">Name</th>
-                  <th className="px-2 py-2 font-semibold">Email</th>
-                  <th className="px-2 py-2 font-semibold">Phone</th>
-                  <th className="px-2 py-2 font-semibold">Role</th>
-                  <th className="px-2 py-2 font-semibold">Action</th>
+                  <th className="px-2 py-2 font-semibold">{t("userList.name")}</th>
+                  <th className="px-2 py-2 font-semibold">{t("userList.email")}</th>
+                  <th className="px-2 py-2 font-semibold">{t("userList.phone")}</th>
+                  <th className="px-2 py-2 font-semibold">{t("userList.role")}</th>
+                  <th className="px-2 py-2 font-semibold">{t("userList.action")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -169,10 +171,10 @@ export default function UserListPage() {
                           to={`/users/${item.id}/edit`}
                           className="rounded-lg border border-[#9c4f46]/30 bg-white px-3 py-1.5 text-xs font-semibold"
                         >
-                          Edit
+                          {t("userList.edit")}
                         </Link>
                       ) : (
-                        <span className="text-xs text-[#2b2220]/50">No update permission</span>
+                        <span className="text-xs text-[#2b2220]/50">{t("userList.noUpdatePermission")}</span>
                       )}
                     </td>
                   </tr>
@@ -184,7 +186,7 @@ export default function UserListPage() {
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
           <p className="text-xs text-[#2b2220]/70">
-            Total: {totalData} | Page {page} / {totalPages}
+            {t("userList.totalPage", { total: totalData, page, totalPages })}
           </p>
           <div className="flex items-center gap-2">
             <button
@@ -193,7 +195,7 @@ export default function UserListPage() {
               onClick={() => setPage((prev) => prev - 1)}
               className="rounded-lg border border-[#9c4f46]/30 bg-white px-3 py-1.5 text-xs font-semibold disabled:opacity-50"
             >
-              Previous
+              {t("userList.previous")}
             </button>
             <button
               type="button"
@@ -201,7 +203,7 @@ export default function UserListPage() {
               onClick={() => setPage((prev) => prev + 1)}
               className="rounded-lg border border-[#9c4f46]/30 bg-white px-3 py-1.5 text-xs font-semibold disabled:opacity-50"
             >
-              Next
+              {t("userList.next")}
             </button>
           </div>
         </div>

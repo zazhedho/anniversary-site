@@ -1,8 +1,10 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
+import { useLanguage } from "../../contexts/LocaleContext";
 
 export default function ProfilePage() {
   const { user, updateCurrentUser, hasAccess } = useAuth();
+  const { t } = useLanguage();
   const canUpdateProfile = hasAccess({ resource: "profile", action: "update" });
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -26,9 +28,9 @@ export default function ProfilePage() {
 
     try {
       await updateCurrentUser({ name, email, phone });
-      setMessage("Profil berhasil diperbarui.");
+      setMessage(t("profile.saved"));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Gagal update profil");
+      setError(err instanceof Error ? err.message : t("profile.saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -37,19 +39,19 @@ export default function ProfilePage() {
   return (
     <section className="grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
       <article className="rounded-2xl border border-[#9c4f46]/20 bg-white/65 p-5">
-        <p className="text-xs uppercase tracking-[0.12em] text-[#6f332f]">Users</p>
-        <h1 className="mt-2 font-display text-4xl leading-none">My Profile</h1>
+        <p className="text-xs uppercase tracking-[0.12em] text-[#6f332f]">{t("profile.tag")}</p>
+        <h1 className="mt-2 font-display text-4xl leading-none">{t("profile.title")}</h1>
         <div className="mt-4 space-y-2 text-sm">
-          <p><span className="font-semibold">Role:</span> {user?.role || "-"}</p>
-          <p><span className="font-semibold">Permissions:</span> {user?.permissions?.length || 0}</p>
-          <p className="text-[#2b2220]/70">Perbarui data profilmu di sini kapan saja.</p>
-          {!canUpdateProfile ? <p className="text-amber-700">Kamu hanya punya akses view profile.</p> : null}
+          <p><span className="font-semibold">{t("profile.roleLabel")}</span> {user?.role || "-"}</p>
+          <p><span className="font-semibold">{t("profile.permissionsLabel")}</span> {user?.permissions?.length || 0}</p>
+          <p className="text-[#2b2220]/70">{t("profile.subtitle")}</p>
+          {!canUpdateProfile ? <p className="text-amber-700">{t("profile.noUpdatePermission")}</p> : null}
         </div>
       </article>
 
       <form onSubmit={onSubmit} className="rounded-2xl border border-[#9c4f46]/20 bg-white/65 p-5 space-y-3">
         <label className="block">
-          <span className="mb-1 block text-sm font-semibold">Name</span>
+          <span className="mb-1 block text-sm font-semibold">{t("common.name")}</span>
           <input
             type="text"
             value={name}
@@ -61,7 +63,7 @@ export default function ProfilePage() {
         </label>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-semibold">Email</span>
+          <span className="mb-1 block text-sm font-semibold">{t("common.email")}</span>
           <input
             type="email"
             value={email}
@@ -73,7 +75,7 @@ export default function ProfilePage() {
         </label>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-semibold">Phone</span>
+          <span className="mb-1 block text-sm font-semibold">{t("common.phone")}</span>
           <input
             type="text"
             value={phone}
@@ -92,7 +94,7 @@ export default function ProfilePage() {
           disabled={saving || !canUpdateProfile}
           className="rounded-xl bg-gradient-to-r from-[#9c4f46] to-[#6f332f] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-70"
         >
-          {saving ? "Saving..." : "Save Profile"}
+          {saving ? t("profile.saving") : t("profile.save")}
         </button>
       </form>
     </section>

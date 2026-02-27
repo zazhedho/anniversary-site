@@ -1,35 +1,177 @@
 package dto
 
+import (
+	"encoding/json"
+	"strings"
+)
+
+type LocalizedText struct {
+	ID string `json:"id,omitempty"`
+	EN string `json:"en,omitempty"`
+}
+
+func NewLocalizedText(value string) LocalizedText {
+	trimmed := strings.TrimSpace(value)
+	return LocalizedText{
+		ID: trimmed,
+		EN: trimmed,
+	}
+}
+
+func (l LocalizedText) Normalize() LocalizedText {
+	id := strings.TrimSpace(l.ID)
+	en := strings.TrimSpace(l.EN)
+
+	if id == "" && en == "" {
+		return LocalizedText{}
+	}
+	if id == "" {
+		id = en
+	}
+	if en == "" {
+		en = id
+	}
+
+	return LocalizedText{
+		ID: id,
+		EN: en,
+	}
+}
+
+func (l LocalizedText) IsEmpty() bool {
+	normalized := l.Normalize()
+	return normalized.ID == "" && normalized.EN == ""
+}
+
+func (l LocalizedText) Value(language string) string {
+	normalized := l.Normalize()
+	if strings.EqualFold(language, "en") && normalized.EN != "" {
+		return normalized.EN
+	}
+	if normalized.ID != "" {
+		return normalized.ID
+	}
+	return normalized.EN
+}
+
+func (l *LocalizedText) UnmarshalJSON(data []byte) error {
+	raw := strings.TrimSpace(string(data))
+	if raw == "" || raw == "null" {
+		*l = LocalizedText{}
+		return nil
+	}
+
+	if strings.HasPrefix(raw, "\"") {
+		var value string
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		*l = NewLocalizedText(value)
+		return nil
+	}
+
+	var payload struct {
+		ID    string `json:"id"`
+		EN    string `json:"en"`
+		Value string `json:"value"`
+	}
+	if err := json.Unmarshal(data, &payload); err != nil {
+		return err
+	}
+
+	if payload.ID == "" && payload.EN == "" && payload.Value != "" {
+		*l = NewLocalizedText(payload.Value)
+		return nil
+	}
+
+	*l = LocalizedText{
+		ID: payload.ID,
+		EN: payload.EN,
+	}.Normalize()
+
+	return nil
+}
+
+func (l LocalizedText) MarshalJSON() ([]byte, error) {
+	normalized := l.Normalize()
+	if normalized.IsEmpty() {
+		return json.Marshal("")
+	}
+	if normalized.ID == normalized.EN {
+		return json.Marshal(normalized.ID)
+	}
+
+	return json.Marshal(struct {
+		ID string `json:"id"`
+		EN string `json:"en"`
+	}{
+		ID: normalized.ID,
+		EN: normalized.EN,
+	})
+}
+
 type AnniversaryTimelineItem struct {
-	Title       string `json:"title"`
-	Description string `json:"description"`
+	Title       LocalizedText `json:"title"`
+	Description LocalizedText `json:"description"`
 }
 
 type AnniversaryMemoryCard struct {
-	Title   string `json:"title"`
-	Summary string `json:"summary"`
-	Note    string `json:"note"`
+	Title   LocalizedText `json:"title"`
+	Summary LocalizedText `json:"summary"`
+	Note    LocalizedText `json:"note"`
 }
 
 type AnniversaryMoment struct {
+	Year  int           `json:"year"`
+	Title LocalizedText `json:"title"`
+	Date  string        `json:"date"`
+	Note  LocalizedText `json:"note"`
+}
+
+type AnniversaryPublicMoment struct {
 	Year  int    `json:"year"`
 	Title string `json:"title"`
 	Date  string `json:"date"`
 	Note  string `json:"note"`
 }
 
+type AnniversaryPublicTimelineItem struct {
+	Title       string `json:"title"`
+	Description string `json:"description"`
+}
+
+type AnniversaryPublicMemoryCard struct {
+	Title   string `json:"title"`
+	Summary string `json:"summary"`
+	Note    string `json:"note"`
+}
+
 type AnniversarySiteConfig struct {
-	Brand       string                    `json:"brand"`
-	CoupleNames string                    `json:"couple_names"`
+	Brand       LocalizedText             `json:"brand"`
+	CoupleNames LocalizedText             `json:"couple_names"`
 	WeddingDate string                    `json:"wedding_date"`
-	HeroTitle   string                    `json:"hero_title"`
-	HeroSubtext string                    `json:"hero_subtext"`
-	Letter      string                    `json:"letter"`
-	FooterText  string                    `json:"footer_text"`
+	HeroTitle   LocalizedText             `json:"hero_title"`
+	HeroSubtext LocalizedText             `json:"hero_subtext"`
+	Letter      LocalizedText             `json:"letter"`
+	FooterText  LocalizedText             `json:"footer_text"`
 	MusicURL    string                    `json:"music_url"`
 	Timeline    []AnniversaryTimelineItem `json:"timeline"`
 	MemoryCards []AnniversaryMemoryCard   `json:"memory_cards"`
 	Moments     []AnniversaryMoment       `json:"annual_moments"`
+}
+
+type AnniversaryPublicSiteConfig struct {
+	Brand       string                          `json:"brand"`
+	CoupleNames string                          `json:"couple_names"`
+	WeddingDate string                          `json:"wedding_date"`
+	HeroTitle   string                          `json:"hero_title"`
+	HeroSubtext string                          `json:"hero_subtext"`
+	Letter      string                          `json:"letter"`
+	FooterText  string                          `json:"footer_text"`
+	MusicURL    string                          `json:"music_url"`
+	Timeline    []AnniversaryPublicTimelineItem `json:"timeline"`
+	MemoryCards []AnniversaryPublicMemoryCard   `json:"memory_cards"`
+	Moments     []AnniversaryPublicMoment       `json:"annual_moments"`
 }
 
 type AnniversaryCountdown struct {
@@ -57,9 +199,9 @@ type AnniversaryMomentView struct {
 }
 
 type AnniversaryPublicPayload struct {
-	Config     AnniversarySiteConfig   `json:"config"`
-	Next       AnniversaryNext         `json:"next_anniversary"`
-	Moments    []AnniversaryMomentView `json:"moments"`
-	ServerTime string                  `json:"server_time"`
-	Timezone   string                  `json:"timezone"`
+	Config     AnniversaryPublicSiteConfig `json:"config"`
+	Next       AnniversaryNext             `json:"next_anniversary"`
+	Moments    []AnniversaryMomentView     `json:"moments"`
+	ServerTime string                      `json:"server_time"`
+	Timezone   string                      `json:"timezone"`
 }

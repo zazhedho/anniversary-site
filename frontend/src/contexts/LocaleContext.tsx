@@ -1,0 +1,510 @@
+import { createContext, ReactNode, useContext, useMemo, useState } from "react";
+
+export type Language = "id" | "en";
+
+const STORAGE_KEY = "anniv_language";
+
+const messages: Record<Language, Record<string, string>> = {
+  id: {
+    "language.id": "ID",
+    "language.en": "EN",
+
+    "auth.card.tag": "Anniversary Control",
+
+    "nav.dashboard": "Dashboard",
+    "nav.users": "Users",
+    "nav.setup": "Setup",
+    "nav.public": "Public",
+    "nav.profile": "Profile",
+    "nav.password": "Password",
+    "nav.logout": "Logout",
+    "layout.signedInAs": "Masuk sebagai {name}",
+
+    "common.email": "Email",
+    "common.password": "Password",
+    "common.confirmPassword": "Confirm Password",
+    "common.name": "Name",
+    "common.phone": "Phone",
+
+    "password.rule.minLength": "Minimal 8 karakter",
+    "password.rule.lowercase": "Huruf kecil (a-z)",
+    "password.rule.uppercase": "Huruf besar (A-Z)",
+    "password.rule.number": "Angka (0-9)",
+    "password.rule.symbol": "Simbol (!@#$...)",
+    "password.rulesProgress": "{count}/{total} syarat terpenuhi",
+    "password.strength.none": "Belum diisi",
+    "password.strength.weak": "Lemah",
+    "password.strength.fair": "Cukup",
+    "password.strength.good": "Baik",
+    "password.strength.strong": "Kuat",
+    "password.match": "Password sudah sama",
+    "password.mismatch": "Password belum sama",
+    "password.error.requirements": "Password belum memenuhi semua syarat.",
+    "password.error.mismatch": "Konfirmasi password tidak sama.",
+    "password.show": "Tampilkan password",
+    "password.hide": "Sembunyikan password",
+
+    "login.tag": "Anniversary Keepsake",
+    "login.heading": "Control Panel For Your Love Story",
+    "login.description": "Login untuk mengelola data anniversary, update momen per tahun, dan menjaga konten personal tetap aman.",
+    "login.title": "Login",
+    "login.subtitle": "Masuk untuk melanjutkan cerita manis kalian.",
+    "login.error": "Login gagal",
+    "login.signingIn": "Signing in...",
+    "login.submit": "Login",
+    "login.public": "Public",
+    "login.register": "Register",
+    "login.forgot": "Forgot",
+    "login.reset": "Reset",
+
+    "register.title": "Register",
+    "register.subtitle": "Buat akun untuk menyiapkan kejutan manis di momen anniversary kalian.",
+    "register.error": "Register gagal",
+    "register.submitting": "Submitting...",
+    "register.submit": "Create Account",
+    "register.already": "Sudah punya akun?",
+    "register.seePublic": "Ingin lihat versi publik?",
+    "register.openPublic": "Buka Public Page",
+
+    "forgot.title": "Forgot",
+    "forgot.subtitle": "Masukkan email untuk memulihkan akses akunmu.",
+    "forgot.success": "Permintaan reset berhasil dibuat. Silakan lanjutkan dengan token reset yang kamu punya.",
+    "forgot.error": "Request gagal",
+    "forgot.sending": "Sending...",
+    "forgot.submit": "Request Reset",
+    "forgot.remember": "Sudah ingat password?",
+
+    "reset.title": "Reset",
+    "reset.subtitle": "Masukkan token reset dan buat kata sandi baru.",
+    "reset.token": "Reset Token",
+    "reset.newPassword": "New Password",
+    "reset.confirmPassword": "Confirm New Password",
+    "reset.mismatch": "Konfirmasi password tidak sama.",
+    "reset.success": "Password berhasil direset. Silakan login.",
+    "reset.error": "Reset gagal",
+    "reset.updating": "Updating...",
+    "reset.submit": "Reset Password",
+    "reset.backTo": "Kembali ke",
+
+    "changePassword.tag": "Security",
+    "changePassword.title": "Change Password",
+    "changePassword.subtitle": "Perbarui kata sandi agar akunmu tetap aman.",
+    "changePassword.current": "Current Password",
+    "changePassword.new": "New Password",
+    "changePassword.confirm": "Confirm New Password",
+    "changePassword.mismatch": "Konfirmasi password tidak sama.",
+    "changePassword.mustDifferent": "Password baru harus berbeda dari password saat ini.",
+    "changePassword.success": "Password berhasil diubah.",
+    "changePassword.error": "Gagal ganti password",
+    "changePassword.updating": "Updating...",
+    "changePassword.submit": "Update Password",
+
+    "public.tag": "Public Anniversary Page",
+    "public.login": "Login",
+    "public.dashboard": "Dashboard",
+
+    "showcase.defaultNote": "Klik salah satu kartu untuk lihat pesan spesial.",
+    "showcase.loading": "Loading anniversary payload...",
+    "showcase.loadError": "Gagal memuat data anniversary.",
+    "showcase.payloadUnavailable": "Payload tidak tersedia",
+    "showcase.musicNotSet": "Musik belum diset",
+    "showcase.pauseSong": "Pause Song",
+    "showcase.playSong": "Play Song",
+    "showcase.weddingTag": "Wedding Date: {weddingDate} | Next: {nextLabel} ({nextDate})",
+    "showcase.countdown.days": "Hari",
+    "showcase.countdown.hours": "Jam",
+    "showcase.countdown.minutes": "Menit",
+    "showcase.countdown.seconds": "Detik",
+    "showcase.todayMessage": "Selamat {label}! Hari ini hari spesial kalian.",
+    "showcase.countdownMessage": "Menghitung mundur ke {label}.",
+    "showcase.togetherSince": "Bersama sejak {date}",
+    "showcase.journey": "Perjalanan Kita",
+    "showcase.moments": "Momen Per Tahun",
+    "showcase.memories": "Kotak Kenangan",
+    "showcase.letter": "Surat Untukmu",
+    "showcase.badge": "Anniversary ke-{year} • {status}",
+    "showcase.status.done": "Sudah Dirayakan",
+    "showcase.status.today": "Hari Ini",
+    "showcase.status.upcoming": "Akan Datang",
+
+    "guard.checkSession": "Mengecek sesi...",
+    "guard.checkPermission": "Mengecek permission...",
+
+    "system.notFound": "Halaman tidak ditemukan.",
+    "system.backDashboard": "Kembali ke Dashboard",
+    "system.unauthorized": "Kamu tidak punya permission untuk mengakses halaman ini.",
+    "system.backAnniversary": "Kembali ke Anniversary",
+
+    "dashboard.tag": "Private Space",
+    "dashboard.welcome": "Welcome, {name}",
+    "dashboard.description": "Kamu sudah login. Kelola perjalanan anniversary kalian dari ruang ini.",
+
+    "setup.tag": "Ruang Persiapan",
+    "setup.title": "Setup Anniversary JSON",
+    "setup.subtitle": "Kelola konten anniversary dan momen tahunan dari editor ini.",
+    "setup.tokenLabel": "Setup Token",
+    "setup.tokenPlaceholder": "Token dari env SETUP_TOKEN backend",
+    "setup.saveToken": "Save Token",
+    "setup.loadConfig": "Load Config",
+    "setup.loading": "Loading...",
+    "setup.tokenSaved": "Setup token tersimpan di browser.",
+    "setup.configLoaded": "Config setup berhasil dimuat.",
+    "setup.configLoadFailed": "Gagal memuat config setup",
+    "setup.configSaved": "Config JSON berhasil disimpan.",
+    "setup.configSaveFailed": "Gagal menyimpan config setup",
+    "setup.invalidJson": "JSON config tidak valid",
+    "setup.momentsArrayRequired": "Field annual_moments harus berupa array",
+    "setup.momentsReplaced": "Annual moments berhasil diganti dari JSON editor.",
+    "setup.momentsReplaceFailed": "Gagal replace annual moments",
+    "setup.momentAdded": "Moment tahun ke-{year} berhasil ditambahkan.",
+    "setup.momentAddFailed": "Gagal menambah moment",
+    "setup.momentDeleted": "Moment tahun ke-{year} berhasil dihapus.",
+    "setup.momentDeleteFailed": "Gagal menghapus moment",
+    "setup.fullJsonEditor": "Full JSON Editor",
+    "setup.saveFullConfig": "Save Full Config",
+    "setup.saving": "Saving...",
+    "setup.addAnnualMoment": "Add Annual Moment",
+    "setup.year": "Year",
+    "setup.titleField": "Title",
+    "setup.dateField": "Date (YYYY-MM-DD)",
+    "setup.noteField": "Note",
+    "setup.processing": "Processing...",
+    "setup.addMoment": "Add Moment",
+    "setup.momentUtilities": "Moment Utilities",
+    "setup.deleteByYear": "Delete By Year",
+    "setup.deleteMoment": "Delete Moment",
+    "setup.replaceFromJson": "Replace Moments From JSON",
+    "setup.tips": "Tips: edit bagian annual_moments di JSON editor, lalu klik Replace Moments From JSON.",
+
+    "userList.tag": "Users",
+    "userList.title": "User Management",
+    "userList.subtitle": "Atur akun yang bisa membantu mengelola website anniversary ini.",
+    "userList.addUser": "Add User",
+    "userList.noCreatePermission": "No create permission",
+    "userList.searchPlaceholder": "Cari nama / email / phone",
+    "userList.allRoles": "Semua Role",
+    "userList.search": "Search",
+    "userList.roleLoadFailed": "Gagal memuat opsi role",
+    "userList.loadFailed": "Gagal memuat user list",
+    "userList.loadingUsers": "Loading users...",
+    "userList.noUsers": "Belum ada data user.",
+    "userList.name": "Name",
+    "userList.email": "Email",
+    "userList.phone": "Phone",
+    "userList.role": "Role",
+    "userList.action": "Action",
+    "userList.edit": "Edit",
+    "userList.noUpdatePermission": "No update permission",
+    "userList.totalPage": "Total: {total} | Page {page} / {totalPages}",
+    "userList.previous": "Previous",
+    "userList.next": "Next",
+
+    "userForm.tag": "Users",
+    "userForm.titleCreate": "Create User",
+    "userForm.titleEdit": "Edit User",
+    "userForm.subtitle": "Lengkapi data akun dan peran yang dibutuhkan.",
+    "userForm.roleLoadFailed": "Gagal memuat opsi role",
+    "userForm.detailFailed": "Gagal mengambil detail user",
+    "userForm.updateSuccess": "User berhasil diperbarui.",
+    "userForm.createSuccess": "User berhasil dibuat.",
+    "userForm.saveFailed": "Gagal menyimpan user",
+    "userForm.loadingDetail": "Loading detail user...",
+    "userForm.noPermission": "Kamu tidak punya permission untuk aksi ini.",
+    "userForm.saving": "Saving...",
+    "userForm.saveUser": "Save User",
+    "userForm.backToList": "Back to List",
+    "userForm.goToUsers": "Go to Users",
+
+    "profile.tag": "Users",
+    "profile.title": "My Profile",
+    "profile.roleLabel": "Role:",
+    "profile.permissionsLabel": "Permissions:",
+    "profile.subtitle": "Perbarui data profilmu di sini kapan saja.",
+    "profile.noUpdatePermission": "Kamu hanya punya akses view profile.",
+    "profile.saved": "Profil berhasil diperbarui.",
+    "profile.saveFailed": "Gagal update profil",
+    "profile.saving": "Saving...",
+    "profile.save": "Save Profile",
+
+    "footer.copyright": "Copyright © {year} Zaidus Zhuhur",
+  },
+  en: {
+    "language.id": "ID",
+    "language.en": "EN",
+
+    "auth.card.tag": "Anniversary Control",
+
+    "nav.dashboard": "Dashboard",
+    "nav.users": "Users",
+    "nav.setup": "Setup",
+    "nav.public": "Public",
+    "nav.profile": "Profile",
+    "nav.password": "Password",
+    "nav.logout": "Logout",
+    "layout.signedInAs": "Signed in as {name}",
+
+    "common.email": "Email",
+    "common.password": "Password",
+    "common.confirmPassword": "Confirm Password",
+    "common.name": "Name",
+    "common.phone": "Phone",
+
+    "password.rule.minLength": "Minimum 8 characters",
+    "password.rule.lowercase": "Lowercase letter (a-z)",
+    "password.rule.uppercase": "Uppercase letter (A-Z)",
+    "password.rule.number": "Number (0-9)",
+    "password.rule.symbol": "Symbol (!@#$...)",
+    "password.rulesProgress": "{count}/{total} requirements met",
+    "password.strength.none": "Not set",
+    "password.strength.weak": "Weak",
+    "password.strength.fair": "Fair",
+    "password.strength.good": "Good",
+    "password.strength.strong": "Strong",
+    "password.match": "Passwords match",
+    "password.mismatch": "Passwords do not match",
+    "password.error.requirements": "Password does not meet all requirements.",
+    "password.error.mismatch": "Password confirmation does not match.",
+    "password.show": "Show password",
+    "password.hide": "Hide password",
+
+    "login.tag": "Anniversary Keepsake",
+    "login.heading": "Control Panel For Your Love Story",
+    "login.description": "Sign in to manage anniversary content, yearly moments, and keep personal data secure.",
+    "login.title": "Login",
+    "login.subtitle": "Sign in to continue your beautiful story.",
+    "login.error": "Login failed",
+    "login.signingIn": "Signing in...",
+    "login.submit": "Login",
+    "login.public": "Public",
+    "login.register": "Register",
+    "login.forgot": "Forgot",
+    "login.reset": "Reset",
+
+    "register.title": "Register",
+    "register.subtitle": "Create an account to prepare sweet anniversary moments.",
+    "register.error": "Register failed",
+    "register.submitting": "Submitting...",
+    "register.submit": "Create Account",
+    "register.already": "Already have an account?",
+    "register.seePublic": "Want to see the public version?",
+    "register.openPublic": "Open Public Page",
+
+    "forgot.title": "Forgot",
+    "forgot.subtitle": "Enter your email to recover your account access.",
+    "forgot.success": "Reset request has been created. Continue with the reset token you have.",
+    "forgot.error": "Request failed",
+    "forgot.sending": "Sending...",
+    "forgot.submit": "Request Reset",
+    "forgot.remember": "Remember your password?",
+
+    "reset.title": "Reset",
+    "reset.subtitle": "Enter your reset token and create a new password.",
+    "reset.token": "Reset Token",
+    "reset.newPassword": "New Password",
+    "reset.confirmPassword": "Confirm New Password",
+    "reset.mismatch": "Password confirmation does not match.",
+    "reset.success": "Password has been reset. Please log in.",
+    "reset.error": "Reset failed",
+    "reset.updating": "Updating...",
+    "reset.submit": "Reset Password",
+    "reset.backTo": "Back to",
+
+    "changePassword.tag": "Security",
+    "changePassword.title": "Change Password",
+    "changePassword.subtitle": "Update your password to keep your account secure.",
+    "changePassword.current": "Current Password",
+    "changePassword.new": "New Password",
+    "changePassword.confirm": "Confirm New Password",
+    "changePassword.mismatch": "Password confirmation does not match.",
+    "changePassword.mustDifferent": "New password must be different from current password.",
+    "changePassword.success": "Password has been updated.",
+    "changePassword.error": "Failed to update password",
+    "changePassword.updating": "Updating...",
+    "changePassword.submit": "Update Password",
+
+    "public.tag": "Public Anniversary Page",
+    "public.login": "Login",
+    "public.dashboard": "Dashboard",
+
+    "showcase.defaultNote": "Click one of the cards to read a special note.",
+    "showcase.loading": "Loading anniversary payload...",
+    "showcase.loadError": "Failed to load anniversary data.",
+    "showcase.payloadUnavailable": "Payload is unavailable",
+    "showcase.musicNotSet": "Music is not set",
+    "showcase.pauseSong": "Pause Song",
+    "showcase.playSong": "Play Song",
+    "showcase.weddingTag": "Wedding Date: {weddingDate} | Next: {nextLabel} ({nextDate})",
+    "showcase.countdown.days": "Days",
+    "showcase.countdown.hours": "Hours",
+    "showcase.countdown.minutes": "Minutes",
+    "showcase.countdown.seconds": "Seconds",
+    "showcase.todayMessage": "Happy {label}! Today is your special day.",
+    "showcase.countdownMessage": "Counting down to {label}.",
+    "showcase.togetherSince": "Together since {date}",
+    "showcase.journey": "Our Journey",
+    "showcase.moments": "Yearly Moments",
+    "showcase.memories": "Memory Box",
+    "showcase.letter": "A Letter for You",
+    "showcase.badge": "Anniversary #{year} • {status}",
+    "showcase.status.done": "Celebrated",
+    "showcase.status.today": "Today",
+    "showcase.status.upcoming": "Upcoming",
+
+    "guard.checkSession": "Checking session...",
+    "guard.checkPermission": "Checking permissions...",
+
+    "system.notFound": "Page not found.",
+    "system.backDashboard": "Back to Dashboard",
+    "system.unauthorized": "You do not have permission to access this page.",
+    "system.backAnniversary": "Back to Anniversary",
+
+    "dashboard.tag": "Private Space",
+    "dashboard.welcome": "Welcome, {name}",
+    "dashboard.description": "You are signed in. Manage your anniversary journey from this space.",
+
+    "setup.tag": "Setup Space",
+    "setup.title": "Anniversary JSON Setup",
+    "setup.subtitle": "Manage anniversary content and yearly moments from this editor.",
+    "setup.tokenLabel": "Setup Token",
+    "setup.tokenPlaceholder": "Token from backend SETUP_TOKEN env",
+    "setup.saveToken": "Save Token",
+    "setup.loadConfig": "Load Config",
+    "setup.loading": "Loading...",
+    "setup.tokenSaved": "Setup token is saved in this browser.",
+    "setup.configLoaded": "Setup config loaded successfully.",
+    "setup.configLoadFailed": "Failed to load setup config",
+    "setup.configSaved": "JSON config saved successfully.",
+    "setup.configSaveFailed": "Failed to save setup config",
+    "setup.invalidJson": "Invalid JSON config",
+    "setup.momentsArrayRequired": "annual_moments field must be an array",
+    "setup.momentsReplaced": "Annual moments replaced from JSON editor.",
+    "setup.momentsReplaceFailed": "Failed to replace annual moments",
+    "setup.momentAdded": "Moment for year {year} was added.",
+    "setup.momentAddFailed": "Failed to add moment",
+    "setup.momentDeleted": "Moment for year {year} was deleted.",
+    "setup.momentDeleteFailed": "Failed to delete moment",
+    "setup.fullJsonEditor": "Full JSON Editor",
+    "setup.saveFullConfig": "Save Full Config",
+    "setup.saving": "Saving...",
+    "setup.addAnnualMoment": "Add Annual Moment",
+    "setup.year": "Year",
+    "setup.titleField": "Title",
+    "setup.dateField": "Date (YYYY-MM-DD)",
+    "setup.noteField": "Note",
+    "setup.processing": "Processing...",
+    "setup.addMoment": "Add Moment",
+    "setup.momentUtilities": "Moment Utilities",
+    "setup.deleteByYear": "Delete By Year",
+    "setup.deleteMoment": "Delete Moment",
+    "setup.replaceFromJson": "Replace Moments From JSON",
+    "setup.tips": "Tip: edit annual_moments in JSON editor, then click Replace Moments From JSON.",
+
+    "userList.tag": "Users",
+    "userList.title": "User Management",
+    "userList.subtitle": "Manage accounts that can help maintain this anniversary website.",
+    "userList.addUser": "Add User",
+    "userList.noCreatePermission": "No create permission",
+    "userList.searchPlaceholder": "Search name / email / phone",
+    "userList.allRoles": "All Roles",
+    "userList.search": "Search",
+    "userList.roleLoadFailed": "Failed to load role options",
+    "userList.loadFailed": "Failed to load user list",
+    "userList.loadingUsers": "Loading users...",
+    "userList.noUsers": "No users found.",
+    "userList.name": "Name",
+    "userList.email": "Email",
+    "userList.phone": "Phone",
+    "userList.role": "Role",
+    "userList.action": "Action",
+    "userList.edit": "Edit",
+    "userList.noUpdatePermission": "No update permission",
+    "userList.totalPage": "Total: {total} | Page {page} / {totalPages}",
+    "userList.previous": "Previous",
+    "userList.next": "Next",
+
+    "userForm.tag": "Users",
+    "userForm.titleCreate": "Create User",
+    "userForm.titleEdit": "Edit User",
+    "userForm.subtitle": "Fill in account and role details.",
+    "userForm.roleLoadFailed": "Failed to load role options",
+    "userForm.detailFailed": "Failed to load user details",
+    "userForm.updateSuccess": "User updated successfully.",
+    "userForm.createSuccess": "User created successfully.",
+    "userForm.saveFailed": "Failed to save user",
+    "userForm.loadingDetail": "Loading user details...",
+    "userForm.noPermission": "You do not have permission for this action.",
+    "userForm.saving": "Saving...",
+    "userForm.saveUser": "Save User",
+    "userForm.backToList": "Back to List",
+    "userForm.goToUsers": "Go to Users",
+
+    "profile.tag": "Users",
+    "profile.title": "My Profile",
+    "profile.roleLabel": "Role:",
+    "profile.permissionsLabel": "Permissions:",
+    "profile.subtitle": "Update your profile information anytime.",
+    "profile.noUpdatePermission": "You only have profile view access.",
+    "profile.saved": "Profile updated successfully.",
+    "profile.saveFailed": "Failed to update profile",
+    "profile.saving": "Saving...",
+    "profile.save": "Save Profile",
+
+    "footer.copyright": "Copyright © {year} Zaidus Zhuhur",
+  },
+};
+
+type TranslateVars = Record<string, string | number>;
+
+type LocaleContextType = {
+  language: Language;
+  setLanguage: (language: Language) => void;
+  t: (key: string, vars?: TranslateVars) => string;
+};
+
+const LocaleContext = createContext<LocaleContextType | undefined>(undefined);
+
+function interpolate(template: string, vars?: TranslateVars): string {
+  if (!vars) return template;
+  return template.replace(/\{(\w+)\}/g, (_, name: string) => String(vars[name] ?? `{${name}}`));
+}
+
+function getInitialLanguage(): Language {
+  if (typeof window === "undefined") return "id";
+  const saved = window.localStorage.getItem(STORAGE_KEY);
+  if (saved === "id" || saved === "en") return saved;
+  return "id";
+}
+
+export function LocaleProvider({ children }: { children: ReactNode }) {
+  const [language, setLanguageState] = useState<Language>(() => getInitialLanguage());
+
+  const value = useMemo<LocaleContextType>(() => {
+    const setLanguage = (nextLanguage: Language) => {
+      setLanguageState(nextLanguage);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(STORAGE_KEY, nextLanguage);
+      }
+    };
+
+    const t = (key: string, vars?: TranslateVars): string => {
+      const message = messages[language][key] || messages.id[key] || key;
+      return interpolate(message, vars);
+    };
+
+    return {
+      language,
+      setLanguage,
+      t,
+    };
+  }, [language]);
+
+  return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;
+}
+
+export function useLanguage() {
+  const context = useContext(LocaleContext);
+  if (!context) {
+    throw new Error("useLanguage must be used within LocaleProvider");
+  }
+  return context;
+}

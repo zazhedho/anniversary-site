@@ -3,6 +3,7 @@ import AppLayout from "./components/common/AppLayout";
 import PermissionRoute from "./components/common/PermissionRoute";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import { AuthProvider } from "./contexts/AuthContext";
+import { LocaleProvider } from "./contexts/LocaleContext";
 import PublicAnniversaryPage from "./pages/anniversary/PublicAnniversaryPage";
 import SetupAnniversaryPage from "./pages/anniversary/SetupAnniversaryPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
@@ -20,8 +21,9 @@ import UserListPage from "./pages/users/UserListPage";
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <Routes>
+      <LocaleProvider>
+        <AuthProvider>
+          <Routes>
           <Route path="/" element={<Navigate to="/anniversary" replace />} />
           <Route path="/anniversary" element={<PublicAnniversaryPage />} />
           <Route path="/login" element={<LoginPage />} />
@@ -100,8 +102,9 @@ export default function App() {
           </Route>
 
           <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </AuthProvider>
+          </Routes>
+        </AuthProvider>
+      </LocaleProvider>
     </BrowserRouter>
   );
 }

@@ -1,9 +1,12 @@
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import { useLanguage } from "../../contexts/LocaleContext";
+import LanguageSwitcher from "./LanguageSwitcher";
 import SiteFooter from "./SiteFooter";
 
 export default function AppLayout() {
   const { user, logoutUser, hasAccess, hasAnyAccess } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const canViewDashboard = hasAccess({ resource: "dashboard", action: "view" });
   const canListUsers = hasAccess({ resource: "users", action: "list" });
@@ -30,43 +33,44 @@ export default function AppLayout() {
           <nav className="flex flex-wrap items-center gap-2 text-sm">
             {canViewDashboard ? (
               <NavLink to="/dashboard" className={({ isActive }) => `rounded-full px-3 py-1.5 ${isActive ? "bg-[#9c4f46] text-white" : "hover:bg-white/70"}`}>
-                Dashboard
+                {t("nav.dashboard")}
               </NavLink>
             ) : null}
             {canListUsers ? (
               <NavLink to="/users" className={({ isActive }) => `rounded-full px-3 py-1.5 ${isActive ? "bg-[#9c4f46] text-white" : "hover:bg-white/70"}`}>
-                Users
+                {t("nav.users")}
               </NavLink>
             ) : null}
             {canSetupAnniversary ? (
               <NavLink to="/setup/anniversary" className={({ isActive }) => `rounded-full px-3 py-1.5 ${isActive ? "bg-[#9c4f46] text-white" : "hover:bg-white/70"}`}>
-                Setup
+                {t("nav.setup")}
               </NavLink>
             ) : null}
             {canViewPublic ? (
               <NavLink to="/anniversary" className={({ isActive }) => `rounded-full px-3 py-1.5 ${isActive ? "bg-[#9c4f46] text-white" : "hover:bg-white/70"}`}>
-                Public
+                {t("nav.public")}
               </NavLink>
             ) : null}
             {canViewProfile ? (
               <NavLink to="/profile" className={({ isActive }) => `rounded-full px-3 py-1.5 ${isActive ? "bg-[#9c4f46] text-white" : "hover:bg-white/70"}`}>
-                Profile
+                {t("nav.profile")}
               </NavLink>
             ) : null}
             {canChangePassword ? (
               <NavLink to="/change-password" className={({ isActive }) => `rounded-full px-3 py-1.5 ${isActive ? "bg-[#9c4f46] text-white" : "hover:bg-white/70"}`}>
-                Password
+                {t("nav.password")}
               </NavLink>
             ) : null}
+            <LanguageSwitcher />
             <button type="button" onClick={onLogout} className="ml-1 rounded-full border border-[#9c4f46]/30 bg-white/70 px-3 py-1.5 hover:bg-white">
-              Logout
+              {t("nav.logout")}
             </button>
           </nav>
         </div>
       </header>
 
       <main className="mx-auto w-[min(1120px,94vw)] flex-1 py-6">
-        <p className="mb-4 text-xs uppercase tracking-[0.12em] text-[#2b2220]/60">Signed in as {user?.name || "User"}</p>
+        <p className="mb-4 text-xs uppercase tracking-[0.12em] text-[#2b2220]/60">{t("layout.signedInAs", { name: user?.name || "User" })}</p>
         <Outlet />
       </main>
       <div className="mx-auto w-[min(1120px,94vw)] pb-6">

@@ -28,7 +28,7 @@ func NewHandler(service interfaceanniversary.ServiceAnniversaryInterface, setupT
 }
 
 func (h *Handler) GetPublic(ctx *gin.Context) {
-	payload, err := h.service.GetPublicPayload()
+	payload, err := h.service.GetPublicPayload(languageFromQuery(ctx.Query("lang")))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"status": false, "message": err.Error()})
 		return
@@ -38,13 +38,20 @@ func (h *Handler) GetPublic(ctx *gin.Context) {
 }
 
 func (h *Handler) GetMoments(ctx *gin.Context) {
-	moments, err := h.service.GetPublicMoments()
+	moments, err := h.service.GetPublicMoments(languageFromQuery(ctx.Query("lang")))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"status": false, "message": err.Error()})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"status": true, "data": moments})
+}
+
+func languageFromQuery(value string) string {
+	if strings.EqualFold(strings.TrimSpace(value), "en") {
+		return "en"
+	}
+	return "id"
 }
 
 func (h *Handler) GetSetup(ctx *gin.Context) {

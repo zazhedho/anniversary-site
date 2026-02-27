@@ -1,5 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import type { AnnualMomentConfig, SiteConfig } from "../../types/anniversary";
+import PasswordInput from "../../components/common/PasswordInput";
+import { useLanguage } from "../../contexts/LocaleContext";
+import type { SetupAnnualMoment, SetupSiteConfig } from "../../types/anniversary";
 import {
   addSetupMoment,
   deleteSetupMoment,
@@ -14,15 +16,16 @@ function toPrettyJson(value: unknown): string {
   return JSON.stringify(value, null, 2);
 }
 
-function parseConfigJson(source: string): SiteConfig {
-  const parsed = JSON.parse(source) as SiteConfig;
+function parseConfigJson(source: string, invalidMessage: string): SetupSiteConfig {
+  const parsed = JSON.parse(source) as SetupSiteConfig;
   if (!parsed || typeof parsed !== "object") {
-    throw new Error("JSON config tidak valid");
+    throw new Error(invalidMessage);
   }
   return parsed;
 }
 
 export default function SetupAnniversaryPage() {
+  const { t } = useLanguage();
   const [setupToken, setSetupToken] = useState("");
   const [configJson, setConfigJson] = useState("{}");
   const [fetching, setFetching] = useState(false);
@@ -48,7 +51,7 @@ export default function SetupAnniversaryPage() {
 
   function saveToken() {
     localStorage.setItem(SETUP_TOKEN_KEY, setupToken.trim());
-    setMessage("Setup token tersimpan di browser.");
+    setMessage(t("setup.tokenSaved"));
     setError("");
   }
 
@@ -59,9 +62,9 @@ export default function SetupAnniversaryPage() {
     try {
       const config = await getSetupConfig(setupToken);
       setConfigJson(toPrettyJson(config));
-      setMessage("Config setup berhasil dimuat.");
+      setMessage(t("setup.configLoaded"));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Gagal memuat config setup");
+      setError(err instanceof Error ? err.message : t("setup.configLoadFailed"));
     } finally {
       setFetching(false);
     }
@@ -74,13 +77,13 @@ export default function SetupAnniversaryPage() {
     setSaving(true);
 
     try {
-      const payload = parseConfigJson(configJson);
+      const payload = parseConfigJson(configJson, t("setup.invalidJson"));
       await updateSetupConfig(setupToken, payload);
       const refreshed = await getSetupConfig(setupToken);
       setConfigJson(toPrettyJson(refreshed));
-      setMessage("Config JSON berhasil disimpan.");
+      setMessage(t("setup.configSaved"));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Gagal menyimpan config setup");
+      setError(err instanceof Error ? err.message : t("setup.configSaveFailed"));
     } finally {
       setSaving(false);
     }
@@ -92,17 +95,17 @@ export default function SetupAnniversaryPage() {
     setActionLoading(true);
 
     try {
-      const payload = parseConfigJson(configJson);
+      const payload = parseConfigJson(configJson, t("setup.invalidJson"));
       if (!Array.isArray(payload.annual_moments)) {
-        throw new Error("Field annual_moments harus berupa array");
+        throw new Error(t("setup.momentsArrayRequired"));
       }
 
       await replaceSetupMoments(setupToken, payload.annual_moments);
       const refreshed = await getSetupConfig(setupToken);
       setConfigJson(toPrettyJson(refreshed));
-      setMessage("Annual moments berhasil diganti dari JSON editor.");
+      setMessage(t("setup.momentsReplaced"));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Gagal replace annual moments");
+      setError(err instanceof Error ? err.message : t("setup.momentsReplaceFailed"));
     } finally {
       setActionLoading(false);
     }
@@ -115,7 +118,7 @@ export default function SetupAnniversaryPage() {
     setActionLoading(true);
 
     try {
-      const payload: AnnualMomentConfig = {
+      const payload: SetupAnnualMoment = {
         year: Number(momentYear),
         title: momentTitle,
         date: momentDate,
@@ -125,12 +128,12 @@ export default function SetupAnniversaryPage() {
       await addSetupMoment(setupToken, payload);
       const refreshed = await getSetupConfig(setupToken);
       setConfigJson(toPrettyJson(refreshed));
-      setMessage(`Moment tahun ke-${momentYear} berhasil ditambahkan.`);
+      setMessage(t("setup.momentAdded", { year: momentYear }));
       setMomentTitle("");
       setMomentDate("");
       setMomentNote("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Gagal menambah moment");
+      setError(err instanceof Error ? err.message : t("setup.momentAddFailed"));
     } finally {
       setActionLoading(false);
     }
@@ -145,9 +148,9 @@ export default function SetupAnniversaryPage() {
       await deleteSetupMoment(setupToken, Number(deleteYear));
       const refreshed = await getSetupConfig(setupToken);
       setConfigJson(toPrettyJson(refreshed));
-      setMessage(`Moment tahun ke-${deleteYear} berhasil dihapus.`);
+      setMessage(t("setup.momentDeleted", { year: deleteYear }));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Gagal menghapus moment");
+      setError(err instanceof Error ? err.message : t("setup.momentDeleteFailed"));
     } finally {
       setActionLoading(false);
     }
@@ -156,23 +159,22 @@ export default function SetupAnniversaryPage() {
   return (
     <section className="space-y-4">
       <article className="rounded-2xl border border-[#9c4f46]/20 bg-white/65 p-5">
-        <p className="text-xs uppercase tracking-[0.12em] text-[#6f332f]">Ruang Persiapan</p>
-        <h1 className="mt-2 font-display text-4xl leading-none">Setup Anniversary JSON</h1>
+        <p className="text-xs uppercase tracking-[0.12em] text-[#6f332f]">{t("setup.tag")}</p>
+        <h1 className="mt-2 font-display text-4xl leading-none">{t("setup.title")}</h1>
         <p className="mt-2 text-sm text-[#2b2220]/70">
-          Kelola konten anniversary dan momen tahunan dari editor ini.
+          {t("setup.subtitle")}
         </p>
       </article>
 
       <article className="rounded-2xl border border-[#9c4f46]/20 bg-white/65 p-4">
         <div className="grid gap-3 md:grid-cols-[1fr_auto_auto] md:items-end">
           <label className="block">
-            <span className="mb-1 block text-sm font-semibold">Setup Token</span>
-            <input
-              type="password"
+            <span className="mb-1 block text-sm font-semibold">{t("setup.tokenLabel")}</span>
+            <PasswordInput
               value={setupToken}
               onChange={(event) => setSetupToken(event.target.value)}
               className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#9c4f46]"
-              placeholder="Token dari env SETUP_TOKEN backend"
+              placeholder={t("setup.tokenPlaceholder")}
             />
           </label>
           <button
@@ -181,7 +183,7 @@ export default function SetupAnniversaryPage() {
             disabled={tokenMissing}
             className="rounded-xl border border-[#9c4f46]/30 bg-white px-4 py-2.5 text-sm font-semibold disabled:opacity-60"
           >
-            Save Token
+            {t("setup.saveToken")}
           </button>
           <button
             type="button"
@@ -189,7 +191,7 @@ export default function SetupAnniversaryPage() {
             disabled={tokenMissing || fetching}
             className="rounded-xl bg-[#9c4f46] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
           >
-            {fetching ? "Loading..." : "Load Config"}
+            {fetching ? t("setup.loading") : t("setup.loadConfig")}
           </button>
         </div>
       </article>
@@ -199,13 +201,13 @@ export default function SetupAnniversaryPage() {
 
       <form onSubmit={onSaveConfig} className="rounded-2xl border border-[#9c4f46]/20 bg-white/65 p-4 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-sm font-semibold">Full JSON Editor</p>
+          <p className="text-sm font-semibold">{t("setup.fullJsonEditor")}</p>
           <button
             type="submit"
             disabled={tokenMissing || saving}
             className="rounded-xl bg-gradient-to-r from-[#9c4f46] to-[#6f332f] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
           >
-            {saving ? "Saving..." : "Save Full Config"}
+            {saving ? t("setup.saving") : t("setup.saveFullConfig")}
           </button>
         </div>
         <textarea
@@ -218,9 +220,9 @@ export default function SetupAnniversaryPage() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <form onSubmit={onAddMoment} className="rounded-2xl border border-[#9c4f46]/20 bg-white/65 p-4 space-y-3">
-          <p className="text-sm font-semibold">Add Annual Moment</p>
+          <p className="text-sm font-semibold">{t("setup.addAnnualMoment")}</p>
           <label className="block">
-            <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em]">Year</span>
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em]">{t("setup.year")}</span>
             <input
               type="number"
               min={1}
@@ -231,7 +233,7 @@ export default function SetupAnniversaryPage() {
             />
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em]">Title</span>
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em]">{t("setup.titleField")}</span>
             <input
               type="text"
               value={momentTitle}
@@ -241,7 +243,7 @@ export default function SetupAnniversaryPage() {
             />
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em]">Date (YYYY-MM-DD)</span>
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em]">{t("setup.dateField")}</span>
             <input
               type="date"
               value={momentDate}
@@ -251,7 +253,7 @@ export default function SetupAnniversaryPage() {
             />
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em]">Note</span>
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em]">{t("setup.noteField")}</span>
             <textarea
               value={momentNote}
               onChange={(event) => setMomentNote(event.target.value)}
@@ -264,14 +266,14 @@ export default function SetupAnniversaryPage() {
             disabled={tokenMissing || actionLoading}
             className="rounded-xl bg-[#9c4f46] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
           >
-            {actionLoading ? "Processing..." : "Add Moment"}
+            {actionLoading ? t("setup.processing") : t("setup.addMoment")}
           </button>
         </form>
 
         <article className="rounded-2xl border border-[#9c4f46]/20 bg-white/65 p-4 space-y-3">
-          <p className="text-sm font-semibold">Moment Utilities</p>
+          <p className="text-sm font-semibold">{t("setup.momentUtilities")}</p>
           <label className="block">
-            <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em]">Delete By Year</span>
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em]">{t("setup.deleteByYear")}</span>
             <input
               type="number"
               min={1}
@@ -285,10 +287,10 @@ export default function SetupAnniversaryPage() {
             <button
               type="button"
               onClick={onDeleteMoment}
-              disabled={tokenMissing || actionLoading}
-              className="rounded-xl border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 disabled:opacity-60"
-            >
-              Delete Moment
+            disabled={tokenMissing || actionLoading}
+            className="rounded-xl border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 disabled:opacity-60"
+          >
+              {t("setup.deleteMoment")}
             </button>
             <button
               type="button"
@@ -296,11 +298,11 @@ export default function SetupAnniversaryPage() {
               disabled={tokenMissing || actionLoading}
               className="rounded-xl border border-[#9c4f46]/30 bg-white px-4 py-2 text-sm font-semibold disabled:opacity-60"
             >
-              Replace Moments From JSON
+              {t("setup.replaceFromJson")}
             </button>
           </div>
           <p className="text-xs text-[#2b2220]/65">
-            Tips: edit bagian <code>annual_moments</code> di JSON editor, lalu klik <b>Replace Moments From JSON</b>.
+            {t("setup.tips")}
           </p>
         </article>
       </div>

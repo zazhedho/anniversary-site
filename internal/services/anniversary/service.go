@@ -22,13 +22,13 @@ func NewAnniversaryService(repo interfaceanniversary.RepoAnniversaryInterface, l
 	}
 }
 
-func (s *Service) GetPublicPayload() (dto.AnniversaryPublicPayload, error) {
+func (s *Service) GetPublicPayload(language string) (dto.AnniversaryPublicPayload, error) {
 	cfg, err := s.Repo.Load()
 	if err != nil {
 		return dto.AnniversaryPublicPayload{}, newServiceError(ErrLoadConfig, err)
 	}
 
-	payload, err := BuildPublicPayload(cfg, time.Now(), s.Loc)
+	payload, err := BuildPublicPayload(cfg, time.Now(), s.Loc, language)
 	if err != nil {
 		return dto.AnniversaryPublicPayload{}, err
 	}
@@ -36,8 +36,8 @@ func (s *Service) GetPublicPayload() (dto.AnniversaryPublicPayload, error) {
 	return payload, nil
 }
 
-func (s *Service) GetPublicMoments() ([]dto.AnniversaryMomentView, error) {
-	payload, err := s.GetPublicPayload()
+func (s *Service) GetPublicMoments(language string) ([]dto.AnniversaryMomentView, error) {
+	payload, err := s.GetPublicPayload(language)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func (s *Service) UpdateConfig(req dto.AnniversarySiteConfig) (dto.AnniversaryPu
 		return dto.AnniversaryPublicPayload{}, newServiceError(ErrSaveConfig, err)
 	}
 
-	payload, err := BuildPublicPayload(saved, time.Now(), s.Loc)
+	payload, err := BuildPublicPayload(saved, time.Now(), s.Loc, "id")
 	if err != nil {
 		return dto.AnniversaryPublicPayload{}, err
 	}

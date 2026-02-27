@@ -1,19 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useLanguage } from "../../contexts/LocaleContext";
 import { fetchPublicAnniversary } from "../../services/publicService";
-import type { MemoryCard, PublicPayload } from "../../types/anniversary";
+import type { PublicMemoryCard, PublicPayload } from "../../types/anniversary";
 
 type CountdownState = { days: number; hours: number; minutes: number; seconds: number };
-
-const dateFormatter = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "long", year: "numeric" });
 
 function parseDate(value: string): Date | null {
   const parsed = new Date(`${value}T00:00:00+07:00`);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
-}
-
-function formatDate(value: string): string {
-  const parsed = parseDate(value);
-  return parsed ? dateFormatter.format(parsed) : "-";
 }
 
 function toCountdown(target: Date): CountdownState {
@@ -38,33 +32,43 @@ function toElapsed(start: Date): CountdownState {
   };
 }
 
-function statusLabel(status: "done" | "today" | "upcoming"): string {
-  if (status === "done") return "Sudah Dirayakan";
-  if (status === "today") return "Hari Ini";
-  return "Akan Datang";
+function statusLabel(status: "done" | "today" | "upcoming", t: (key: string) => string): string {
+  if (status === "done") return t("showcase.status.done");
+  if (status === "today") return t("showcase.status.today");
+  return t("showcase.status.upcoming");
 }
 
 export default function AnniversaryShowcase() {
+  const { language, t } = useLanguage();
   const [payload, setPayload] = useState<PublicPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [selectedNote, setSelectedNote] = useState("Klik salah satu kartu untuk lihat pesan spesial.");
+  const [selectedNote, setSelectedNote] = useState("");
   const [countdown, setCountdown] = useState<CountdownState>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [elapsed, setElapsed] = useState<CountdownState>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const dateFormatter = useMemo(
+    () => new Intl.DateTimeFormat(language === "id" ? "id-ID" : "en-US", { day: "numeric", month: "long", year: "numeric" }),
+    [language]
+  );
+
+  function formatDate(value: string): string {
+    const parsed = parseDate(value);
+    return parsed ? dateFormatter.format(parsed) : "-";
+  }
 
   useEffect(() => {
     let mounted = true;
 
     async function load() {
       try {
-        const data = await fetchPublicAnniversary();
+        const data = await fetchPublicAnniversary(language);
         if (!mounted) return;
         setPayload(data);
       } catch (err) {
         if (!mounted) return;
-        setError(err instanceof Error ? err.message : "Gagal memuat data anniversary.");
+        setError(err instanceof Error ? err.message : t("showcase.loadError"));
       } finally {
         if (mounted) setLoading(false);
       }
@@ -74,7 +78,7 @@ export default function AnniversaryShowcase() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [language, t]);
 
   useEffect(() => {
     if (!payload) return;
@@ -99,12 +103,14 @@ export default function AnniversaryShowcase() {
   }, [payload]);
 
   const tagText = useMemo(() => {
-    if (!payload) return "Memuat tanggal anniversary...";
+    if (!payload) return t("showcase.loading");
 
-    return `Wedding Date: ${formatDate(payload.config.wedding_date)} | Next: ${payload.next_anniversary.label} (${formatDate(
-      payload.next_anniversary.date
-    )})`;
-  }, [payload]);
+    return t("showcase.weddingTag", {
+      weddingDate: formatDate(payload.config.wedding_date),
+      nextLabel: payload.next_anniversary.label,
+      nextDate: formatDate(payload.next_anniversary.date),
+    });
+  }, [payload, t]);
 
   const musicDisabled = !payload?.config.music_url;
 
@@ -126,11 +132,11 @@ export default function AnniversaryShowcase() {
   }
 
   if (loading) {
-    return <p className="rounded-2xl border border-[#9c4f46]/20 bg-white/60 p-4 text-sm">Loading anniversary payload...</p>;
+    return <p className="rounded-2xl border border-[#9c4f46]/20 bg-white/60 p-4 text-sm">{t("showcase.loading")}</p>;
   }
 
   if (error || !payload) {
-    return <p className="rounded-2xl border border-red-300 bg-red-50 p-4 text-sm text-red-700">{error || "Payload tidak tersedia"}</p>;
+    return <p className="rounded-2xl border border-red-300 bg-red-50 p-4 text-sm text-red-700">{error || t("showcase.payloadUnavailable")}</p>;
   }
 
   const { config, moments, next_anniversary: next } = payload;
@@ -147,7 +153,7 @@ export default function AnniversaryShowcase() {
             disabled={musicDisabled}
             className="w-fit rounded-full border border-black/15 bg-white/70 px-4 py-2 text-sm font-semibold transition enabled:hover:-translate-y-0.5 disabled:opacity-60"
           >
-            {musicDisabled ? "Musik belum diset" : isPlaying ? "Pause Song" : "Play Song"}
+            {musicDisabled ? t("showcase.musicNotSet") : isPlaying ? t("showcase.pauseSong") : t("showcase.playSong")}
           </button>
         </div>
 
@@ -160,10 +166,10 @@ export default function AnniversaryShowcase() {
         <div className="mt-6 flex justify-center">
           <div className="grid w-full max-w-xl grid-cols-2 gap-2 sm:grid-cols-4">
             {[
-              ["Hari", countdown.days],
-              ["Jam", countdown.hours],
-              ["Menit", countdown.minutes],
-              ["Detik", countdown.seconds],
+              [t("showcase.countdown.days"), countdown.days],
+              [t("showcase.countdown.hours"), countdown.hours],
+              [t("showcase.countdown.minutes"), countdown.minutes],
+              [t("showcase.countdown.seconds"), countdown.seconds],
             ].map(([label, value]) => (
               <div key={String(label)} className="rounded-2xl border border-[#9c4f46]/20 bg-white/60 p-3 text-center">
                 <p className="font-display text-3xl text-[#6f332f]">{String(value).padStart(2, "0")}</p>
@@ -173,17 +179,17 @@ export default function AnniversaryShowcase() {
           </div>
         </div>
         <p className="mt-3 text-center text-sm text-[#2b2220]/70">
-          {next.is_today ? `Selamat ${next.label}! Hari ini hari spesial kalian.` : `Menghitung mundur ke ${next.label}.`}
+          {next.is_today ? t("showcase.todayMessage", { label: next.label }) : t("showcase.countdownMessage", { label: next.label })}
         </p>
 
-        <p className="mt-5 text-center text-sm text-[#2b2220]/75">Bersama sejak {formatDate(config.wedding_date)}</p>
+        <p className="mt-5 text-center text-sm text-[#2b2220]/75">{t("showcase.togetherSince", { date: formatDate(config.wedding_date) })}</p>
         <div className="mt-3 flex justify-center">
           <div className="grid w-full max-w-xl grid-cols-2 gap-2 sm:grid-cols-4">
             {[
-              ["Hari", elapsed.days],
-              ["Jam", elapsed.hours],
-              ["Menit", elapsed.minutes],
-              ["Detik", elapsed.seconds],
+              [t("showcase.countdown.days"), elapsed.days],
+              [t("showcase.countdown.hours"), elapsed.hours],
+              [t("showcase.countdown.minutes"), elapsed.minutes],
+              [t("showcase.countdown.seconds"), elapsed.seconds],
             ].map(([label, value]) => (
               <div key={`elapsed-${String(label)}`} className="rounded-2xl border border-[#9c4f46]/20 bg-white/60 p-3 text-center">
                 <p className="font-display text-3xl text-[#6f332f]">{String(value).padStart(2, "0")}</p>
@@ -195,7 +201,7 @@ export default function AnniversaryShowcase() {
       </header>
 
       <section className="mt-7">
-        <h3 className="font-display text-3xl sm:text-4xl">Perjalanan Kita</h3>
+        <h3 className="font-display text-3xl sm:text-4xl">{t("showcase.journey")}</h3>
         <div className="mt-3 grid gap-3 border-l-2 border-dashed border-[#9c4f46]/30 pl-4 sm:pl-6">
           {config.timeline.map((item, index) => (
             <article key={`${item.title}-${index}`} className="rounded-2xl border border-[#9c4f46]/20 bg-white/55 p-4">
@@ -207,12 +213,12 @@ export default function AnniversaryShowcase() {
       </section>
 
       <section className="mt-7">
-        <h3 className="font-display text-3xl sm:text-4xl">Momen Per Tahun</h3>
+        <h3 className="font-display text-3xl sm:text-4xl">{t("showcase.moments")}</h3>
         <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
           {moments.map((moment) => (
             <article key={`${moment.year}-${moment.date}`} className="rounded-2xl border border-[#9c4f46]/20 bg-[linear-gradient(160deg,rgba(255,255,255,0.72),rgba(244,208,196,0.45))] p-4">
               <p className="inline-flex rounded-full border border-[#9c4f46]/25 bg-white/65 px-3 py-1 text-[11px] uppercase tracking-[0.08em] text-[#6f332f]">
-                Anniversary ke-{moment.year} • {statusLabel(moment.status)}
+                {t("showcase.badge", { year: moment.year, status: statusLabel(moment.status, t) })}
               </p>
               <p className="mt-2 font-display text-3xl">{moment.title}</p>
               <p className="text-sm font-semibold">{formatDate(moment.date)}</p>
@@ -223,9 +229,9 @@ export default function AnniversaryShowcase() {
       </section>
 
       <section className="mt-7">
-        <h3 className="font-display text-3xl sm:text-4xl">Kotak Kenangan</h3>
+        <h3 className="font-display text-3xl sm:text-4xl">{t("showcase.memories")}</h3>
         <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
-          {config.memory_cards.map((card: MemoryCard, index: number) => (
+          {config.memory_cards.map((card: PublicMemoryCard, index: number) => (
             <button
               key={`${card.title}-${index}`}
               type="button"
@@ -237,11 +243,11 @@ export default function AnniversaryShowcase() {
             </button>
           ))}
         </div>
-        <p className="mt-3 rounded-2xl border border-[#9c4f46]/20 bg-white/60 p-4 text-sm text-[#6f332f]">{selectedNote}</p>
+        <p className="mt-3 rounded-2xl border border-[#9c4f46]/20 bg-white/60 p-4 text-sm text-[#6f332f]">{selectedNote || t("showcase.defaultNote")}</p>
       </section>
 
       <section className="mt-7">
-        <h3 className="font-display text-3xl sm:text-4xl">Surat Untukmu</h3>
+        <h3 className="font-display text-3xl sm:text-4xl">{t("showcase.letter")}</h3>
         <p className="mt-3 rounded-2xl border border-[#9c4f46]/20 bg-white/60 p-4 text-sm leading-relaxed text-[#2b2220]/75">{config.letter}</p>
       </section>
 

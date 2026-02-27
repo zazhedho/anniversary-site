@@ -1,12 +1,17 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import PasswordInput from "../../components/common/PasswordInput";
+import PasswordValidationHint from "../../components/common/PasswordValidationHint";
 import { useAuth } from "../../contexts/AuthContext";
+import { useLanguage } from "../../contexts/LocaleContext";
 import { getRoles } from "../../services/rolesService";
 import type { RoleRecord } from "../../types/role";
 import { createUser, getUserById, updateUserById } from "../../services/usersService";
+import { isPasswordValid, validatePassword } from "../../utils/passwordValidation";
 
 export default function UserFormPage() {
   const { hasAccess } = useAuth();
+  const { t } = useLanguage();
   const { id } = useParams();
   const navigate = useNavigate();
   const isEdit = Boolean(id);
@@ -19,6 +24,7 @@ export default function UserFormPage() {
   const [phone, setPhone] = useState("");
   const [role, setRole] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [roles, setRoles] = useState<RoleRecord[]>([]);
 
   const [loading, setLoading] = useState(false);
@@ -28,7 +34,7 @@ export default function UserFormPage() {
   const [error, setError] = useState("");
   const [roleError, setRoleError] = useState("");
 
-  const title = useMemo(() => (isEdit ? "Edit User" : "Create User"), [isEdit]);
+  const title = useMemo(() => (isEdit ? t("userForm.titleEdit") : t("userForm.titleCreate")), [isEdit, t]);
   const roleOptions = useMemo(() => {
     if (!role) return roles;
     const exists = roles.some((item) => item.name === role);
@@ -56,7 +62,7 @@ export default function UserFormPage() {
         setRoles(data);
         setRole((prev) => prev || data[0]?.name || "");
       } catch (err) {
-        setRoleError(err instanceof Error ? err.message : "Gagal memuat opsi role");
+        setRoleError(err instanceof Error ? err.message : t("userForm.roleLoadFailed"));
       } finally {
         setLoadingRoles(false);
       }
@@ -79,7 +85,7 @@ export default function UserFormPage() {
         setPhone(user.phone || "");
         setRole(user.role || "viewer");
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Gagal mengambil detail user");
+        setError(err instanceof Error ? err.message : t("userForm.detailFailed"));
       } finally {
         setFetching(false);
       }
@@ -97,14 +103,27 @@ export default function UserFormPage() {
     try {
       if (isEdit && id) {
         await updateUserById(id, { name, email, phone, role });
-        setMessage("User berhasil diperbarui.");
+        setMessage(t("userForm.updateSuccess"));
       } else {
+        const validation = validatePassword(password);
+        if (!isPasswordValid(validation)) {
+          setError(t("password.error.requirements"));
+          setLoading(false);
+          return;
+        }
+        if (password !== confirmPassword) {
+          setError(t("password.error.mismatch"));
+          setLoading(false);
+          return;
+        }
+
         await createUser({ name, email, phone, role, password });
-        setMessage("User berhasil dibuat.");
+        setMessage(t("userForm.createSuccess"));
         setPassword("");
+        setConfirmPassword("");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Gagal menyimpan user");
+      setError(err instanceof Error ? err.message : t("userForm.saveFailed"));
     } finally {
       setLoading(false);
     }
@@ -113,21 +132,21 @@ export default function UserFormPage() {
   return (
     <section className="space-y-4">
       <article className="rounded-2xl border border-[#9c4f46]/20 bg-white/65 p-5">
-        <p className="text-xs uppercase tracking-[0.12em] text-[#6f332f]">Users</p>
+        <p className="text-xs uppercase tracking-[0.12em] text-[#6f332f]">{t("userForm.tag")}</p>
         <h1 className="mt-2 font-display text-4xl leading-none">{title}</h1>
-        <p className="mt-2 text-sm text-[#2b2220]/70">Lengkapi data akun dan peran yang dibutuhkan.</p>
+        <p className="mt-2 text-sm text-[#2b2220]/70">{t("userForm.subtitle")}</p>
       </article>
 
       <form onSubmit={onSubmit} className="max-w-2xl rounded-2xl border border-[#9c4f46]/20 bg-white/65 p-5 space-y-3">
-        {fetching ? <p className="text-sm text-[#2b2220]/70">Loading detail user...</p> : null}
+        {fetching ? <p className="text-sm text-[#2b2220]/70">{t("userForm.loadingDetail")}</p> : null}
         {!canSubmit ? (
           <p className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-700">
-            Kamu tidak punya permission untuk aksi ini.
+            {t("userForm.noPermission")}
           </p>
         ) : null}
 
         <label className="block">
-          <span className="mb-1 block text-sm font-semibold">Name</span>
+          <span className="mb-1 block text-sm font-semibold">{t("common.name")}</span>
           <input
             type="text"
             value={name}
@@ -140,7 +159,7 @@ export default function UserFormPage() {
         </label>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-semibold">Email</span>
+          <span className="mb-1 block text-sm font-semibold">{t("common.email")}</span>
           <input
             type="email"
             value={email}
@@ -152,7 +171,7 @@ export default function UserFormPage() {
         </label>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-semibold">Phone</span>
+          <span className="mb-1 block text-sm font-semibold">{t("common.phone")}</span>
           <input
             type="text"
             value={phone}
@@ -165,7 +184,7 @@ export default function UserFormPage() {
         </label>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-semibold">Role</span>
+          <span className="mb-1 block text-sm font-semibold">{t("userList.role")}</span>
           <select
             value={role}
             onChange={(event) => setRole(event.target.value)}
@@ -184,18 +203,31 @@ export default function UserFormPage() {
         {roleError ? <p className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-700">{roleError}</p> : null}
 
         {!isEdit ? (
-          <label className="block">
-            <span className="mb-1 block text-sm font-semibold">Password</span>
-            <input
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#9c4f46]"
-              required
-              minLength={8}
-              disabled={!canSubmit}
-            />
-          </label>
+          <>
+            <label className="block">
+              <span className="mb-1 block text-sm font-semibold">{t("common.password")}</span>
+              <PasswordInput
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#9c4f46]"
+                required
+                minLength={8}
+                disabled={!canSubmit}
+              />
+            </label>
+            <label className="block">
+              <span className="mb-1 block text-sm font-semibold">{t("common.confirmPassword")}</span>
+              <PasswordInput
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#9c4f46]"
+                required
+                minLength={8}
+                disabled={!canSubmit}
+              />
+            </label>
+            <PasswordValidationHint password={password} confirmPassword={confirmPassword} showMatchHint />
+          </>
         ) : null}
 
         {message ? <p className="rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{message}</p> : null}
@@ -207,13 +239,13 @@ export default function UserFormPage() {
             disabled={loading || fetching || loadingRoles || !role || !canSubmit}
             className="rounded-xl bg-gradient-to-r from-[#9c4f46] to-[#6f332f] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-70"
           >
-            {loading ? "Saving..." : "Save User"}
+            {loading ? t("userForm.saving") : t("userForm.saveUser")}
           </button>
           <Link
             to="/users"
             className="rounded-xl border border-[#9c4f46]/30 bg-white px-4 py-2.5 text-sm font-semibold"
           >
-            Back to List
+            {t("userForm.backToList")}
           </Link>
           {message ? (
             <button
@@ -221,7 +253,7 @@ export default function UserFormPage() {
               className="rounded-xl border border-[#9c4f46]/30 bg-white px-4 py-2.5 text-sm font-semibold"
               onClick={() => navigate("/users")}
             >
-              Go to Users
+              {t("userForm.goToUsers")}
             </button>
           ) : null}
         </div>

@@ -1,26 +1,51 @@
-export type TimelineItem = {
+export type LocalizedTextObject = {
+  id?: string;
+  en?: string;
+};
+
+export type LocalizedText = string | LocalizedTextObject;
+
+export type PublicTimelineItem = {
   title: string;
   description: string;
 };
 
-export type MemoryCard = {
+export type PublicMemoryCard = {
   title: string;
   summary: string;
   note: string;
 };
 
-export type AnnualMomentConfig = {
+export type PublicAnnualMoment = {
   year: number;
   title: string;
   date: string;
   note: string;
 };
 
-export type AnnualMomentView = AnnualMomentConfig & {
+export type SetupTimelineItem = {
+  title: LocalizedText;
+  description: LocalizedText;
+};
+
+export type SetupMemoryCard = {
+  title: LocalizedText;
+  summary: LocalizedText;
+  note: LocalizedText;
+};
+
+export type SetupAnnualMoment = {
+  year: number;
+  title: LocalizedText;
+  date: string;
+  note: LocalizedText;
+};
+
+export type AnnualMomentView = PublicAnnualMoment & {
   status: "done" | "today" | "upcoming";
 };
 
-export type SiteConfig = {
+export type PublicSiteConfig = {
   brand: string;
   couple_names: string;
   wedding_date: string;
@@ -29,9 +54,23 @@ export type SiteConfig = {
   letter: string;
   footer_text: string;
   music_url: string;
-  timeline: TimelineItem[];
-  memory_cards: MemoryCard[];
-  annual_moments: AnnualMomentConfig[];
+  timeline: PublicTimelineItem[];
+  memory_cards: PublicMemoryCard[];
+  annual_moments: PublicAnnualMoment[];
+};
+
+export type SetupSiteConfig = {
+  brand: LocalizedText;
+  couple_names: LocalizedText;
+  wedding_date: string;
+  hero_title: LocalizedText;
+  hero_subtext: LocalizedText;
+  letter: LocalizedText;
+  footer_text: LocalizedText;
+  music_url: string;
+  timeline: SetupTimelineItem[];
+  memory_cards: SetupMemoryCard[];
+  annual_moments: SetupAnnualMoment[];
 };
 
 export type NextAnniversary = {
@@ -43,7 +82,7 @@ export type NextAnniversary = {
 };
 
 export type PublicPayload = {
-  config: SiteConfig;
+  config: PublicSiteConfig;
   next_anniversary: NextAnniversary;
   moments: AnnualMomentView[];
   timezone: string;
