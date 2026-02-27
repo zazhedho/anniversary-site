@@ -69,6 +69,7 @@ func main() {
 	logger.WriteLog(logger.LogLevelInfo, "APP: "+appName+"; PORT: "+port)
 
 	enableAdminAPI := utils.GetEnv("ENABLE_ADMIN_API", false)
+	anniversaryStore := strings.ToLower(strings.TrimSpace(utils.GetEnv("ANNIVERSARY_STORE", "json")))
 	if enableAdminAPI {
 		confID := config.GetAppConf("CONFIG_ID", "", nil)
 		logger.WriteLog(logger.LogLevelDebug, fmt.Sprintf("ConfigID: %s", confID))
@@ -79,6 +80,20 @@ func main() {
 	}
 
 	routes := router.NewRoutes()
+	connectDB := func() {
+		if routes.DB != nil {
+			return
+		}
+
+		routes.DB, sqlDb, err = database.ConnDb()
+		FailOnError(err, "Failed to open db")
+	}
+
+	if anniversaryStore == "db" {
+		connectDB()
+		logger.WriteLog(logger.LogLevelInfo, "ANNIVERSARY_STORE=db: anniversary config will be stored in database")
+	}
+
 	routes.AnniversaryRoutes()
 
 	if enableAdminAPI {
@@ -94,9 +109,7 @@ func main() {
 			logger.WriteLog(logger.LogLevelInfo, "Redis initialized, session management enabled")
 		}
 
-		routes.DB, sqlDb, err = database.ConnDb()
-		FailOnError(err, "Failed to open db")
-		defer sqlDb.Close()
+		connectDB()
 
 		routes.UserRoutes()
 		routes.RoleRoutes()
@@ -112,6 +125,10 @@ func main() {
 		logger.WriteLog(logger.LogLevelInfo, "All routes registered successfully")
 	} else {
 		logger.WriteLog(logger.LogLevelInfo, "ENABLE_ADMIN_API=false: running anniversary public/setup API only")
+	}
+
+	if sqlDb != nil {
+		defer sqlDb.Close()
 	}
 
 	err = routes.App.Run(fmt.Sprintf(":%s", port))

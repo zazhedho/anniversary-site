@@ -1,3 +1,19 @@
+CREATE TABLE IF NOT EXISTS anniversary_site_configs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    config_key VARCHAR(100) NOT NULL UNIQUE,
+    payload JSONB NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_anniversary_site_configs_config_key
+    ON anniversary_site_configs(config_key);
+
+INSERT INTO anniversary_site_configs (id, config_key, payload, created_at, updated_at)
+SELECT
+    gen_random_uuid(),
+    'default',
+    $json$
 {
   "brand": "My another Z • I'm YourZ",
   "couple_names": "Zaidus Zhuhur \u0026 Zaqia Khana Meriza",
@@ -125,3 +141,7 @@
     }
   ]
 }
+    $json$::jsonb,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+WHERE NOT EXISTS (SELECT 1 FROM anniversary_site_configs);

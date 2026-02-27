@@ -2,6 +2,7 @@ package router
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -15,6 +16,7 @@ import (
 	roleHandler "anniversary-site/internal/handlers/http/role"
 	sessionHandler "anniversary-site/internal/handlers/http/session"
 	userHandler "anniversary-site/internal/handlers/http/user"
+	interfaceanniversary "anniversary-site/internal/interfaces/anniversary"
 	anniversaryRepo "anniversary-site/internal/repositories/anniversary"
 	auditRepo "anniversary-site/internal/repositories/audit"
 	authRepo "anniversary-site/internal/repositories/auth"
@@ -68,10 +70,26 @@ func (r *Routes) AnniversaryRoutes() {
 		loc = time.FixedZone("WIB", 7*60*60)
 	}
 
-	repo := anniversaryRepo.NewAnniversaryRepo(
-		utils.GetEnv("ANNIVERSARY_DATA_FILE", "./data/anniversary.json"),
-		loc,
-	)
+	store := strings.ToLower(strings.TrimSpace(utils.GetEnv("ANNIVERSARY_STORE", "json")))
+
+	var repo interfaceanniversary.RepoAnniversaryInterface
+	if store == "db" {
+		if r.DB == nil {
+			logger.WriteLog(logger.LogLevelError, "ANNIVERSARY_STORE=db but DB connection is not initialized; falling back to JSON file store")
+			repo = anniversaryRepo.NewAnniversaryRepo(
+				utils.GetEnv("ANNIVERSARY_DATA_FILE", "./data/anniversary.json"),
+				loc,
+			)
+		} else {
+			repo = anniversaryRepo.NewAnniversaryDBRepo(r.DB, loc)
+		}
+	} else {
+		repo = anniversaryRepo.NewAnniversaryRepo(
+			utils.GetEnv("ANNIVERSARY_DATA_FILE", "./data/anniversary.json"),
+			loc,
+		)
+	}
+
 	svc := anniversarySvc.NewAnniversaryService(repo, loc)
 	h := anniversaryHandler.NewHandler(
 		svc,

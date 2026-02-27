@@ -6,7 +6,7 @@ Panduan ini dibuat supaya saat context percakapan terpotong (compact), engineer/
 
 1. Backend dan frontend **berjalan terpisah**.
 2. Backend **tidak** serve frontend; frontend hanya hit URL API backend.
-3. Data konten anniversary disimpan di file JSON backend: `data/anniversary.json`.
+3. Data konten anniversary mendukung storage `json` (file) atau `db` (Postgres) via env `ANNIVERSARY_STORE`.
 4. Akses menu/fitur ditentukan oleh **permission (resource+action)**, bukan role hardcoded.
 5. Role boleh fleksibel, tetapi evaluasi akses UI/API tetap berbasis permission.
 6. Public page harus responsif mobile.
@@ -22,7 +22,7 @@ Backend (Go):
 - `internal/repositories/*`: akses data (DB/Redis/JSON).
 - `internal/dto/*`: kontrak request/response.
 - `migrations/*`: schema + seed permission/menu.
-- `data/anniversary.json`: sumber konten anniversary.
+- `data/anniversary.json`: sumber konten anniversary untuk mode `ANNIVERSARY_STORE=json`.
 
 Frontend (React + TS + Tailwind):
 - `frontend/src/App.tsx`: route utama aplikasi.
@@ -41,6 +41,10 @@ Frontend (React + TS + Tailwind):
 `ENABLE_ADMIN_API=true`:
 - Menyalakan API admin RBAC (`/api/user`, `/api/roles`, `/api/permissions`, `/api/menus`, dst).
 - Butuh DB (Postgres), dan Redis untuk session endpoint tambahan.
+
+`ANNIVERSARY_STORE`:
+- `json` (default): setup/public anniversary membaca dan menulis file `data/anniversary.json`.
+- `db`: setup/public anniversary membaca dan menulis tabel `anniversary_site_configs`.
 
 Referensi:
 - `main.go`
@@ -112,6 +116,7 @@ Referensi:
 - `internal/services/anniversary/service.go`
 - `internal/services/anniversary/payload.go`
 - `internal/repositories/anniversary/store_json.go`
+- `internal/repositories/anniversary/store_db.go`
 
 ## 7) Alur Frontend
 
@@ -196,6 +201,7 @@ Urutan baca tercepat:
 15. `frontend/src/pages/menus/MenuListPage.tsx`
 16. `frontend/src/pages/menus/MenuFormPage.tsx`
 17. `migrations/000005_sync_rbac_permissions.up.sql`
+18. `migrations/000006_create_anniversary_site_configs_table.up.sql`
 
 ## 11) Quick Commands
 
