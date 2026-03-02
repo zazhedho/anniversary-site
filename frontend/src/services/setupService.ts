@@ -19,7 +19,7 @@ function buildUrl(path: string): string {
   return `${API_BASE}${path}`;
 }
 
-export type SetupUploadType = "photo" | "video" | "poster";
+export type SetupUploadType = "photo" | "video" | "poster" | "audio";
 
 export type SetupUploadResponse = {
   url: string;

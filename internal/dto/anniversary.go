@@ -189,6 +189,7 @@ type AnniversarySiteConfig struct {
 	Letter        LocalizedText             `json:"letter"`
 	FooterText    LocalizedText             `json:"footer_text"`
 	MusicURL      string                    `json:"music_url"`
+	VoiceNoteURL  string                    `json:"voice_note_url"`
 	Timeline      []AnniversaryTimelineItem `json:"timeline"`
 	MemoryCards   []AnniversaryMemoryCard   `json:"memory_cards"`
 	GalleryPhotos []AnniversaryGalleryPhoto `json:"gallery_photos"`
@@ -209,6 +210,7 @@ type AnniversaryPublicSiteConfig struct {
 	Letter        string                          `json:"letter"`
 	FooterText    string                          `json:"footer_text"`
 	MusicURL      string                          `json:"music_url"`
+	VoiceNoteURL  string                          `json:"voice_note_url"`
 	Timeline      []AnniversaryPublicTimelineItem `json:"timeline"`
 	MemoryCards   []AnniversaryPublicMemoryCard   `json:"memory_cards"`
 	GalleryPhotos []AnniversaryPublicGalleryPhoto `json:"gallery_photos"`

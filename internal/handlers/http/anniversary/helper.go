@@ -14,6 +14,8 @@ func normalizeUploadType(value string) string {
 	switch strings.ToLower(strings.TrimSpace(value)) {
 	case "video":
 		return "video"
+	case "audio":
+		return "audio"
 	case "poster":
 		return "poster"
 	default:
@@ -47,6 +49,22 @@ func validateUploadFile(fileHeader *multipart.FileHeader, mediaType string) (str
 		}
 		if !slices.Contains(allowedVideoExt, ext) {
 			return "", "", errors.New("video extension is not supported")
+		}
+
+		return detectedType, ext, nil
+	}
+
+	if mediaType == "audio" {
+		allowedAudioExt := []string{".mp3", ".wav", ".ogg", ".m4a", ".aac"}
+		if !strings.HasPrefix(detectedType, "audio/") && detectedType != "application/octet-stream" {
+			return "", "", errors.New("audio file type is not supported")
+		}
+
+		if ext == "" {
+			ext = ".mp3"
+		}
+		if !slices.Contains(allowedAudioExt, ext) {
+			return "", "", errors.New("audio extension is not supported")
 		}
 
 		return detectedType, ext, nil

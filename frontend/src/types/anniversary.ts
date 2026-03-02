@@ -88,6 +88,7 @@ export type PublicSiteConfig = {
   letter: string;
   footer_text: string;
   music_url: string;
+  voice_note_url: string;
   timeline: PublicTimelineItem[];
   memory_cards: PublicMemoryCard[];
   annual_moments: PublicAnnualMoment[];
@@ -108,6 +109,7 @@ export type SetupSiteConfig = {
   letter: LocalizedText;
   footer_text: LocalizedText;
   music_url: string;
+  voice_note_url: string;
   timeline: SetupTimelineItem[];
   memory_cards: SetupMemoryCard[];
   annual_moments: SetupAnnualMoment[];

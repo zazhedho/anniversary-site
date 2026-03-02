@@ -90,6 +90,7 @@ func BuildPublicPayload(cfg dto.AnniversarySiteConfig, now time.Time, loc *time.
 		Letter:        cfg.Letter.Value(language),
 		FooterText:    cfg.FooterText.Value(language),
 		MusicURL:      cfg.MusicURL,
+		VoiceNoteURL:  cfg.VoiceNoteURL,
 		Timeline:      make([]dto.AnniversaryPublicTimelineItem, 0, len(cfg.Timeline)),
 		MemoryCards:   make([]dto.AnniversaryPublicMemoryCard, 0, len(cfg.MemoryCards)),
 		GalleryPhotos: make([]dto.AnniversaryPublicGalleryPhoto, 0, len(cfg.GalleryPhotos)),

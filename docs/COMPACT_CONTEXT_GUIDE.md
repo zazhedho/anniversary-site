@@ -71,8 +71,8 @@ Auth setup token:
 Catatan upload media:
 - Form-data:
   - `file`: berkas yang diupload
-  - `type`: `photo` | `video` | `poster`
-- URL hasil upload kembali di response `data.url` dan bisa langsung disimpan ke `gallery_photos[].image_url`, `gallery_videos[].video_url`, atau `gallery_videos[].poster_url`.
+  - `type`: `photo` | `video` | `poster` | `audio`
+- URL hasil upload kembali di response `data.url` dan bisa langsung disimpan ke `gallery_photos[].image_url`, `gallery_videos[].video_url`, `gallery_videos[].poster_url`, atau `voice_note_url`.
 - Upload menggunakan storage provider dari `infrastructure/media.InitStorage()` (MinIO/R2), sama pola dengan project `safety-riding`.
 - Konfigurasi upload mengikuti env `STORAGE_*` (`STORAGE_PROVIDER`, `STORAGE_ENDPOINT`, `STORAGE_BASE_URL`, dst).
 
@@ -107,6 +107,7 @@ Field teks setup menerima:
 
 - `gallery_photos` (opsional): dipakai untuk flow foto di `/anniversary/game`.
 - `gallery_videos` (opsional): jika ada, stage video ditampilkan; jika kosong, stage video disembunyikan.
+- `voice_note_url` (opsional): jika ada, stage voice note muncul setelah chapter surat/amplop.
 - Jika `gallery_photos` kosong, frontend fallback menggunakan `memory_cards` + placeholder image.
 
 ### Field cover custom (public config)
@@ -163,13 +164,24 @@ I18n:
 
 Public interactive flow:
 - Step `Yes/No` challenge (`No` random move, `Yes` progressively grows, full-screen at 10x `No`).
-- Setelah `Yes`: masuk ke layar romantis, lanjut ke flow linear:
-  - envelope love-note animation,
-  - foto bersama,
-  - video (hanya jika data video tersedia).
+- Setelah `Yes`: masuk ke layar romantis dengan **branching text** berdasarkan pola interaksi:
+  - `instant`: langsung pilih `Yes`,
+  - `playful`: sempat klik `No`,
+  - `dramatic`: klik `No` berkali-kali.
+- Lanjut ke flow linear tanpa progress bar:
+  - chapter `surprise`: envelope love-note animation,
+  - chapter `voice`: voice note pribadi (hanya jika `voice_note_url` ada),
+  - chapter `unlock`: buka kartu kenangan (minimum 3 kartu) sebelum bisa lanjut,
+  - chapter `photos`: auto-slide + bisa pilih foto manual,
+  - chapter `videos`: hanya muncul jika data video tersedia.
 - Pada step terakhir, tombol `Finish` menuju `/anniversary/showcase` (public, tanpa login).
 - Tidak ada progress indicator di UI flow game (dibuat misterius).
-- Komponen amplop dipisah ke `SurpriseEnvelope.tsx` agar file utama tetap <500 baris.
+- Komponen chapter dipisah agar file utama tetap <500 baris:
+  - `JourneyChapter.tsx` untuk renderer chapter/stage,
+  - `VoiceNoteStage.tsx` untuk player voice note (audio/youtube),
+  - `MemoryUnlockStage.tsx` untuk mini-game unlock kartu,
+  - `SurpriseEnvelope.tsx` untuk animasi amplop,
+  - `gameBranching.ts` untuk logika cabang teks romantis.
 
 Setup Anniversary UI:
 - Halaman `/setup/anniversary` memakai alur non-teknis: simpan token, load data, edit form per section, lalu save.
@@ -183,7 +195,11 @@ Referensi:
 - `frontend/src/contexts/LocaleContext.tsx`
 - `frontend/src/components/anniversary/AnniversaryShowcase.tsx`
 - `frontend/src/components/anniversary/InteractiveLoveGame.tsx`
+- `frontend/src/components/anniversary/JourneyChapter.tsx`
+- `frontend/src/components/anniversary/VoiceNoteStage.tsx`
+- `frontend/src/components/anniversary/MemoryUnlockStage.tsx`
 - `frontend/src/components/anniversary/SurpriseEnvelope.tsx`
+- `frontend/src/components/anniversary/gameBranching.ts`
 - `frontend/src/data/romanceJourney.ts`
 - `frontend/src/services/publicService.ts`
 

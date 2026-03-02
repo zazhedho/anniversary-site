@@ -63,6 +63,7 @@ export type SetupForm = {
   letter: LocalizedForm;
   footer_text: LocalizedForm;
   music_url: string;
+  voice_note_url: string;
   timeline: TimelineFormItem[];
   memory_cards: MemoryFormItem[];
   gallery_photos: GalleryPhotoFormItem[];
@@ -85,6 +86,7 @@ export const EMPTY_SETUP_FORM: SetupForm = {
   letter: { id: "", en: "" },
   footer_text: { id: "", en: "" },
   music_url: "",
+  voice_note_url: "",
   timeline: [],
   memory_cards: [],
   gallery_photos: [],

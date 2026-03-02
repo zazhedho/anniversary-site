@@ -202,6 +202,8 @@ func (h *Handler) UploadMedia(ctx *gin.Context) {
 	folder := "anniversary-photos"
 	if mediaType == "video" {
 		folder = "anniversary-videos"
+	} else if mediaType == "audio" {
+		folder = "anniversary-audios"
 	}
 
 	file, err := fileHeader.Open()

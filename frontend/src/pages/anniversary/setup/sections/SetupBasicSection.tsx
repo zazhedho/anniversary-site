@@ -9,6 +9,9 @@ type SetupBasicSectionProps = {
   onLocalizedFieldChange: (key: RootLocalizedKey, value: string) => void;
   onWeddingDateChange: (value: string) => void;
   onMusicUrlChange: (value: string) => void;
+  onVoiceNoteUrlChange: (value: string) => void;
+  onUploadVoice: (file: File) => void;
+  uploadingVoice: boolean;
 };
 
 export default function SetupBasicSection({
@@ -20,6 +23,9 @@ export default function SetupBasicSection({
   onLocalizedFieldChange,
   onWeddingDateChange,
   onMusicUrlChange,
+  onVoiceNoteUrlChange,
+  onUploadVoice,
+  uploadingVoice,
 }: SetupBasicSectionProps) {
   return (
     <article className="rounded-2xl border border-[#9c4f46]/20 bg-white/65 p-4">
@@ -84,6 +90,35 @@ export default function SetupBasicSection({
             placeholder={t("setup.placeholder.musicUrl")}
             className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#9c4f46]"
           />
+        </label>
+
+        <label className="block md:col-span-2">
+          <span className="mb-1 block text-sm font-semibold">{t("setup.voiceNoteUrl")}</span>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <input
+              type="text"
+              value={form.voice_note_url}
+              onChange={(event) => onVoiceNoteUrlChange(event.target.value)}
+              placeholder={t("setup.placeholder.voiceNoteUrl")}
+              className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#9c4f46]"
+            />
+            <label
+              className={`inline-flex items-center justify-center rounded-xl border border-[#9c4f46]/25 bg-white px-3 py-2 text-sm font-semibold text-[#2b2220] ${tokenMissing || uploadingVoice ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:bg-[#fff5ef]"}`}
+            >
+              <input
+                type="file"
+                accept="audio/*"
+                className="hidden"
+                disabled={tokenMissing || uploadingVoice}
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) onUploadVoice(file);
+                  event.currentTarget.value = "";
+                }}
+              />
+              {uploadingVoice ? t("setup.uploading") : t("setup.uploadVoice")}
+            </label>
+          </div>
         </label>
       </div>
     </article>

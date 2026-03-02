@@ -38,6 +38,7 @@ export function normalizeConfig(config: SetupSiteConfig): SetupForm {
     letter: toTextPair(config.letter),
     footer_text: toTextPair(config.footer_text),
     music_url: config.music_url || "",
+    voice_note_url: config.voice_note_url || "",
     timeline: (config.timeline || []).map((item: SetupTimelineItem) => ({
       title: toTextPair(item.title),
       description: toTextPair(item.description),
@@ -83,6 +84,7 @@ export function toPayload(form: SetupForm): SetupSiteConfig {
     letter: { id: form.letter.id, en: form.letter.en },
     footer_text: { id: form.footer_text.id, en: form.footer_text.en },
     music_url: form.music_url,
+    voice_note_url: form.voice_note_url,
     timeline: form.timeline.map((item) => ({
       title: { id: item.title.id, en: item.title.en },
       description: { id: item.description.id, en: item.description.en },

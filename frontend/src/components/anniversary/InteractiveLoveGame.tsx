@@ -2,7 +2,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { buildJourneyPhotos, buildJourneyVideos } from "../../data/romanceJourney";
 import type { PublicSiteConfig } from "../../types/anniversary";
-import SurpriseEnvelope from "./SurpriseEnvelope";
+import { romanticLineKeys, romanticTagKey, resolveRomanticBranch, type RomanticBranch } from "./gameBranching";
+import JourneyChapter, { type JourneyDirection, type JourneyStage } from "./JourneyChapter";
+import type { UnlockMemoryCard } from "./MemoryUnlockStage";
 
 type TranslateFn = (key: string, vars?: Record<string, string | number>) => string;
 
@@ -18,8 +20,6 @@ type NoPosition = {
 };
 
 type GameStep = "challenge" | "romantic" | "journey";
-type JourneyStage = "surprise" | "photos" | "videos";
-type JourneyDirection = "next" | "prev";
 
 type InteractiveLoveGameProps = {
   t: TranslateFn;
@@ -27,9 +27,9 @@ type InteractiveLoveGameProps = {
 };
 
 const NO_LIMIT = 10;
-const ROMANTIC_LINE_TOTAL = 3;
 const SURPRISE_TOTAL = 5;
 const PHOTO_AUTO_SLIDE_MS = 3200;
+const UNLOCK_REQUIRED = 3;
 
 export default function InteractiveLoveGame({ t, config }: InteractiveLoveGameProps) {
   const navigate = useNavigate();
@@ -38,12 +38,16 @@ export default function InteractiveLoveGame({ t, config }: InteractiveLoveGamePr
   const [noFloating, setNoFloating] = useState(false);
   const [noPosition, setNoPosition] = useState<NoPosition>({ top: 0, left: 0 });
   const [step, setStep] = useState<GameStep>("challenge");
+  const [romanticBranch, setRomanticBranch] = useState<RomanticBranch>("instant");
   const [romanticLineIndex, setRomanticLineIndex] = useState(0);
   const [journeyStage, setJourneyStage] = useState<JourneyStage>("surprise");
   const [journeyDirection, setJourneyDirection] = useState<JourneyDirection>("next");
   const [isEnvelopeOpen, setIsEnvelopeOpen] = useState(false);
   const [photoIndex, setPhotoIndex] = useState(0);
   const [videoIndex, setVideoIndex] = useState(0);
+  const [unlockCards, setUnlockCards] = useState<UnlockMemoryCard[]>([]);
+  const [revealedUnlockIds, setRevealedUnlockIds] = useState<string[]>([]);
+  const [focusedUnlockId, setFocusedUnlockId] = useState<string | null>(null);
   const [surpriseIndex, setSurpriseIndex] = useState(0);
   const [bursts, setBursts] = useState<HeartBurst[]>([]);
   const [viewport, setViewport] = useState<{ width: number; height: number }>({ width: 1024, height: 768 });
@@ -51,10 +55,14 @@ export default function InteractiveLoveGame({ t, config }: InteractiveLoveGamePr
   const photos = useMemo(() => buildJourneyPhotos(config), [config]);
   const videos = useMemo(() => buildJourneyVideos(config), [config]);
   const hasVideos = videos.length > 0;
-  const journeyFlow = useMemo<JourneyStage[]>(
-    () => (hasVideos ? ["surprise", "photos", "videos"] : ["surprise", "photos"]),
-    [hasVideos]
-  );
+  const hasVoiceNote = useMemo(() => (config?.voice_note_url || "").trim() !== "", [config?.voice_note_url]);
+  const journeyFlow = useMemo<JourneyStage[]>(() => {
+    const flow: JourneyStage[] = ["surprise"];
+    if (hasVoiceNote) flow.push("voice");
+    flow.push("unlock", "photos");
+    if (hasVideos) flow.push("videos");
+    return flow;
+  }, [hasVideos, hasVoiceNote]);
   const journeyIndex = journeyFlow.indexOf(journeyStage);
   const isJourneyFirst = journeyIndex <= 0;
   const isJourneyLast = journeyIndex === journeyFlow.length - 1;
@@ -67,14 +75,11 @@ export default function InteractiveLoveGame({ t, config }: InteractiveLoveGamePr
     if (names.length === 1) return names[0];
     return t("showcase.game.loveFallbackName");
   }, [config?.couple_names, t]);
-  const romanticLines = useMemo(
-    () => [
-      t("showcase.game.romanticLine1", { name: loverName }),
-      t("showcase.game.romanticLine2", { name: loverName }),
-      t("showcase.game.romanticLine3", { name: loverName }),
-    ],
-    [loverName, t]
-  );
+  const romanticLines = useMemo(() => {
+    const lineKeys = romanticLineKeys(romanticBranch);
+    return lineKeys.map((key) => t(key, { name: loverName }));
+  }, [loverName, romanticBranch, t]);
+  const romanticTag = useMemo(() => t(romanticTagKey(romanticBranch)), [romanticBranch, t]);
   const surpriseLines = useMemo(
     () => [
       t("showcase.game.surpriseLine1"),
@@ -85,6 +90,37 @@ export default function InteractiveLoveGame({ t, config }: InteractiveLoveGamePr
     ],
     [t]
   );
+  const unlockCandidates = useMemo(() => {
+    const fromMemory = (config?.memory_cards || [])
+      .map((item, index) => ({
+        id: `memory-${index + 1}`,
+        title: item.title || `Moment ${index + 1}`,
+        summary: item.summary || "",
+        note: item.note || item.summary || "",
+      }))
+      .filter((item) => item.note.trim() !== "");
+
+    if (fromMemory.length > 0) return fromMemory;
+
+    return photos.map((item, index) => ({
+      id: `photo-${index + 1}`,
+      title: item.title || `Moment ${index + 1}`,
+      summary: item.caption || "",
+      note: item.caption || t("showcase.game.unlockFallbackNote"),
+    }));
+  }, [config?.memory_cards, photos, t]);
+  const unlockRequiredCount = Math.min(UNLOCK_REQUIRED, unlockCards.length);
+  const canProceedUnlock = unlockRequiredCount === 0 || revealedUnlockIds.length >= unlockRequiredCount;
+  const focusedUnlockCard = unlockCards.find((item) => item.id === focusedUnlockId);
+  const chapterTitle = useMemo(() => {
+    if (step === "challenge") return t("showcase.game.chapterChallenge");
+    if (step === "romantic") return t("showcase.game.chapterRomantic");
+    if (journeyStage === "surprise") return t("showcase.game.chapterSurprise");
+    if (journeyStage === "voice") return t("showcase.game.chapterVoice");
+    if (journeyStage === "unlock") return t("showcase.game.chapterUnlock");
+    if (journeyStage === "photos") return t("showcase.game.chapterPhotos");
+    return t("showcase.game.chapterVideos");
+  }, [journeyStage, step, t]);
 
   const noHidden = yesAccepted || noCount >= NO_LIMIT;
   const fullScreenYes = !yesAccepted && noCount >= NO_LIMIT;
@@ -146,6 +182,11 @@ export default function InteractiveLoveGame({ t, config }: InteractiveLoveGamePr
     return () => window.removeEventListener("resize", syncViewport);
   }, []);
 
+  useEffect(() => {
+    if (step !== "journey" || journeyStage !== "unlock" || unlockCards.length > 0) return;
+    setUnlockCards(pickUnlockCards(unlockCandidates));
+  }, [journeyStage, step, unlockCandidates, unlockCards.length]);
+
   function randomNoPosition() {
     const buttonWidth = 130;
     const buttonHeight = 44;
@@ -194,6 +235,7 @@ export default function InteractiveLoveGame({ t, config }: InteractiveLoveGamePr
   function handleYesClick() {
     setYesAccepted(true);
     setNoFloating(false);
+    setRomanticBranch(resolveRomanticBranch(noCount));
     addHeartBurst(7);
     const timer = window.setTimeout(() => {
       setStep("romantic");
@@ -203,13 +245,16 @@ export default function InteractiveLoveGame({ t, config }: InteractiveLoveGamePr
   }
 
   function moveRomanticLine() {
-    setRomanticLineIndex((prev) => (prev + 1) % ROMANTIC_LINE_TOTAL);
+    setRomanticLineIndex((prev) => (prev + 1) % romanticLines.length);
   }
 
   function moveToJourney() {
     setStep("journey");
     setJourneyDirection("next");
     setJourneyStage("surprise");
+    setUnlockCards(pickUnlockCards(unlockCandidates));
+    setRevealedUnlockIds([]);
+    setFocusedUnlockId(null);
   }
 
   function previousPhoto() {
@@ -235,21 +280,30 @@ export default function InteractiveLoveGame({ t, config }: InteractiveLoveGamePr
     timersRef.current.push(timer);
   }
 
+  function revealUnlockCard(id: string) {
+    if (revealedUnlockIds.includes(id)) return;
+    if (revealedUnlockIds.length >= unlockRequiredCount) return;
+
+    setRevealedUnlockIds((prev) => [...prev, id]);
+    setFocusedUnlockId(id);
+    addHeartBurst(2);
+  }
+
   function goNextJourneyStage() {
     setJourneyDirection("next");
     setJourneyStage((prev) => {
-      if (prev === "surprise") return "photos";
-      if (prev === "photos") return hasVideos ? "videos" : "photos";
-      return "videos";
+      const currentIndex = journeyFlow.indexOf(prev);
+      if (currentIndex < 0) return journeyFlow[0];
+      return journeyFlow[Math.min(currentIndex + 1, journeyFlow.length - 1)];
     });
   }
 
   function goPreviousJourneyStage() {
     setJourneyDirection("prev");
     setJourneyStage((prev) => {
-      if (prev === "videos") return "photos";
-      if (prev === "photos") return "surprise";
-      return "surprise";
+      const currentIndex = journeyFlow.indexOf(prev);
+      if (currentIndex <= 0) return journeyFlow[0];
+      return journeyFlow[currentIndex - 1];
     });
   }
 
@@ -259,12 +313,16 @@ export default function InteractiveLoveGame({ t, config }: InteractiveLoveGamePr
     setNoFloating(false);
     setBursts([]);
     setStep("challenge");
+    setRomanticBranch("instant");
     setRomanticLineIndex(0);
     setJourneyDirection("next");
     setJourneyStage("surprise");
     setIsEnvelopeOpen(false);
     setPhotoIndex(0);
     setVideoIndex(0);
+    setUnlockCards([]);
+    setRevealedUnlockIds([]);
+    setFocusedUnlockId(null);
     setSurpriseIndex(0);
     timersRef.current.forEach((timer) => window.clearTimeout(timer));
     timersRef.current = [];
@@ -292,6 +350,7 @@ export default function InteractiveLoveGame({ t, config }: InteractiveLoveGamePr
         @keyframes warmPulse{0%,100%{box-shadow:0 0 0 0 rgba(156,79,70,0.16);}50%{box-shadow:0 0 0 10px rgba(156,79,70,0);}}
       `}</style>
       <div className="relative z-10">
+        <p className="mb-2 text-[10px] uppercase tracking-[0.14em] text-[#6f332f]/75">{chapterTitle}</p>
         {step === "challenge" ? (
           <div className="animate-[stepEnter_420ms_cubic-bezier(0.16,1,0.3,1)]">
             <h3 className="font-display text-3xl sm:text-4xl">{t("showcase.game.chaseTitle")}</h3>
@@ -332,7 +391,7 @@ export default function InteractiveLoveGame({ t, config }: InteractiveLoveGamePr
 
         {step === "romantic" ? (
           <article className="animate-[romanticBloom_620ms_cubic-bezier(0.16,1,0.3,1)] rounded-2xl border border-[#9c4f46]/20 bg-[linear-gradient(145deg,rgba(255,255,255,0.92),rgba(244,208,196,0.6))] p-5 text-center">
-            <p className="text-xs uppercase tracking-[0.14em] text-[#6f332f]">{t("showcase.game.romanticTag")}</p>
+            <p className="text-xs uppercase tracking-[0.14em] text-[#6f332f]">{romanticTag}</p>
             <h3 className="mt-2 font-display text-4xl leading-[0.95] sm:text-5xl">{t("showcase.game.romanticTitle")}</h3>
             <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-[#2b2220]/80">{romanticLines[romanticLineIndex]}</p>
             <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
@@ -355,120 +414,35 @@ export default function InteractiveLoveGame({ t, config }: InteractiveLoveGamePr
         ) : null}
 
         {step === "journey" ? (
-          <article className="animate-[stepEnter_420ms_cubic-bezier(0.16,1,0.3,1)] rounded-2xl border border-[#9c4f46]/20 bg-[linear-gradient(150deg,rgba(255,255,255,0.92),rgba(244,208,196,0.55))] p-4 sm:p-5">
-            <h3 className="font-display text-3xl sm:text-4xl">{t("showcase.game.journeyTitle")}</h3>
-            <p className="mt-1 text-sm text-[#2b2220]/75">{t("showcase.game.journeySubtitle")}</p>
-            <div
-              key={`${journeyStage}-${journeyDirection}`}
-              className={`mt-4 ${journeyDirection === "next" ? "animate-[stageSlideInNext_420ms_cubic-bezier(0.16,1,0.3,1)]" : "animate-[stageSlideInPrev_420ms_cubic-bezier(0.16,1,0.3,1)]"}`}
-            >
-              {journeyStage === "photos" ? (
-                <div className="mx-auto w-full max-w-3xl">
-                  <div className="overflow-hidden rounded-2xl border border-[#9c4f46]/20 bg-white">
-                    <img src={photos[photoIndex].image_url} alt={photos[photoIndex].title} className="h-56 w-full object-cover sm:h-72 md:h-[24rem]" />
-                  </div>
-
-                  <div className="mt-3 flex items-center justify-between gap-2">
-                    <button
-                      type="button"
-                      onClick={previousPhoto}
-                      className="rounded-full border border-[#9c4f46]/30 bg-white px-4 py-1.5 text-sm font-semibold text-[#2b2220]"
-                    >
-                      {t("showcase.game.previous")}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={nextPhoto}
-                      className="rounded-full border border-[#9c4f46]/30 bg-white px-4 py-1.5 text-sm font-semibold text-[#2b2220]"
-                    >
-                      {t("showcase.game.next")}
-                    </button>
-                  </div>
-
-                  <p className="mt-3 text-center font-display text-3xl">{photos[photoIndex].title}</p>
-                  <p className="text-center text-sm text-[#2b2220]/75">{photos[photoIndex].caption || t("showcase.game.photoCaptionDefault")}</p>
-
-                  <div className="mt-3 flex justify-center">
-                    <div className="grid w-fit grid-cols-3 gap-2 sm:grid-cols-4">
-                      {photos.map((photo, index) => (
-                        <button
-                          key={photo.id}
-                          type="button"
-                          onClick={() => setPhotoIndex(index)}
-                          className={`overflow-hidden rounded-xl border ${photoIndex === index ? "border-[#9c4f46] ring-2 ring-[#9c4f46]/25" : "border-[#9c4f46]/20"}`}
-                        >
-                          <img src={photo.image_url} alt={photo.title} className="h-16 w-20 object-cover sm:h-20 sm:w-24" />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ) : null}
-
-              {journeyStage === "videos" && hasVideos ? (
-                <div className="grid gap-3 lg:grid-cols-[1.2fr_0.8fr]">
-                  <div className="overflow-hidden rounded-2xl border border-[#9c4f46]/20 bg-black/90">
-                    <video key={videos[videoIndex].id} src={videos[videoIndex].video_url} poster={videos[videoIndex].poster_url} controls playsInline className="h-56 w-full object-cover sm:h-72 md:h-[24rem]" />
-                  </div>
-                  <div className="space-y-2">
-                    {videos.map((video, index) => (
-                      <button
-                        key={video.id}
-                        type="button"
-                        onClick={() => setVideoIndex(index)}
-                        className={`w-full rounded-xl border p-3 text-left ${videoIndex === index ? "border-[#9c4f46] bg-white" : "border-[#9c4f46]/20 bg-white/70"}`}
-                      >
-                        <p className="font-semibold text-[#2b2220]">{video.title}</p>
-                        <p className="text-xs text-[#2b2220]/70">{video.description || t("showcase.game.videoDescriptionDefault")}</p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
-              {journeyStage === "surprise" ? (
-                <SurpriseEnvelope
-                  ctaLabel={t("showcase.game.openAnother")}
-                  isOpen={isEnvelopeOpen}
-                  note={surpriseLines[surpriseIndex]}
-                  noteLabel={t("showcase.game.noteLabel")}
-                  onNext={revealAnotherMessage}
-                />
-              ) : null}
-            </div>
-
-            <div className="mt-4 flex items-center justify-between gap-2">
-              {!isJourneyFirst ? (
-                <button
-                  type="button"
-                  onClick={goPreviousJourneyStage}
-                  className="rounded-full border border-[#9c4f46]/30 bg-white px-4 py-2 text-sm font-semibold text-[#2b2220] sm:px-5"
-                >
-                  {t("showcase.game.previous")}
-                </button>
-              ) : (
-                <span />
-              )}
-
-              {!isJourneyLast ? (
-                <button
-                  type="button"
-                  onClick={goNextJourneyStage}
-                  className="rounded-full bg-[#9c4f46] px-5 py-2 text-sm font-semibold text-white sm:px-6"
-                >
-                  {t("showcase.game.next")}
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => navigate("/anniversary/showcase")}
-                  className="rounded-full bg-[#9c4f46] px-5 py-2 text-sm font-semibold text-white sm:px-6"
-                >
-                  {t("showcase.game.finish")}
-                </button>
-              )}
-            </div>
-          </article>
+          <JourneyChapter
+            t={t}
+            stage={journeyStage}
+            direction={journeyDirection}
+            photos={photos}
+            photoIndex={photoIndex}
+            onPreviousPhoto={previousPhoto}
+            onNextPhoto={nextPhoto}
+            onSelectPhoto={(index) => setPhotoIndex(index)}
+            videos={videos}
+            videoIndex={videoIndex}
+            onSelectVideo={(index) => setVideoIndex(index)}
+            hasVideos={hasVideos}
+            surpriseLine={surpriseLines[surpriseIndex]}
+            isEnvelopeOpen={isEnvelopeOpen}
+            onOpenAnotherMessage={revealAnotherMessage}
+            voiceNoteUrl={config?.voice_note_url || ""}
+            unlockCards={unlockCards}
+            revealedUnlockIds={revealedUnlockIds}
+            unlockRequiredCount={unlockRequiredCount}
+            focusedUnlockCard={focusedUnlockCard}
+            onRevealUnlockCard={revealUnlockCard}
+            canGoNext={journeyStage === "unlock" ? canProceedUnlock : true}
+            canGoPrevious={!isJourneyFirst}
+            isLast={isJourneyLast}
+            onNextStage={goNextJourneyStage}
+            onPreviousStage={goPreviousJourneyStage}
+            onFinish={() => navigate("/anniversary/showcase")}
+          />
         ) : null}
 
         {step !== "challenge" ? (
@@ -496,4 +470,16 @@ export default function InteractiveLoveGame({ t, config }: InteractiveLoveGamePr
       ) : null}
     </section>
   );
+}
+
+function pickUnlockCards(cards: UnlockMemoryCard[]): UnlockMemoryCard[] {
+  if (cards.length <= 1) return cards;
+  const next = [...cards];
+
+  for (let index = next.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    [next[index], next[randomIndex]] = [next[randomIndex], next[index]];
+  }
+
+  return next.slice(0, 6);
 }

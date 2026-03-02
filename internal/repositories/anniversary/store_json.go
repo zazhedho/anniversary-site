@@ -124,6 +124,7 @@ func sanitizeConfig(cfg dto.AnniversarySiteConfig, loc *time.Location) (dto.Anni
 	cfg.Letter = fallbackLocalized(cfg.Letter, def.Letter)
 	cfg.FooterText = fallbackLocalized(cfg.FooterText, def.FooterText)
 	cfg.MusicURL = strings.TrimSpace(cfg.MusicURL)
+	cfg.VoiceNoteURL = strings.TrimSpace(cfg.VoiceNoteURL)
 
 	if len(cfg.Timeline) == 0 {
 		cfg.Timeline = def.Timeline
@@ -264,7 +265,8 @@ func defaultConfig() dto.AnniversarySiteConfig {
 			ID: "Dibuat oleh Zaidus Zhuhur untuk Zaqia Khana Meriza, di anniversary pertama kita.",
 			EN: "Made by Zaidus Zhuhur for Zaqia Khana Meriza, on our first anniversary.",
 		}.Normalize(),
-		MusicURL: "/our-song.mp3",
+		MusicURL:     "/our-song.mp3",
+		VoiceNoteURL: "",
 		Timeline: []dto.AnniversaryTimelineItem{
 			{
 				Title: dto.LocalizedText{ID: "Awal Menjadi Satu", EN: "The Beginning as One"}.Normalize(),
