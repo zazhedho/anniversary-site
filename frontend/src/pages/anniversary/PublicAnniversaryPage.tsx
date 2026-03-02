@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import LanguageSwitcher from "../../components/common/LanguageSwitcher";
+import ScrollReveal from "../../components/common/ScrollReveal";
 import SiteFooter from "../../components/common/SiteFooter";
 import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LocaleContext";
@@ -58,25 +59,35 @@ export default function PublicAnniversaryPage() {
           </div>
         </div>
 
-        <section className="relative overflow-hidden rounded-[30px] border border-[#9c4f46]/20 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.92),rgba(244,208,196,0.58))] p-6 text-center sm:p-10">
-          <div className="pointer-events-none absolute -left-12 top-8 h-36 w-36 rounded-full bg-white/45 blur-2xl" />
-          <div className="pointer-events-none absolute -right-10 bottom-8 h-40 w-40 rounded-full bg-[#f0b9a4]/45 blur-2xl" />
+        <ScrollReveal>
+          <section className="relative overflow-hidden rounded-[30px] border border-[#9c4f46]/20 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.92),rgba(244,208,196,0.58))] p-6 text-center sm:p-10">
+            <div className="pointer-events-none absolute -left-12 top-8 h-36 w-36 rounded-full bg-white/45 blur-2xl" />
+            <div className="pointer-events-none absolute -right-10 bottom-8 h-40 w-40 rounded-full bg-[#f0b9a4]/45 blur-2xl" />
 
-          <div className="relative mx-auto max-w-2xl">
-            <p className="text-xs uppercase tracking-[0.18em] text-[#6f332f]/75">{coverBadge}</p>
-            <h1 className="mt-3 font-display text-5xl leading-[0.94] sm:text-6xl">{coverTitle}</h1>
-            <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-[#2b2220]/78 sm:text-base">{coverSubtext}</p>
+            <div className="relative mx-auto max-w-2xl">
+              <ScrollReveal delayMs={80} y={16}>
+                <p className="text-xs uppercase tracking-[0.18em] text-[#6f332f]/75">{coverBadge}</p>
+              </ScrollReveal>
+              <ScrollReveal delayMs={170} y={20}>
+                <h1 className="mt-3 font-display text-5xl leading-[0.94] sm:text-6xl">{coverTitle}</h1>
+              </ScrollReveal>
+              <ScrollReveal delayMs={260} y={22}>
+                <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-[#2b2220]/78 sm:text-base">{coverSubtext}</p>
+              </ScrollReveal>
 
-            <div className="mt-7">
-              <Link
-                to="/anniversary/game"
-                className="inline-flex items-center justify-center rounded-full bg-[#9c4f46] px-7 py-3 text-sm font-semibold text-white shadow-[0_10px_28px_rgba(111,51,47,0.35)] transition hover:-translate-y-0.5"
-              >
-                {coverCTA}
-              </Link>
+              <ScrollReveal delayMs={340} y={24}>
+                <div className="mt-7">
+                  <Link
+                    to="/anniversary/game"
+                    className="inline-flex items-center justify-center rounded-full bg-[#9c4f46] px-7 py-3 text-sm font-semibold text-white shadow-[0_10px_28px_rgba(111,51,47,0.35)] transition hover:-translate-y-0.5"
+                  >
+                    {coverCTA}
+                  </Link>
+                </div>
+              </ScrollReveal>
             </div>
-          </div>
-        </section>
+          </section>
+        </ScrollReveal>
 
         <SiteFooter className="mt-6" />
       </div>

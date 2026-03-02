@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import ScrollReveal from "../common/ScrollReveal";
 import { useLanguage } from "../../contexts/LocaleContext";
 import { fetchPublicAnniversary } from "../../services/publicService";
 import type { PublicMemoryCard, PublicPayload } from "../../types/anniversary";
@@ -198,170 +199,207 @@ export default function AnniversaryShowcase() {
       <div className="pointer-events-none absolute -right-14 top-10 h-48 w-48 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.85),rgba(156,79,70,0.2))] blur-sm" />
 
       <header>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xs uppercase tracking-[0.14em] text-[#2b2220]/70">{config.brand}</p>
-          {musicSource.kind === "audio" ? (
-            <button
-              type="button"
-              onClick={toggleMusic}
-              disabled={musicDisabled}
-              className="w-fit rounded-full border border-black/15 bg-white/70 px-4 py-2 text-sm font-semibold transition enabled:hover:-translate-y-0.5 disabled:opacity-60"
-            >
-              {musicDisabled ? t("showcase.musicNotSet") : isPlaying ? t("showcase.pauseSong") : t("showcase.playSong")}
-            </button>
-          ) : musicSource.kind === "youtube" ? (
-            <a
-              href={musicSource.url}
-              target="_blank"
-              rel="noreferrer"
-              className="w-fit rounded-full border border-black/15 bg-white/70 px-4 py-2 text-sm font-semibold transition hover:-translate-y-0.5"
-            >
-              {t("showcase.openYoutube")}
-            </a>
-          ) : (
-            <button
-              type="button"
-              disabled
-              className="w-fit rounded-full border border-black/15 bg-white/70 px-4 py-2 text-sm font-semibold opacity-60"
-            >
-              {t("showcase.musicNotSet")}
-            </button>
-          )}
-        </div>
-
-        <p className="mt-4 mx-auto w-fit rounded-full border border-[#9c4f46]/30 bg-white/60 px-3 py-1 text-xs text-[#6f332f]">{tagText}</p>
-        <h2 className="mt-3 text-center font-display text-4xl leading-[0.95] sm:text-6xl">{config.hero_title}</h2>
-        <div className="mt-6 flex flex-col items-center text-center sm:mt-7">
-          <div className="mb-2 flex items-center gap-3 text-[#9c4f46]/55">
-            <span className="h-px w-10 bg-gradient-to-r from-transparent to-[#9c4f46]/60 sm:w-14" />
-            <span className="h-2 w-2 rounded-full bg-[#9c4f46]/50" />
-            <span className="h-px w-10 bg-gradient-to-l from-transparent to-[#9c4f46]/60 sm:w-14" />
+        <ScrollReveal y={18}>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs uppercase tracking-[0.14em] text-[#2b2220]/70">{config.brand}</p>
+            {musicSource.kind === "audio" ? (
+              <button
+                type="button"
+                onClick={toggleMusic}
+                disabled={musicDisabled}
+                className="w-fit rounded-full border border-black/15 bg-white/70 px-4 py-2 text-sm font-semibold transition enabled:hover:-translate-y-0.5 disabled:opacity-60"
+              >
+                {musicDisabled ? t("showcase.musicNotSet") : isPlaying ? t("showcase.pauseSong") : t("showcase.playSong")}
+              </button>
+            ) : musicSource.kind === "youtube" ? (
+              <a
+                href={musicSource.url}
+                target="_blank"
+                rel="noreferrer"
+                className="w-fit rounded-full border border-black/15 bg-white/70 px-4 py-2 text-sm font-semibold transition hover:-translate-y-0.5"
+              >
+                {t("showcase.openYoutube")}
+              </a>
+            ) : (
+              <button
+                type="button"
+                disabled
+                className="w-fit rounded-full border border-black/15 bg-white/70 px-4 py-2 text-sm font-semibold opacity-60"
+              >
+                {t("showcase.musicNotSet")}
+              </button>
+            )}
           </div>
-          {coupleNames.length > 1 ? (
-            <>
-              <p className="font-display text-3xl leading-tight sm:text-4xl">
-                <span className="bg-gradient-to-r from-[#8f3c36] via-[#b75c52] to-[#7a2d28] bg-clip-text text-transparent drop-shadow-[0_1px_0_rgba(255,255,255,0.5)]">
-                  {coupleNames[0]}
-                </span>
-              </p>
-              <span className="my-0.5 text-sm font-semibold text-[#8f3c36]/80">&</span>
-              <p className="font-display text-3xl leading-tight sm:text-4xl">
-                <span className="bg-gradient-to-r from-[#7a2d28] via-[#b75c52] to-[#8f3c36] bg-clip-text text-transparent drop-shadow-[0_1px_0_rgba(255,255,255,0.5)]">
-                  {coupleNames.slice(1).join(" & ")}
-                </span>
-              </p>
-            </>
-          ) : (
-            <p className="font-display text-3xl leading-tight text-[#6f332f] sm:text-4xl">{config.couple_names}</p>
-          )}
-        </div>
-        <p className="mx-auto mt-3 max-w-3xl text-center text-sm text-[#2b2220]/75">{config.hero_subtext}</p>
+        </ScrollReveal>
+
+        <ScrollReveal delayMs={70}>
+          <p className="mt-4 mx-auto w-fit rounded-full border border-[#9c4f46]/30 bg-white/60 px-3 py-1 text-xs text-[#6f332f]">{tagText}</p>
+        </ScrollReveal>
+        <ScrollReveal delayMs={140}>
+          <h2 className="mt-3 text-center font-display text-4xl leading-[0.95] sm:text-6xl">{config.hero_title}</h2>
+        </ScrollReveal>
+        <ScrollReveal delayMs={200}>
+          <div className="mt-6 flex flex-col items-center text-center sm:mt-7">
+            <div className="mb-2 flex items-center gap-3 text-[#9c4f46]/55">
+              <span className="h-px w-10 bg-gradient-to-r from-transparent to-[#9c4f46]/60 sm:w-14" />
+              <span className="h-2 w-2 rounded-full bg-[#9c4f46]/50" />
+              <span className="h-px w-10 bg-gradient-to-l from-transparent to-[#9c4f46]/60 sm:w-14" />
+            </div>
+            {coupleNames.length > 1 ? (
+              <>
+                <p className="font-display text-3xl leading-tight sm:text-4xl">
+                  <span className="bg-gradient-to-r from-[#8f3c36] via-[#b75c52] to-[#7a2d28] bg-clip-text text-transparent drop-shadow-[0_1px_0_rgba(255,255,255,0.5)]">
+                    {coupleNames[0]}
+                  </span>
+                </p>
+                <span className="my-0.5 text-sm font-semibold text-[#8f3c36]/80">&</span>
+                <p className="font-display text-3xl leading-tight sm:text-4xl">
+                  <span className="bg-gradient-to-r from-[#7a2d28] via-[#b75c52] to-[#8f3c36] bg-clip-text text-transparent drop-shadow-[0_1px_0_rgba(255,255,255,0.5)]">
+                    {coupleNames.slice(1).join(" & ")}
+                  </span>
+                </p>
+              </>
+            ) : (
+              <p className="font-display text-3xl leading-tight text-[#6f332f] sm:text-4xl">{config.couple_names}</p>
+            )}
+          </div>
+        </ScrollReveal>
+        <ScrollReveal delayMs={250}>
+          <p className="mx-auto mt-3 max-w-3xl text-center text-sm text-[#2b2220]/75">{config.hero_subtext}</p>
+        </ScrollReveal>
 
         {musicSource.kind === "youtube" ? (
-          <div className="mx-auto mt-5 max-w-2xl overflow-hidden rounded-2xl border border-[#9c4f46]/20 bg-black/5 p-2">
-            <div className="aspect-video w-full overflow-hidden rounded-xl">
-              <iframe
-                src={musicSource.embedUrl}
-                title="YouTube Music"
-                className="h-full w-full"
-                loading="lazy"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                referrerPolicy="strict-origin-when-cross-origin"
-                allowFullScreen
-              />
+          <ScrollReveal delayMs={280}>
+            <div className="mx-auto mt-5 max-w-2xl overflow-hidden rounded-2xl border border-[#9c4f46]/20 bg-black/5 p-2">
+              <div className="aspect-video w-full overflow-hidden rounded-xl">
+                <iframe
+                  src={musicSource.embedUrl}
+                  title="YouTube Music"
+                  className="h-full w-full"
+                  loading="lazy"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allowFullScreen
+                />
+              </div>
             </div>
-          </div>
+          </ScrollReveal>
         ) : null}
 
-        <div className="mt-6 flex justify-center">
-          <div className="grid w-full max-w-xl grid-cols-2 gap-2 sm:grid-cols-4">
-            {[
-              [t("showcase.countdown.days"), countdown.days],
-              [t("showcase.countdown.hours"), countdown.hours],
-              [t("showcase.countdown.minutes"), countdown.minutes],
-              [t("showcase.countdown.seconds"), countdown.seconds],
-            ].map(([label, value]) => (
-              <div key={String(label)} className="rounded-2xl border border-[#9c4f46]/20 bg-white/60 p-3 text-center">
-                <p className="font-display text-3xl text-[#6f332f]">{String(value).padStart(2, "0")}</p>
-                <p className="text-[10px] uppercase tracking-[0.12em] text-[#2b2220]/65">{label}</p>
-              </div>
-            ))}
+        <ScrollReveal delayMs={320}>
+          <div className="mt-6 flex justify-center">
+            <div className="grid w-full max-w-xl grid-cols-2 gap-2 sm:grid-cols-4">
+              {[
+                [t("showcase.countdown.days"), countdown.days],
+                [t("showcase.countdown.hours"), countdown.hours],
+                [t("showcase.countdown.minutes"), countdown.minutes],
+                [t("showcase.countdown.seconds"), countdown.seconds],
+              ].map(([label, value]) => (
+                <div key={String(label)} className="rounded-2xl border border-[#9c4f46]/20 bg-white/60 p-3 text-center">
+                  <p className="font-display text-3xl text-[#6f332f]">{String(value).padStart(2, "0")}</p>
+                  <p className="text-[10px] uppercase tracking-[0.12em] text-[#2b2220]/65">{label}</p>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-        <p className="mt-3 text-center text-sm text-[#2b2220]/70">
-          {next.is_today ? t("showcase.todayMessage", { label: next.label }) : t("showcase.countdownMessage", { label: next.label })}
-        </p>
+        </ScrollReveal>
+        <ScrollReveal delayMs={360}>
+          <p className="mt-3 text-center text-sm text-[#2b2220]/70">
+            {next.is_today ? t("showcase.todayMessage", { label: next.label }) : t("showcase.countdownMessage", { label: next.label })}
+          </p>
+        </ScrollReveal>
 
-        <p className="mt-5 text-center text-sm text-[#2b2220]/75">{t("showcase.togetherSince", { date: formatDate(config.wedding_date) })}</p>
-        <div className="mt-3 flex justify-center">
-          <div className="grid w-full max-w-xl grid-cols-2 gap-2 sm:grid-cols-4">
-            {[
-              [t("showcase.countdown.days"), elapsed.days],
-              [t("showcase.countdown.hours"), elapsed.hours],
-              [t("showcase.countdown.minutes"), elapsed.minutes],
-              [t("showcase.countdown.seconds"), elapsed.seconds],
-            ].map(([label, value]) => (
-              <div key={`elapsed-${String(label)}`} className="rounded-2xl border border-[#9c4f46]/20 bg-white/60 p-3 text-center">
-                <p className="font-display text-3xl text-[#6f332f]">{String(value).padStart(2, "0")}</p>
-                <p className="text-[10px] uppercase tracking-[0.12em] text-[#2b2220]/65">{label}</p>
-              </div>
-            ))}
+        <ScrollReveal delayMs={400}>
+          <p className="mt-5 text-center text-sm text-[#2b2220]/75">{t("showcase.togetherSince", { date: formatDate(config.wedding_date) })}</p>
+        </ScrollReveal>
+        <ScrollReveal delayMs={450}>
+          <div className="mt-3 flex justify-center">
+            <div className="grid w-full max-w-xl grid-cols-2 gap-2 sm:grid-cols-4">
+              {[
+                [t("showcase.countdown.days"), elapsed.days],
+                [t("showcase.countdown.hours"), elapsed.hours],
+                [t("showcase.countdown.minutes"), elapsed.minutes],
+                [t("showcase.countdown.seconds"), elapsed.seconds],
+              ].map(([label, value]) => (
+                <div key={`elapsed-${String(label)}`} className="rounded-2xl border border-[#9c4f46]/20 bg-white/60 p-3 text-center">
+                  <p className="font-display text-3xl text-[#6f332f]">{String(value).padStart(2, "0")}</p>
+                  <p className="text-[10px] uppercase tracking-[0.12em] text-[#2b2220]/65">{label}</p>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        </ScrollReveal>
       </header>
 
-      <section className="mt-7">
-        <h3 className="font-display text-3xl sm:text-4xl">{t("showcase.journey")}</h3>
-        <div className="mt-3 grid gap-3 border-l-2 border-dashed border-[#9c4f46]/30 pl-4 sm:pl-6">
-          {config.timeline.map((item, index) => (
-            <article key={`${item.title}-${index}`} className="rounded-2xl border border-[#9c4f46]/20 bg-white/55 p-4">
-              <p className="font-display text-3xl">{item.title}</p>
-              <p className="mt-1 text-sm text-[#2b2220]/75">{item.description}</p>
-            </article>
-          ))}
-        </div>
-      </section>
+      <ScrollReveal className="mt-7">
+        <section>
+          <h3 className="font-display text-3xl sm:text-4xl">{t("showcase.journey")}</h3>
+          <div className="mt-3 grid gap-3 border-l-2 border-dashed border-[#9c4f46]/30 pl-4 sm:pl-6">
+            {config.timeline.map((item, index) => (
+              <ScrollReveal key={`${item.title}-${index}`} delayMs={index * 70} y={16}>
+                <article className="rounded-2xl border border-[#9c4f46]/20 bg-white/55 p-4">
+                  <p className="font-display text-3xl">{item.title}</p>
+                  <p className="mt-1 text-sm text-[#2b2220]/75">{item.description}</p>
+                </article>
+              </ScrollReveal>
+            ))}
+          </div>
+        </section>
+      </ScrollReveal>
 
-      <section className="mt-7">
-        <h3 className="font-display text-3xl sm:text-4xl">{t("showcase.moments")}</h3>
-        <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {moments.map((moment) => (
-            <article key={`${moment.year}-${moment.date}`} className="rounded-2xl border border-[#9c4f46]/20 bg-[linear-gradient(160deg,rgba(255,255,255,0.72),rgba(244,208,196,0.45))] p-4">
-              <p className="inline-flex rounded-full border border-[#9c4f46]/25 bg-white/65 px-3 py-1 text-[11px] uppercase tracking-[0.08em] text-[#6f332f]">
-                {t("showcase.badge", { year: moment.year, status: statusLabel(moment.status, t) })}
-              </p>
-              <p className="mt-2 font-display text-3xl">{moment.title}</p>
-              <p className="text-sm font-semibold">{formatDate(moment.date)}</p>
-              <p className="mt-2 text-sm text-[#2b2220]/75">{moment.note}</p>
-            </article>
-          ))}
-        </div>
-      </section>
+      <ScrollReveal className="mt-7">
+        <section>
+          <h3 className="font-display text-3xl sm:text-4xl">{t("showcase.moments")}</h3>
+          <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {moments.map((moment, index) => (
+              <ScrollReveal key={`${moment.year}-${moment.date}`} delayMs={index * 80} y={16}>
+                <article className="rounded-2xl border border-[#9c4f46]/20 bg-[linear-gradient(160deg,rgba(255,255,255,0.72),rgba(244,208,196,0.45))] p-4">
+                  <p className="inline-flex rounded-full border border-[#9c4f46]/25 bg-white/65 px-3 py-1 text-[11px] uppercase tracking-[0.08em] text-[#6f332f]">
+                    {t("showcase.badge", { year: moment.year, status: statusLabel(moment.status, t) })}
+                  </p>
+                  <p className="mt-2 font-display text-3xl">{moment.title}</p>
+                  <p className="text-sm font-semibold">{formatDate(moment.date)}</p>
+                  <p className="mt-2 text-sm text-[#2b2220]/75">{moment.note}</p>
+                </article>
+              </ScrollReveal>
+            ))}
+          </div>
+        </section>
+      </ScrollReveal>
 
-      <section className="mt-7">
-        <h3 className="font-display text-3xl sm:text-4xl">{t("showcase.memories")}</h3>
-        <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
-          {config.memory_cards.map((card: PublicMemoryCard, index: number) => (
-            <button
-              key={`${card.title}-${index}`}
-              type="button"
-              onClick={() => setSelectedNote(card.note)}
-              className="rounded-2xl border border-[#9c4f46]/20 bg-[linear-gradient(160deg,rgba(255,255,255,0.72),rgba(244,208,196,0.45))] p-4 text-left transition hover:-translate-y-0.5 hover:shadow-lg"
-            >
-              <p className="font-display text-3xl">{card.title}</p>
-              <p className="text-sm text-[#2b2220]/75">{card.summary}</p>
-            </button>
-          ))}
-        </div>
-        <p className="mt-3 rounded-2xl border border-[#9c4f46]/20 bg-white/60 p-4 text-sm text-[#6f332f]">{selectedNote || t("showcase.defaultNote")}</p>
-      </section>
+      <ScrollReveal className="mt-7">
+        <section>
+          <h3 className="font-display text-3xl sm:text-4xl">{t("showcase.memories")}</h3>
+          <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
+            {config.memory_cards.map((card: PublicMemoryCard, index: number) => (
+              <ScrollReveal key={`${card.title}-${index}`} delayMs={index * 80} y={16}>
+                <button
+                  type="button"
+                  onClick={() => setSelectedNote(card.note)}
+                  className="w-full rounded-2xl border border-[#9c4f46]/20 bg-[linear-gradient(160deg,rgba(255,255,255,0.72),rgba(244,208,196,0.45))] p-4 text-left transition hover:-translate-y-0.5 hover:shadow-lg"
+                >
+                  <p className="font-display text-3xl">{card.title}</p>
+                  <p className="text-sm text-[#2b2220]/75">{card.summary}</p>
+                </button>
+              </ScrollReveal>
+            ))}
+          </div>
+          <ScrollReveal delayMs={120} y={14}>
+            <p className="mt-3 rounded-2xl border border-[#9c4f46]/20 bg-white/60 p-4 text-sm text-[#6f332f]">{selectedNote || t("showcase.defaultNote")}</p>
+          </ScrollReveal>
+        </section>
+      </ScrollReveal>
 
-      <section className="mt-7">
-        <h3 className="font-display text-3xl sm:text-4xl">{t("showcase.letter")}</h3>
-        <p className="mt-3 rounded-2xl border border-[#9c4f46]/20 bg-white/60 p-4 text-sm leading-relaxed text-[#2b2220]/75">{config.letter}</p>
-      </section>
+      <ScrollReveal className="mt-7">
+        <section>
+          <h3 className="font-display text-3xl sm:text-4xl">{t("showcase.letter")}</h3>
+          <p className="mt-3 rounded-2xl border border-[#9c4f46]/20 bg-white/60 p-4 text-sm leading-relaxed text-[#2b2220]/75">{config.letter}</p>
+        </section>
+      </ScrollReveal>
 
-      <p className="mt-6 border-t border-black/10 pt-4 text-sm text-[#2b2220]/70">{config.footer_text}</p>
+      <ScrollReveal delayMs={100}>
+        <p className="mt-6 border-t border-black/10 pt-4 text-sm text-[#2b2220]/70">{config.footer_text}</p>
+      </ScrollReveal>
       {musicSource.kind === "audio" ? <audio ref={audioRef} src={musicSource.url} preload="none" /> : null}
     </div>
   );
