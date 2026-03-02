@@ -82,17 +82,22 @@ export default function LoginPage() {
               {loading ? t("login.signingIn") : t("login.submit")}
             </button>
 
-            <div className="flex items-center justify-between text-sm text-[#2b2220]/70">
-              <div className="space-x-2">
-                <Link to="/anniversary" className="font-semibold text-[#6f332f]">{t("login.public")}</Link>
-                <span>/</span>
-                <Link to="/register" className="font-semibold text-[#6f332f]">{t("login.register")}</Link>
-              </div>
-              <div className="space-x-2">
-                <Link to="/forgot-password" className="font-semibold text-[#6f332f]">{t("login.forgot")}</Link>
-                <span>/</span>
-                <Link to="/reset-password" className="font-semibold text-[#6f332f]">{t("login.reset")}</Link>
-              </div>
+            <div className="space-y-1 text-sm text-[#2b2220]/70">
+              <p>
+                {t("login.noAccount")} <Link to="/register" className="font-semibold text-[#6f332f]">{t("login.register")}</Link>
+              </p>
+              <p>
+                <Link to="/forgot-password" className="font-semibold text-[#6f332f]">{t("login.forgotPrompt")}</Link>
+              </p>
+            </div>
+
+            <div className="pt-1 flex justify-end">
+              <Link
+                to="/anniversary"
+                className="inline-flex items-center rounded-full border border-[#9c4f46]/30 bg-white px-3 py-1.5 text-sm font-semibold text-[#6f332f] transition hover:-translate-y-0.5 hover:bg-[#fff6f0]"
+              >
+                {t("login.viewPublic")}
+              </Link>
             </div>
           </form>
         </AuthCard>

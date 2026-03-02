@@ -49,6 +49,9 @@ export default function ForgotPasswordPage() {
           <p className="text-sm text-[#2b2220]/70">
             {t("forgot.remember")} <Link to="/login" className="font-semibold text-[#6f332f]">{t("login.submit")}</Link>
           </p>
+          <p className="text-sm text-[#2b2220]/70">
+            {t("forgot.haveToken")} <Link to="/reset-password" className="font-semibold text-[#6f332f]">{t("reset.submit")}</Link>
+          </p>
         </form>
       </AuthCard>
     </main>

@@ -55,9 +55,12 @@ const messages: Record<Language, Record<string, string>> = {
     "login.signingIn": "Signing in...",
     "login.submit": "Login",
     "login.public": "Public",
+    "login.viewPublic": "Lihat Public Page",
     "login.register": "Register",
     "login.forgot": "Forgot",
     "login.reset": "Reset",
+    "login.noAccount": "Belum punya akun?",
+    "login.forgotPrompt": "Lupa password?",
 
     "register.title": "Register",
     "register.subtitle": "Buat akun untuk menyiapkan kejutan manis di momen anniversary kalian.",
@@ -76,6 +79,7 @@ const messages: Record<Language, Record<string, string>> = {
     "forgot.sending": "Sending...",
     "forgot.submit": "Request Reset",
     "forgot.remember": "Sudah ingat password?",
+    "forgot.haveToken": "Sudah punya token reset?",
 
     "reset.title": "Reset",
     "reset.subtitle": "Masukkan token reset dan buat kata sandi baru.",
@@ -515,9 +519,12 @@ const messages: Record<Language, Record<string, string>> = {
     "login.signingIn": "Signing in...",
     "login.submit": "Login",
     "login.public": "Public",
+    "login.viewPublic": "View Public Page",
     "login.register": "Register",
     "login.forgot": "Forgot",
     "login.reset": "Reset",
+    "login.noAccount": "Don't have an account?",
+    "login.forgotPrompt": "Forgot your password?",
 
     "register.title": "Register",
     "register.subtitle": "Create an account to prepare sweet anniversary moments.",
@@ -536,6 +543,7 @@ const messages: Record<Language, Record<string, string>> = {
     "forgot.sending": "Sending...",
     "forgot.submit": "Request Reset",
     "forgot.remember": "Remember your password?",
+    "forgot.haveToken": "Already have a reset token?",
 
     "reset.title": "Reset",
     "reset.subtitle": "Enter your reset token and create a new password.",
