@@ -12,15 +12,17 @@ export default function AppLayout() {
   const canListUsers = hasAccess({ resource: "users", action: "list" });
   const canListRoles = hasAccess({ resource: "roles", action: "list" });
   const canListMenus = hasAccess({ resource: "menus", action: "list" });
-  const canViewProfile = hasAccess({ resource: "profile", action: "view" });
-  const canChangePassword = hasAccess({ resource: "profile", action: "update_password" });
+  const canOpenProfilePage = hasAnyAccess([
+    { resource: "profile", action: "view" },
+    { resource: "profile", action: "update_password" },
+  ]);
   const canSetupAnniversary = hasAccess({ resource: "dashboard", action: "view" });
   const canViewPublic = hasAnyAccess([
     { resource: "dashboard", action: "view" },
     { resource: "profile", action: "view" },
     { resource: "users", action: "list" },
   ]);
-  const homePath = canViewDashboard ? "/dashboard" : canViewProfile ? "/profile" : "/anniversary";
+  const homePath = canViewDashboard ? "/dashboard" : canOpenProfilePage ? "/profile" : "/anniversary";
 
   async function onLogout() {
     await logoutUser();
@@ -63,14 +65,9 @@ export default function AppLayout() {
                 {t("nav.public")}
               </NavLink>
             ) : null}
-            {canViewProfile ? (
+            {canOpenProfilePage ? (
               <NavLink to="/profile" className={({ isActive }) => `rounded-full px-3 py-1.5 ${isActive ? "bg-[#9c4f46] text-white" : "hover:bg-white/70"}`}>
                 {t("nav.profile")}
-              </NavLink>
-            ) : null}
-            {canChangePassword ? (
-              <NavLink to="/change-password" className={({ isActive }) => `rounded-full px-3 py-1.5 ${isActive ? "bg-[#9c4f46] text-white" : "hover:bg-white/70"}`}>
-                {t("nav.password")}
               </NavLink>
             ) : null}
             <LanguageSwitcher />

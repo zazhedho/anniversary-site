@@ -10,7 +10,6 @@ import PublicAnniversaryPage from "./pages/anniversary/PublicAnniversaryPage";
 import PublicAnniversaryShowcasePage from "./pages/anniversary/PublicAnniversaryShowcasePage";
 import SetupAnniversaryPage from "./pages/anniversary/SetupAnniversaryPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
-import ChangePasswordPage from "./pages/auth/ChangePasswordPage";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
@@ -135,7 +134,7 @@ export default function App() {
               <Route
                 path="/users/profile"
                 element={
-                  <PermissionRoute requiredAccess={{ resource: "profile", action: "view" }}>
+                  <PermissionRoute anyOfAccesses={[{ resource: "profile", action: "view" }, { resource: "profile", action: "update_password" }]}>
                     <ProfilePage />
                   </PermissionRoute>
                 }
@@ -143,7 +142,7 @@ export default function App() {
               <Route
                 path="/profile"
                 element={
-                  <PermissionRoute requiredAccess={{ resource: "profile", action: "view" }}>
+                  <PermissionRoute anyOfAccesses={[{ resource: "profile", action: "view" }, { resource: "profile", action: "update_password" }]}>
                     <ProfilePage />
                   </PermissionRoute>
                 }
@@ -151,8 +150,8 @@ export default function App() {
               <Route
                 path="/change-password"
                 element={
-                  <PermissionRoute requiredAccess={{ resource: "profile", action: "update_password" }}>
-                    <ChangePasswordPage />
+                  <PermissionRoute anyOfAccesses={[{ resource: "profile", action: "view" }, { resource: "profile", action: "update_password" }]}>
+                    <Navigate to="/profile" replace />
                   </PermissionRoute>
                 }
               />

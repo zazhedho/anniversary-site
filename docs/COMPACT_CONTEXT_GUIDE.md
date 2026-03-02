@@ -155,7 +155,8 @@ Routing utama:
 - Public interactive: `/anniversary/game`
 - Public showcase: `/anniversary/showcase` (menampilkan `AnniversaryShowcase` dari DB/JSON)
 - Auth: `/login`, `/register`, `/forgot-password`, `/reset-password`
-- Protected: `/dashboard`, `/users`, `/roles`, `/menus`, `/profile`, `/change-password`, `/setup/anniversary`
+- Protected: `/dashboard`, `/users`, `/roles`, `/menus`, `/profile`, `/setup/anniversary`
+- `change-password` digabung ke `/profile`; path `/change-password` dipertahankan sebagai redirect kompatibilitas.
 - Protected form routes:
   - `/users/new`, `/users/:id/edit`
   - `/roles/new`, `/roles/:id/edit`
