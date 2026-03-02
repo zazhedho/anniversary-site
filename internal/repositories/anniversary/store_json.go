@@ -157,6 +157,34 @@ func sanitizeConfig(cfg dto.AnniversarySiteConfig, loc *time.Location) (dto.Anni
 		cfg.MemoryCards[idx].Note = fallbackLocalized(cfg.MemoryCards[idx].Note, noteFallback)
 	}
 
+	if len(cfg.MapPoints) == 0 {
+		cfg.MapPoints = def.MapPoints
+	}
+	for idx := range cfg.MapPoints {
+		titleFallback := dto.NewLocalizedText(fmt.Sprintf("Titik %d", idx+1))
+		noteFallback := dto.NewLocalizedText("")
+		latFallback := 0.0
+		lngFallback := 0.0
+		if idx < len(def.MapPoints) {
+			titleFallback = def.MapPoints[idx].Title
+			noteFallback = def.MapPoints[idx].Note
+			latFallback = def.MapPoints[idx].Lat
+			lngFallback = def.MapPoints[idx].Lng
+		}
+		cfg.MapPoints[idx].Title = fallbackLocalized(cfg.MapPoints[idx].Title, titleFallback)
+		cfg.MapPoints[idx].Note = fallbackLocalized(cfg.MapPoints[idx].Note, noteFallback)
+		if cfg.MapPoints[idx].Lat == 0 && cfg.MapPoints[idx].Lng == 0 {
+			cfg.MapPoints[idx].Lat = latFallback
+			cfg.MapPoints[idx].Lng = lngFallback
+		}
+		if cfg.MapPoints[idx].Lat < -90 || cfg.MapPoints[idx].Lat > 90 {
+			cfg.MapPoints[idx].Lat = latFallback
+		}
+		if cfg.MapPoints[idx].Lng < -180 || cfg.MapPoints[idx].Lng > 180 {
+			cfg.MapPoints[idx].Lng = lngFallback
+		}
+	}
+
 	if cfg.GalleryPhotos == nil {
 		cfg.GalleryPhotos = make([]dto.AnniversaryGalleryPhoto, 0)
 	}
@@ -314,6 +342,35 @@ func defaultConfig() dto.AnniversarySiteConfig {
 					ID: "Semoga banyak perjalanan baru yang kita jelajahi sebagai pasangan.",
 					EN: "May we explore many more new journeys together as a couple.",
 				}.Normalize(),
+			},
+		},
+		MapPoints: []dto.AnniversaryMapPoint{
+			{
+				Title: dto.LocalizedText{ID: "Tempat Janji Kita", EN: "Where We Promised Forever"}.Normalize(),
+				Note: dto.LocalizedText{
+					ID: "Di sini, aku yakin perjalanan ini ingin aku jalani bersamamu sampai tua.",
+					EN: "Here, I knew I wanted to walk this journey with you until we grow old.",
+				}.Normalize(),
+				Lat: -5.4256121,
+				Lng: 105.2385326,
+			},
+			{
+				Title: dto.LocalizedText{ID: "Sudut Favorit Kita", EN: "Our Favorite Corner"}.Normalize(),
+				Note: dto.LocalizedText{
+					ID: "Tempat sederhana yang selalu berhasil bikin hati kita tenang.",
+					EN: "A simple place that always makes our hearts feel calm.",
+				}.Normalize(),
+				Lat: -6.2441557,
+				Lng: 106.7974447,
+			},
+			{
+				Title: dto.LocalizedText{ID: "Rencana Mimpi Baru", EN: "Where New Dreams Began"}.Normalize(),
+				Note: dto.LocalizedText{
+					ID: "Dari titik ini, kita mulai merancang banyak mimpi kecil bersama.",
+					EN: "From this point, we started planning many little dreams together.",
+				}.Normalize(),
+				Lat: -6.2618394,
+				Lng: 106.7925383,
 			},
 		},
 		GalleryPhotos: []dto.AnniversaryGalleryPhoto{},

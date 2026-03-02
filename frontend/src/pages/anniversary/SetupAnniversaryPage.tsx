@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useLanguage } from "../../contexts/LocaleContext";
 import { useNotification } from "../../contexts/NotificationContext";
 import { getSetupConfig, updateSetupConfig, uploadSetupMedia } from "../../services/setupService";
+import { emptyPhotoFormItem, emptyVideoFormItem } from "./setup/formItems";
 import { normalizeConfig, parseConfigJson, toPayload, toPrettyJson } from "./setup/mapper";
 import SetupAdvancedJsonSection from "./setup/sections/SetupAdvancedJsonSection";
 import SetupAccessCard from "./setup/sections/SetupAccessCard";
@@ -10,14 +11,13 @@ import SetupGallerySection from "./setup/sections/SetupGallerySection";
 import SetupHeaderCard from "./setup/sections/SetupHeaderCard";
 import SetupLanguageCard from "./setup/sections/SetupLanguageCard";
 import SetupMemoriesSection from "./setup/sections/SetupMemoriesSection";
+import SetupMapSection from "./setup/sections/SetupMapSection";
 import SetupMomentsSection from "./setup/sections/SetupMomentsSection";
 import SetupSaveSection from "./setup/sections/SetupSaveSection";
 import SetupStorySection from "./setup/sections/SetupStorySection";
 import SetupTimelineSection from "./setup/sections/SetupTimelineSection";
 import type {
   EditLanguage,
-  GalleryPhotoFormItem,
-  GalleryVideoFormItem,
   MemoryFormItem,
   MomentFormItem,
   RootLocalizedKey,
@@ -97,6 +97,31 @@ export default function SetupAnniversaryPage() {
         },
       };
       return { ...prev, memory_cards: next };
+    });
+  }
+
+  function setMapPointLocalizedField(index: number, key: "title" | "note", value: string) {
+    setForm((prev) => {
+      const next = [...prev.map_points];
+      next[index] = {
+        ...next[index],
+        [key]: {
+          ...next[index][key],
+          [editLanguage]: value,
+        },
+      };
+      return { ...prev, map_points: next };
+    });
+  }
+
+  function setMapPointCoordinateField(index: number, key: "lat" | "lng", value: string) {
+    setForm((prev) => {
+      const next = [...prev.map_points];
+      next[index] = {
+        ...next[index],
+        [key]: value,
+      };
+      return { ...prev, map_points: next };
     });
   }
 
@@ -200,6 +225,13 @@ export default function SetupAnniversaryPage() {
     }));
   }
 
+  function addMapPoint() {
+    setForm((prev) => ({
+      ...prev,
+      map_points: [...prev.map_points, { title: { id: "", en: "" }, note: { id: "", en: "" }, lat: "", lng: "" }],
+    }));
+  }
+
   function addPhoto() {
     setForm((prev) => ({
       ...prev,
@@ -225,6 +257,9 @@ export default function SetupAnniversaryPage() {
   function removeMoment(index: number) {
     setForm((prev) => ({ ...prev, annual_moments: prev.annual_moments.filter((_, idx) => idx !== index) }));
   }
+  function removeMapPoint(index: number) {
+    setForm((prev) => ({ ...prev, map_points: prev.map_points.filter((_, idx) => idx !== index) }));
+  }
 
   function removePhoto(index: number) {
     setForm((prev) => ({ ...prev, gallery_photos: prev.gallery_photos.filter((_, idx) => idx !== index) }));
@@ -233,7 +268,6 @@ export default function SetupAnniversaryPage() {
   function removeVideo(index: number) {
     setForm((prev) => ({ ...prev, gallery_videos: prev.gallery_videos.filter((_, idx) => idx !== index) }));
   }
-
   function saveToken() {
     localStorage.setItem(SETUP_TOKEN_KEY, setupToken.trim());
     const text = t("setup.tokenSaved");
@@ -241,7 +275,6 @@ export default function SetupAnniversaryPage() {
     setError("");
     notifySuccess(text);
   }
-
   async function loadConfig() {
     setMessage("");
     setError("");
@@ -369,7 +402,6 @@ export default function SetupAnniversaryPage() {
   return (
     <section className="space-y-4">
       <SetupHeaderCard t={t} />
-
       <SetupAccessCard
         t={t}
         setupToken={setupToken}
@@ -379,12 +411,9 @@ export default function SetupAnniversaryPage() {
         onSaveToken={saveToken}
         onLoadConfig={loadConfig}
       />
-
       <SetupLanguageCard t={t} editLanguage={editLanguage} onChangeLanguage={setEditLanguage} />
-
       {message ? <p className="rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{message}</p> : null}
       {error ? <p className="rounded-xl border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p> : null}
-
       <form onSubmit={onSaveConfig} className="space-y-4">
         <SetupBasicSection
           t={t}
@@ -399,9 +428,7 @@ export default function SetupAnniversaryPage() {
           onUploadVoice={uploadVoice}
           uploadingVoice={uploadingVoice}
         />
-
         <SetupStorySection t={t} form={form} editLanguage={editLanguage} onLocalizedFieldChange={setLocalizedField} />
-
         <SetupTimelineSection
           t={t}
           editLanguage={editLanguage}
@@ -410,7 +437,6 @@ export default function SetupAnniversaryPage() {
           onRemoveTimeline={removeTimeline}
           onTimelineFieldChange={setTimelineField}
         />
-
         <SetupMemoriesSection
           t={t}
           editLanguage={editLanguage}
@@ -419,7 +445,15 @@ export default function SetupAnniversaryPage() {
           onRemoveMemory={removeMemory}
           onMemoryFieldChange={setMemoryField}
         />
-
+        <SetupMapSection
+          t={t}
+          editLanguage={editLanguage}
+          mapPoints={form.map_points}
+          onAddMapPoint={addMapPoint}
+          onRemoveMapPoint={removeMapPoint}
+          onMapPointLocalizedFieldChange={setMapPointLocalizedField}
+          onMapPointCoordinateChange={setMapPointCoordinateField}
+        />
         <SetupMomentsSection
           t={t}
           editLanguage={editLanguage}
@@ -428,7 +462,6 @@ export default function SetupAnniversaryPage() {
           onRemoveMoment={removeMoment}
           onMomentFieldChange={setMomentField}
         />
-
         <SetupGallerySection
           t={t}
           editLanguage={editLanguage}
@@ -449,10 +482,8 @@ export default function SetupAnniversaryPage() {
           onUploadVideo={uploadVideo}
           onUploadPoster={uploadPoster}
         />
-
         <SetupSaveSection t={t} saving={saving} tokenMissing={tokenMissing} />
       </form>
-
       <SetupAdvancedJsonSection
         t={t}
         advancedJson={advancedJson}
@@ -462,23 +493,4 @@ export default function SetupAnniversaryPage() {
       />
     </section>
   );
-}
-
-function emptyPhotoFormItem(index: number): GalleryPhotoFormItem {
-  return {
-    id: `photo-${index + 1}`,
-    title: { id: "", en: "" },
-    caption: { id: "", en: "" },
-    image_url: "",
-  };
-}
-
-function emptyVideoFormItem(index: number): GalleryVideoFormItem {
-  return {
-    id: `video-${index + 1}`,
-    title: { id: "", en: "" },
-    description: { id: "", en: "" },
-    video_url: "",
-    poster_url: "",
-  };
 }

@@ -16,6 +16,13 @@ export type MemoryFormItem = {
   note: LocalizedForm;
 };
 
+export type MapFormItem = {
+  title: LocalizedForm;
+  note: LocalizedForm;
+  lat: string;
+  lng: string;
+};
+
 export type MomentFormItem = {
   year: number;
   title: LocalizedForm;
@@ -66,6 +73,7 @@ export type SetupForm = {
   voice_note_url: string;
   timeline: TimelineFormItem[];
   memory_cards: MemoryFormItem[];
+  map_points: MapFormItem[];
   gallery_photos: GalleryPhotoFormItem[];
   gallery_videos: GalleryVideoFormItem[];
   annual_moments: MomentFormItem[];
@@ -89,6 +97,7 @@ export const EMPTY_SETUP_FORM: SetupForm = {
   voice_note_url: "",
   timeline: [],
   memory_cards: [],
+  map_points: [],
   gallery_photos: [],
   gallery_videos: [],
   annual_moments: [],

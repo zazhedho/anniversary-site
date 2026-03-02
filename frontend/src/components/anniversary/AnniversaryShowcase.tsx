@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import ScrollReveal from "../common/ScrollReveal";
+import MemoryMapSection from "./MemoryMapSection";
 import { useLanguage } from "../../contexts/LocaleContext";
 import { fetchPublicAnniversary } from "../../services/publicService";
 import type { PublicMemoryCard, PublicPayload } from "../../types/anniversary";
@@ -345,6 +346,10 @@ export default function AnniversaryShowcase() {
             ))}
           </div>
         </section>
+      </ScrollReveal>
+
+      <ScrollReveal className="mt-7">
+        <MemoryMapSection t={t} points={config.map_points || []} />
       </ScrollReveal>
 
       <ScrollReveal className="mt-7">

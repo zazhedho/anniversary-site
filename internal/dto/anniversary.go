@@ -121,6 +121,13 @@ type AnniversaryMemoryCard struct {
 	Note    LocalizedText `json:"note"`
 }
 
+type AnniversaryMapPoint struct {
+	Title LocalizedText `json:"title"`
+	Note  LocalizedText `json:"note"`
+	Lat   float64       `json:"lat"`
+	Lng   float64       `json:"lng"`
+}
+
 type AnniversaryGalleryPhoto struct {
 	ID       string        `json:"id,omitempty"`
 	Title    LocalizedText `json:"title"`
@@ -161,6 +168,13 @@ type AnniversaryPublicMemoryCard struct {
 	Note    string `json:"note"`
 }
 
+type AnniversaryPublicMapPoint struct {
+	Title string  `json:"title"`
+	Note  string  `json:"note"`
+	Lat   float64 `json:"lat"`
+	Lng   float64 `json:"lng"`
+}
+
 type AnniversaryPublicGalleryPhoto struct {
 	ID       string `json:"id,omitempty"`
 	Title    string `json:"title"`
@@ -192,6 +206,7 @@ type AnniversarySiteConfig struct {
 	VoiceNoteURL  string                    `json:"voice_note_url"`
 	Timeline      []AnniversaryTimelineItem `json:"timeline"`
 	MemoryCards   []AnniversaryMemoryCard   `json:"memory_cards"`
+	MapPoints     []AnniversaryMapPoint     `json:"map_points"`
 	GalleryPhotos []AnniversaryGalleryPhoto `json:"gallery_photos"`
 	GalleryVideos []AnniversaryGalleryVideo `json:"gallery_videos"`
 	Moments       []AnniversaryMoment       `json:"annual_moments"`
@@ -213,6 +228,7 @@ type AnniversaryPublicSiteConfig struct {
 	VoiceNoteURL  string                          `json:"voice_note_url"`
 	Timeline      []AnniversaryPublicTimelineItem `json:"timeline"`
 	MemoryCards   []AnniversaryPublicMemoryCard   `json:"memory_cards"`
+	MapPoints     []AnniversaryPublicMapPoint     `json:"map_points"`
 	GalleryPhotos []AnniversaryPublicGalleryPhoto `json:"gallery_photos"`
 	GalleryVideos []AnniversaryPublicGalleryVideo `json:"gallery_videos"`
 	Moments       []AnniversaryPublicMoment       `json:"annual_moments"`

@@ -3,11 +3,14 @@ import type {
   SetupGalleryVideo,
   LocalizedText,
   SetupAnnualMoment,
+  SetupMapPoint,
   SetupMemoryCard,
   SetupSiteConfig,
   SetupTimelineItem,
 } from "../../../types/anniversary";
 import type { LocalizedForm, SetupForm } from "./types";
+
+const COORD_DECIMALS = 7;
 
 export function toTextPair(value: LocalizedText): LocalizedForm {
   if (typeof value === "string") {
@@ -22,6 +25,18 @@ export function toTextPair(value: LocalizedText): LocalizedForm {
   if (en === "") return { id, en: id };
 
   return { id, en };
+}
+
+function formatCoordinateForInput(value: number): string {
+  if (!Number.isFinite(value)) return "";
+  return value.toFixed(COORD_DECIMALS);
+}
+
+function parseCoordinate(value: string): number {
+  const normalized = value.trim().replace(",", ".");
+  const parsed = Number.parseFloat(normalized);
+  if (!Number.isFinite(parsed)) return 0;
+  return Number(parsed.toFixed(COORD_DECIMALS));
 }
 
 export function normalizeConfig(config: SetupSiteConfig): SetupForm {
@@ -47,6 +62,12 @@ export function normalizeConfig(config: SetupSiteConfig): SetupForm {
       title: toTextPair(item.title),
       summary: toTextPair(item.summary),
       note: toTextPair(item.note),
+    })),
+    map_points: (config.map_points || []).map((item: SetupMapPoint) => ({
+      title: toTextPair(item.title),
+      note: toTextPair(item.note),
+      lat: formatCoordinateForInput(item.lat),
+      lng: formatCoordinateForInput(item.lng),
     })),
     gallery_photos: (config.gallery_photos || []).map((item: SetupGalleryPhoto) => ({
       id: item.id || "",
@@ -93,6 +114,12 @@ export function toPayload(form: SetupForm): SetupSiteConfig {
       title: { id: item.title.id, en: item.title.en },
       summary: { id: item.summary.id, en: item.summary.en },
       note: { id: item.note.id, en: item.note.en },
+    })),
+    map_points: form.map_points.map((item) => ({
+      title: { id: item.title.id, en: item.title.en },
+      note: { id: item.note.id, en: item.note.en },
+      lat: parseCoordinate(item.lat),
+      lng: parseCoordinate(item.lng),
     })),
     gallery_photos: form.gallery_photos.map((item) => ({
       id: item.id || undefined,

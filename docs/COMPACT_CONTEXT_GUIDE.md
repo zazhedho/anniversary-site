@@ -110,6 +110,13 @@ Field teks setup menerima:
 - `voice_note_url` (opsional): jika ada, stage voice note muncul setelah chapter surat/amplop.
 - Jika `gallery_photos` kosong, frontend fallback menggunakan `memory_cards` + placeholder image.
 
+### Field map opsional (public config)
+
+- `map_points` (opsional): daftar titik kenangan untuk section "Peta Kenangan Berdua" di halaman showcase.
+- Tiap item berisi `title` + `note` + koordinat asli `lat`/`lng` (bilingual di setup, string+number di public payload).
+- Map public menggunakan Google Maps embed berdasarkan titik yang dipilih user.
+- Jika kosong, section tetap tampil dengan state empty-friendly.
+
 ### Field cover custom (public config)
 
 - `cover_badge`, `cover_title`, `cover_subtext`, `cover_cta`.
@@ -188,12 +195,14 @@ Setup Anniversary UI:
 - Token setup disimpan lokal di browser (`anniv_setup_token`).
 - Editor JSON tetap ada sebagai `advanced mode` (opsional), bukan alur utama user.
 - Section gallery sudah tersedia untuk input link foto/video + upload langsung ke backend media (URL terisi otomatis setelah upload sukses).
+- Section map points tersedia untuk input titik tempat penting + catatan singkat (bilingual).
 
 Referensi:
 - `frontend/src/App.tsx`
 - `frontend/src/contexts/AuthContext.tsx`
 - `frontend/src/contexts/LocaleContext.tsx`
 - `frontend/src/components/anniversary/AnniversaryShowcase.tsx`
+- `frontend/src/components/anniversary/MemoryMapSection.tsx`
 - `frontend/src/components/anniversary/InteractiveLoveGame.tsx`
 - `frontend/src/components/anniversary/JourneyChapter.tsx`
 - `frontend/src/components/anniversary/VoiceNoteStage.tsx`

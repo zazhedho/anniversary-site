@@ -16,6 +16,13 @@ export type PublicMemoryCard = {
   note: string;
 };
 
+export type PublicMapPoint = {
+  title: string;
+  note: string;
+  lat: number;
+  lng: number;
+};
+
 export type PublicGalleryPhoto = {
   id?: string;
   title: string;
@@ -47,6 +54,13 @@ export type SetupMemoryCard = {
   title: LocalizedText;
   summary: LocalizedText;
   note: LocalizedText;
+};
+
+export type SetupMapPoint = {
+  title: LocalizedText;
+  note: LocalizedText;
+  lat: number;
+  lng: number;
 };
 
 export type SetupGalleryPhoto = {
@@ -91,6 +105,7 @@ export type PublicSiteConfig = {
   voice_note_url: string;
   timeline: PublicTimelineItem[];
   memory_cards: PublicMemoryCard[];
+  map_points: PublicMapPoint[];
   annual_moments: PublicAnnualMoment[];
   gallery_photos?: PublicGalleryPhoto[];
   gallery_videos?: PublicGalleryVideo[];
@@ -112,6 +127,7 @@ export type SetupSiteConfig = {
   voice_note_url: string;
   timeline: SetupTimelineItem[];
   memory_cards: SetupMemoryCard[];
+  map_points: SetupMapPoint[];
   annual_moments: SetupAnnualMoment[];
   gallery_photos?: SetupGalleryPhoto[];
   gallery_videos?: SetupGalleryVideo[];

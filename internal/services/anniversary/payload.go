@@ -93,6 +93,7 @@ func BuildPublicPayload(cfg dto.AnniversarySiteConfig, now time.Time, loc *time.
 		VoiceNoteURL:  cfg.VoiceNoteURL,
 		Timeline:      make([]dto.AnniversaryPublicTimelineItem, 0, len(cfg.Timeline)),
 		MemoryCards:   make([]dto.AnniversaryPublicMemoryCard, 0, len(cfg.MemoryCards)),
+		MapPoints:     make([]dto.AnniversaryPublicMapPoint, 0, len(cfg.MapPoints)),
 		GalleryPhotos: make([]dto.AnniversaryPublicGalleryPhoto, 0, len(cfg.GalleryPhotos)),
 		GalleryVideos: make([]dto.AnniversaryPublicGalleryVideo, 0, len(cfg.GalleryVideos)),
 		Moments:       make([]dto.AnniversaryPublicMoment, 0, len(cfg.Moments)),
@@ -110,6 +111,15 @@ func BuildPublicPayload(cfg dto.AnniversarySiteConfig, now time.Time, loc *time.
 			Title:   item.Title.Value(language),
 			Summary: item.Summary.Value(language),
 			Note:    item.Note.Value(language),
+		})
+	}
+
+	for _, item := range cfg.MapPoints {
+		publicConfig.MapPoints = append(publicConfig.MapPoints, dto.AnniversaryPublicMapPoint{
+			Title: item.Title.Value(language),
+			Note:  item.Note.Value(language),
+			Lat:   item.Lat,
+			Lng:   item.Lng,
 		})
 	}
 

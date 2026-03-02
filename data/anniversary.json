@@ -2,10 +2,7 @@
   "brand": "My another Z • I'm YourZ",
   "couple_names": "Zaidus Zhuhur \u0026 Zaqia Khana Meriza",
   "wedding_date": "2025-04-27",
-  "cover_badge": {
-    "id": "My another Z • I'm YourZ",
-    "en": "My another Z • I'm YourZ"
-  },
+  "cover_badge": "My another Z • I'm YourZ",
   "cover_title": {
     "id": "Untuk My another Z",
     "en": "For My another Z"
@@ -103,6 +100,46 @@
       }
     }
   ],
+  "map_points": [
+    {
+      "title": {
+        "id": "Tempat Janji Kita",
+        "en": "Where We Promised Forever"
+      },
+      "note": {
+        "id": "Di sini, aku yakin perjalanan ini ingin aku jalani bersamamu sampai tua.",
+        "en": "Here, I knew I wanted to walk this journey with you until we grow old."
+      },
+      "lat": -5.4256121,
+      "lng": 105.2385326
+    },
+    {
+      "title": {
+        "id": "Sudut Favorit Kita",
+        "en": "Our Favorite Corner"
+      },
+      "note": {
+        "id": "Tempat sederhana yang selalu berhasil bikin hati kita tenang.",
+        "en": "A simple place that always makes our hearts feel calm."
+      },
+      "lat": -6.2441557,
+      "lng": 106.7974447
+    },
+    {
+      "title": {
+        "id": "Rencana Mimpi Baru",
+        "en": "Where New Dreams Began"
+      },
+      "note": {
+        "id": "Dari titik ini, kita mulai merancang banyak mimpi kecil bersama.",
+        "en": "From this point, we started planning many little dreams together."
+      },
+      "lat": -6.2618394,
+      "lng": 106.7925383
+    }
+  ],
+  "gallery_photos": [],
+  "gallery_videos": [],
   "annual_moments": [
     {
       "year": 1,
