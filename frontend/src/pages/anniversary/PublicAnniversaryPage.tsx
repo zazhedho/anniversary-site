@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import LanguageSwitcher from "../../components/common/LanguageSwitcher";
 import ScrollReveal from "../../components/common/ScrollReveal";
 import SiteFooter from "../../components/common/SiteFooter";
@@ -7,8 +7,10 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LocaleContext";
 import { fetchPublicAnniversary } from "../../services/publicService";
 import type { PublicSiteConfig } from "../../types/anniversary";
+import { startJourneyMusicFromGesture } from "../../utils/publicJourneyAudio";
 
 export default function PublicAnniversaryPage() {
+  const navigate = useNavigate();
   const { isAuthenticated, loading, hasAccess } = useAuth();
   const { language, t } = useLanguage();
   const [config, setConfig] = useState<PublicSiteConfig | undefined>(undefined);
@@ -41,6 +43,12 @@ export default function PublicAnniversaryPage() {
   const canViewProfile = hasAccess({ resource: "profile", action: "view" });
   const authDestination = canViewDashboard ? "/dashboard" : canViewProfile ? "/profile" : "/anniversary";
   const authLabel = canViewDashboard ? t("public.dashboard") : t("nav.profile");
+
+  async function handleStartJourney() {
+    sessionStorage.setItem("anniversaryJourneyStarted", "1");
+    await startJourneyMusicFromGesture(config?.music_url);
+    navigate("/anniversary/game");
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#fff9f3] via-[#ffece1] to-[#f5d4c8] px-5 py-6 text-[#2b2220]">
@@ -77,12 +85,13 @@ export default function PublicAnniversaryPage() {
 
               <ScrollReveal delayMs={340} y={24}>
                 <div className="mt-7">
-                  <Link
-                    to="/anniversary/game"
+                  <button
+                    type="button"
+                    onClick={handleStartJourney}
                     className="inline-flex items-center justify-center rounded-full bg-[#9c4f46] px-7 py-3 text-sm font-semibold text-white shadow-[0_10px_28px_rgba(111,51,47,0.35)] transition hover:-translate-y-0.5"
                   >
                     {coverCTA}
-                  </Link>
+                  </button>
                 </div>
               </ScrollReveal>
             </div>

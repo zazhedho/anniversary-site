@@ -7,6 +7,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LocaleContext";
 import { fetchPublicAnniversary } from "../../services/publicService";
 import type { PublicSiteConfig } from "../../types/anniversary";
+import { playJourneyMusic } from "../../utils/publicJourneyAudio";
 
 export default function PublicAnniversaryGamePage() {
   const { isAuthenticated, loading, hasAccess } = useAuth();
@@ -32,6 +33,12 @@ export default function PublicAnniversaryGamePage() {
       mounted = false;
     };
   }, [language]);
+
+  useEffect(() => {
+    if (!config?.music_url) return;
+    if (sessionStorage.getItem("anniversaryJourneyStarted") !== "1") return;
+    void playJourneyMusic(config.music_url);
+  }, [config?.music_url]);
 
   const canViewDashboard = hasAccess({ resource: "dashboard", action: "view" });
   const canViewProfile = hasAccess({ resource: "profile", action: "view" });

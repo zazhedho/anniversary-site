@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ScrollReveal from "../common/ScrollReveal";
 import MemoryMapSection from "./MemoryMapSection";
 import { useLanguage } from "../../contexts/LocaleContext";
 import { fetchPublicAnniversary } from "../../services/publicService";
 import type { PublicMemoryCard, PublicPayload } from "../../types/anniversary";
+import { getOrCreateJourneyAudio, pauseJourneyMusic, playJourneyMusic, subscribeJourneyAudioState } from "../../utils/publicJourneyAudio";
 
 type CountdownState = { days: number; hours: number; minutes: number; seconds: number };
 type MusicSource =
@@ -89,7 +90,6 @@ export default function AnniversaryShowcase() {
   const [countdown, setCountdown] = useState<CountdownState>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [elapsed, setElapsed] = useState<CountdownState>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const dateFormatter = useMemo(
     () => new Intl.DateTimeFormat(language === "id" ? "id-ID" : "en-US", { day: "numeric", month: "long", year: "numeric" }),
     [language]
@@ -157,29 +157,42 @@ export default function AnniversaryShowcase() {
   const musicDisabled = musicSource.kind === "none";
 
   async function toggleMusic() {
-    if (!audioRef.current || musicSource.kind !== "audio" || musicDisabled) return;
+    if (musicSource.kind !== "audio" || musicDisabled) return;
 
     try {
       if (isPlaying) {
-        audioRef.current.pause();
-        setIsPlaying(false);
+        pauseJourneyMusic();
         return;
       }
 
-      await audioRef.current.play();
-      setIsPlaying(true);
+      await playJourneyMusic(musicSource.url);
     } catch {
       setIsPlaying(false);
     }
   }
 
   useEffect(() => {
-    if (musicSource.kind === "audio") return;
-    if (audioRef.current) {
-      audioRef.current.pause();
+    if (musicSource.kind !== "audio") {
+      pauseJourneyMusic();
+      setIsPlaying(false);
+      return;
     }
-    setIsPlaying(false);
-  }, [musicSource.kind]);
+
+    const audio = getOrCreateJourneyAudio(musicSource.url);
+    if (!audio) {
+      setIsPlaying(false);
+      return;
+    }
+
+    const unsubscribe = subscribeJourneyAudioState((playing) => setIsPlaying(playing));
+    if (sessionStorage.getItem("anniversaryJourneyStarted") === "1") {
+      void playJourneyMusic(musicSource.url);
+    }
+
+    return () => {
+      unsubscribe();
+    };
+  }, [musicSource.kind, musicSource.kind === "audio" ? musicSource.url : ""]);
 
   if (loading) {
     return <p className="rounded-2xl border border-[#9c4f46]/20 bg-white/60 p-4 text-sm">{t("showcase.loading")}</p>;
@@ -405,7 +418,6 @@ export default function AnniversaryShowcase() {
       <ScrollReveal delayMs={100}>
         <p className="mt-6 border-t border-black/10 pt-4 text-sm text-[#2b2220]/70">{config.footer_text}</p>
       </ScrollReveal>
-      {musicSource.kind === "audio" ? <audio ref={audioRef} src={musicSource.url} preload="none" /> : null}
     </div>
   );
 }
