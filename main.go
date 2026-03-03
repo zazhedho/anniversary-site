@@ -35,7 +35,20 @@ func normalizeAnniversaryStore(raw string) string {
 	return "json"
 }
 
-func logStartupMode(port string, runMigrate bool, enableAdminAPI bool, anniversaryStore string) {
+func resolvePublicEndpoint(port string, serverIP string) string {
+	if baseURL := strings.TrimSpace(utils.GetEnv("PUBLIC_BASE_URL", "")); baseURL != "" {
+		return strings.TrimRight(baseURL, "/") + "/api/public/anniversary?lang=id"
+	}
+
+	host := strings.TrimSpace(serverIP)
+	if host == "" || host == "unknown" {
+		host = "127.0.0.1"
+	}
+
+	return "http://" + net.JoinHostPort(host, port) + "/api/public/anniversary?lang=id"
+}
+
+func logStartupMode(port string, runMigrate bool, enableAdminAPI bool, anniversaryStore string, serverIP string) {
 	setupAPIEnabled := utils.GetEnv("SETUP_API_ENABLED", true)
 	setupToken := strings.TrimSpace(utils.GetEnv("SETUP_TOKEN", ""))
 	dataFile := utils.GetEnv("ANNIVERSARY_DATA_FILE", "./data/anniversary.json")
@@ -75,7 +88,7 @@ func logStartupMode(port string, runMigrate bool, enableAdminAPI bool, anniversa
 		uploadMaxMB,
 		storageProvider,
 	))
-	logger.WriteLog(logger.LogLevelInfo, fmt.Sprintf("Public endpoint: http://localhost:%s/api/public/anniversary?lang=id", port))
+	logger.WriteLog(logger.LogLevelInfo, fmt.Sprintf("Public endpoint: %s", resolvePublicEndpoint(port, serverIP)))
 
 	if anniversaryStore == "json" && !enableAdminAPI && !runMigrate {
 		logger.WriteLog(logger.LogLevelInfo, "No-DB mode active: backend can run without PostgreSQL/Redis.")
@@ -115,9 +128,13 @@ func main() {
 		}
 	}
 
-	myAddr += strings.Repeat(" ", 15-len(myAddr))
-	os.Setenv("ServerIP", myAddr)
-	logger.WriteLog(logger.LogLevelInfo, "Server IP: "+myAddr)
+	serverIP := myAddr
+	serverIPForLog := myAddr
+	if len(serverIPForLog) < 15 {
+		serverIPForLog += strings.Repeat(" ", 15-len(serverIPForLog))
+	}
+	os.Setenv("ServerIP", serverIPForLog)
+	logger.WriteLog(logger.LogLevelInfo, "Server IP: "+serverIPForLog)
 
 	var port, appName string
 	flag.StringVar(&port, "port", os.Getenv("PORT"), "port of the service")
@@ -135,7 +152,7 @@ func main() {
 	if normalized := strings.ToLower(strings.TrimSpace(storeRaw)); normalized != anniversaryStore {
 		logger.WriteLog(logger.LogLevelInfo, fmt.Sprintf("ANNIVERSARY_STORE=%q is invalid, defaulting to %q", storeRaw, anniversaryStore))
 	}
-	logStartupMode(port, runMigrate, enableAdminAPI, anniversaryStore)
+	logStartupMode(port, runMigrate, enableAdminAPI, anniversaryStore, serverIP)
 
 	if enableAdminAPI {
 		confID := config.GetAppConf("CONFIG_ID", "", nil)

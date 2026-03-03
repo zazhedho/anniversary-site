@@ -160,6 +160,7 @@ Important keys:
 | `ENABLE_ADMIN_API` | `false` / `true` | enable or disable admin RBAC routes |
 | `ANNIVERSARY_STORE` | `json` / `db` | config storage mode |
 | `ANNIVERSARY_DATA_FILE` | `./data/anniversary.json` | JSON storage path |
+| `PUBLIC_BASE_URL` | `https://anniversary.example.com` | optional base URL shown in startup public endpoint log |
 | `SETUP_API_ENABLED` | `true` | setup API switch |
 | `SETUP_TOKEN` | `change-this-setup-token` | setup token |
 | `ANNIVERSARY_UPLOAD_MAX_MB` | `50` | max upload size |
