@@ -41,6 +41,7 @@ export default function SetupAnniversaryPage() {
   const [uploadingPhotoIndex, setUploadingPhotoIndex] = useState<number | null>(null);
   const [uploadingVideoIndex, setUploadingVideoIndex] = useState<number | null>(null);
   const [uploadingPosterIndex, setUploadingPosterIndex] = useState<number | null>(null);
+  const [uploadingMusic, setUploadingMusic] = useState(false);
   const [uploadingVoice, setUploadingVoice] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -388,6 +389,24 @@ export default function SetupAnniversaryPage() {
     }
   }
 
+  async function uploadMusic(file: File) {
+    if (tokenMissing) {
+      notifyError(t("setup.tokenRequired"));
+      return;
+    }
+
+    setUploadingMusic(true);
+    try {
+      const result = await uploadSetupMedia(setupToken, file, "audio");
+      setForm((prev) => ({ ...prev, music_url: result.url }));
+      notifySuccess(t("setup.uploadSuccess"));
+    } catch (err) {
+      notifyError(err instanceof Error ? err.message : t("setup.uploadFailed"));
+    } finally {
+      setUploadingMusic(false);
+    }
+  }
+
   function applyJsonToForm() {
     try {
       const parsed = parseConfigJson(advancedJson, t("setup.invalidJson"));
@@ -424,6 +443,8 @@ export default function SetupAnniversaryPage() {
           onLocalizedFieldChange={setLocalizedField}
           onWeddingDateChange={(value) => setForm((prev) => ({ ...prev, wedding_date: value }))}
           onMusicUrlChange={(value) => setForm((prev) => ({ ...prev, music_url: value }))}
+          onUploadMusic={uploadMusic}
+          uploadingMusic={uploadingMusic}
           onVoiceNoteUrlChange={(value) => setForm((prev) => ({ ...prev, voice_note_url: value }))}
           onUploadVoice={uploadVoice}
           uploadingVoice={uploadingVoice}

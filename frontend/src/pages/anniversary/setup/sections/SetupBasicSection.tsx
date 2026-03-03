@@ -9,6 +9,8 @@ type SetupBasicSectionProps = {
   onLocalizedFieldChange: (key: RootLocalizedKey, value: string) => void;
   onWeddingDateChange: (value: string) => void;
   onMusicUrlChange: (value: string) => void;
+  onUploadMusic: (file: File) => void;
+  uploadingMusic: boolean;
   onVoiceNoteUrlChange: (value: string) => void;
   onUploadVoice: (file: File) => void;
   uploadingVoice: boolean;
@@ -23,6 +25,8 @@ export default function SetupBasicSection({
   onLocalizedFieldChange,
   onWeddingDateChange,
   onMusicUrlChange,
+  onUploadMusic,
+  uploadingMusic,
   onVoiceNoteUrlChange,
   onUploadVoice,
   uploadingVoice,
@@ -83,13 +87,31 @@ export default function SetupBasicSection({
 
         <label className="block">
           <span className="mb-1 block text-sm font-semibold">{t("setup.musicUrl")}</span>
-          <input
-            type="text"
-            value={form.music_url}
-            onChange={(event) => onMusicUrlChange(event.target.value)}
-            placeholder={t("setup.placeholder.musicUrl")}
-            className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#9c4f46]"
-          />
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <input
+              type="text"
+              value={form.music_url}
+              onChange={(event) => onMusicUrlChange(event.target.value)}
+              placeholder={t("setup.placeholder.musicUrl")}
+              className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#9c4f46]"
+            />
+            <label
+              className={`inline-flex items-center justify-center rounded-xl border border-[#9c4f46]/25 bg-white px-3 py-2 text-sm font-semibold text-[#2b2220] ${tokenMissing || uploadingMusic ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:bg-[#fff5ef]"}`}
+            >
+              <input
+                type="file"
+                accept="audio/*"
+                className="hidden"
+                disabled={tokenMissing || uploadingMusic}
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) onUploadMusic(file);
+                  event.currentTarget.value = "";
+                }}
+              />
+              {uploadingMusic ? t("setup.uploading") : t("setup.uploadMusic")}
+            </label>
+          </div>
         </label>
 
         <label className="block md:col-span-2">

@@ -8,6 +8,17 @@ function isYoutubeUrl(url: string): boolean {
   return /(?:youtu\.be\/|youtube\.com\/)/i.test(url);
 }
 
+function isDirectAudioUrl(url: string): boolean {
+  const audioPattern = /\.(mp3|m4a|aac|ogg|wav|flac|webm|mp4)$/i;
+
+  try {
+    const parsed = new URL(url);
+    return audioPattern.test(parsed.pathname);
+  } catch {
+    return audioPattern.test(url.split("?")[0] || "");
+  }
+}
+
 function normalizeSource(url?: string): string {
   return (url || "").trim();
 }
@@ -27,7 +38,7 @@ export function canUseJourneyAudio(url?: string): boolean {
   const source = normalizeSource(url);
   if (!source) return false;
   if (isYoutubeUrl(source)) return false;
-  return true;
+  return isDirectAudioUrl(source);
 }
 
 export function getOrCreateJourneyAudio(url?: string): HTMLAudioElement | null {

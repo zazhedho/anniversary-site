@@ -4,12 +4,13 @@ import MemoryMapSection from "./MemoryMapSection";
 import { useLanguage } from "../../contexts/LocaleContext";
 import { fetchPublicAnniversary } from "../../services/publicService";
 import type { PublicMemoryCard, PublicPayload } from "../../types/anniversary";
-import { getOrCreateJourneyAudio, pauseJourneyMusic, playJourneyMusic, subscribeJourneyAudioState } from "../../utils/publicJourneyAudio";
+import { canUseJourneyAudio, getOrCreateJourneyAudio, pauseJourneyMusic, playJourneyMusic, subscribeJourneyAudioState } from "../../utils/publicJourneyAudio";
 
 type CountdownState = { days: number; hours: number; minutes: number; seconds: number };
 type MusicSource =
   | { kind: "none" }
   | { kind: "audio"; url: string }
+  | { kind: "external"; url: string }
   | { kind: "youtube"; url: string; embedUrl: string };
 
 function parseDate(value: string): Date | null {
@@ -78,7 +79,11 @@ function resolveMusicSource(value?: string): MusicSource {
     };
   }
 
-  return { kind: "audio", url };
+  if (canUseJourneyAudio(url)) {
+    return { kind: "audio", url };
+  }
+
+  return { kind: "external", url };
 }
 
 export default function AnniversaryShowcase() {
@@ -225,6 +230,15 @@ export default function AnniversaryShowcase() {
               >
                 {t("showcase.openYoutube")}
               </a>
+            ) : musicSource.kind === "external" ? (
+              <a
+                href={musicSource.url}
+                target="_blank"
+                rel="noreferrer"
+                className="w-fit rounded-full border border-black/15 bg-white/70 px-4 py-2 text-sm font-semibold transition hover:-translate-y-0.5"
+              >
+                {t("showcase.openMusicLink")}
+              </a>
             ) : (
               <button
                 type="button"
@@ -293,15 +307,15 @@ export default function AnniversaryShowcase() {
 
         <ScrollReveal delayMs={320}>
           <div className="mt-6 flex justify-center">
-            <div className="grid w-full max-w-xl grid-cols-2 gap-2 sm:grid-cols-4">
+            <div className="grid w-full max-w-xl grid-cols-4 gap-2">
               {[
                 [t("showcase.countdown.days"), countdown.days],
                 [t("showcase.countdown.hours"), countdown.hours],
                 [t("showcase.countdown.minutes"), countdown.minutes],
                 [t("showcase.countdown.seconds"), countdown.seconds],
               ].map(([label, value]) => (
-                <div key={String(label)} className="rounded-2xl border border-[#9c4f46]/20 bg-white/60 p-3 text-center">
-                  <p className="font-display text-3xl text-[#6f332f]">{String(value).padStart(2, "0")}</p>
+                <div key={String(label)} className="rounded-2xl border border-[#9c4f46]/20 bg-white/60 p-2 text-center sm:p-3">
+                  <p className="font-display text-2xl text-[#6f332f] sm:text-3xl">{String(value).padStart(2, "0")}</p>
                   <p className="text-[10px] uppercase tracking-[0.12em] text-[#2b2220]/65">{label}</p>
                 </div>
               ))}
@@ -319,15 +333,15 @@ export default function AnniversaryShowcase() {
         </ScrollReveal>
         <ScrollReveal delayMs={450}>
           <div className="mt-3 flex justify-center">
-            <div className="grid w-full max-w-xl grid-cols-2 gap-2 sm:grid-cols-4">
+            <div className="grid w-full max-w-xl grid-cols-4 gap-2">
               {[
                 [t("showcase.countdown.days"), elapsed.days],
                 [t("showcase.countdown.hours"), elapsed.hours],
                 [t("showcase.countdown.minutes"), elapsed.minutes],
                 [t("showcase.countdown.seconds"), elapsed.seconds],
               ].map(([label, value]) => (
-                <div key={`elapsed-${String(label)}`} className="rounded-2xl border border-[#9c4f46]/20 bg-white/60 p-3 text-center">
-                  <p className="font-display text-3xl text-[#6f332f]">{String(value).padStart(2, "0")}</p>
+                <div key={`elapsed-${String(label)}`} className="rounded-2xl border border-[#9c4f46]/20 bg-white/60 p-2 text-center sm:p-3">
+                  <p className="font-display text-2xl text-[#6f332f] sm:text-3xl">{String(value).padStart(2, "0")}</p>
                   <p className="text-[10px] uppercase tracking-[0.12em] text-[#2b2220]/65">{label}</p>
                 </div>
               ))}
