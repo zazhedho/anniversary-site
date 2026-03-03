@@ -14,8 +14,8 @@ export default function PublicAnniversaryShowcasePage() {
   const authLabel = canViewDashboard ? t("public.dashboard") : t("nav.profile");
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#fff9f3] via-[#ffece1] to-[#f5d4c8] px-5 py-6 text-[#2b2220]">
-      <div className="mx-auto w-[min(1120px,96vw)]">
+    <main className="flex min-h-screen flex-col bg-gradient-to-br from-[#fff9f3] via-[#ffece1] to-[#f5d4c8] px-5 py-6 text-[#2b2220]">
+      <div className="mx-auto w-full max-w-[1120px] flex-1">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <p className="text-xs uppercase tracking-[0.14em] text-[#6f332f]">{t("public.tag")}</p>
           <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -38,6 +38,8 @@ export default function PublicAnniversaryShowcasePage() {
         </div>
 
         <AnniversaryShowcase />
+      </div>
+      <div className="mx-auto w-full max-w-[1120px]">
         <SiteFooter className="mt-6" />
       </div>
     </main>

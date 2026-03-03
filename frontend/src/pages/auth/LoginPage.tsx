@@ -38,7 +38,7 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen flex-col bg-gradient-to-br from-[#fff9f3] via-[#ffece1] to-[#f5d4c8] px-5 py-10 text-[#2b2220]">
-      <div className="mx-auto grid w-[min(1120px,96vw)] flex-1 gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+      <div className="mx-auto grid w-full max-w-[1120px] flex-1 place-items-center gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:place-items-stretch lg:items-center">
         <section className="hidden lg:block">
           <p className="text-xs uppercase tracking-[0.14em] text-[#6f332f]">{t("login.tag")}</p>
           <h2 className="mt-3 font-display text-7xl leading-[0.9]">{t("login.heading")}</h2>
@@ -102,7 +102,7 @@ export default function LoginPage() {
           </form>
         </AuthCard>
       </div>
-      <div className="mx-auto w-[min(1120px,96vw)]">
+      <div className="mx-auto w-full max-w-[1120px]">
         <SiteFooter />
       </div>
     </main>

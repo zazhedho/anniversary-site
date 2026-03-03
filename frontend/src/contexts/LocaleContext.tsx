@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useMemo, useState } from "react";
+import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
 
 export type Language = "id" | "en";
 
@@ -1057,14 +1057,20 @@ function interpolate(template: string, vars?: TranslateVars): string {
 }
 
 function getInitialLanguage(): Language {
-  if (typeof window === "undefined") return "id";
+  if (typeof window === "undefined") return "en";
   const saved = window.localStorage.getItem(STORAGE_KEY);
   if (saved === "id" || saved === "en") return saved;
-  return "id";
+  return "en";
 }
 
 export function LocaleProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>(() => getInitialLanguage());
+
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      document.documentElement.lang = language;
+    }
+  }, [language]);
 
   const value = useMemo<LocaleContextType>(() => {
     const setLanguage = (nextLanguage: Language) => {
@@ -1075,7 +1081,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
     };
 
     const t = (key: string, vars?: TranslateVars): string => {
-      const message = messages[language][key] || messages.id[key] || key;
+      const message = messages[language][key] || messages.en[key] || key;
       return interpolate(message, vars);
     };
 

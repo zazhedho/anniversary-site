@@ -64,7 +64,7 @@ export default function AppLayout() {
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-br from-[#fff9f3] via-[#ffece1] to-[#f5d4c8] text-[#2b2220]">
       <header className="border-b border-black/10 bg-white/55 backdrop-blur">
-        <div className="mx-auto w-[min(1120px,94vw)] py-4">
+        <div className="mx-auto w-full max-w-[1120px] px-4 py-4">
           <div className="flex items-center justify-between gap-3">
             <Link to={homePath} className="font-display text-3xl leading-none">
               Anniv Control
@@ -124,11 +124,11 @@ export default function AppLayout() {
         </div>
       </header>
 
-      <main className="mx-auto w-[min(1120px,94vw)] flex-1 py-6">
+      <main className="mx-auto w-full max-w-[1120px] flex-1 px-4 py-6">
         <p className="mb-4 text-xs uppercase tracking-[0.12em] text-[#2b2220]/60">{t("layout.signedInAs", { name: user?.name || "User" })}</p>
         <Outlet />
       </main>
-      <div className="mx-auto w-[min(1120px,94vw)] pb-6">
+      <div className="mx-auto w-full max-w-[1120px] px-4 pb-6">
         <SiteFooter />
       </div>
 

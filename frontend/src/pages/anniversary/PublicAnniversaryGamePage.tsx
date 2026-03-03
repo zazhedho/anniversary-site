@@ -46,8 +46,8 @@ export default function PublicAnniversaryGamePage() {
   const authLabel = canViewDashboard ? t("public.dashboard") : t("nav.profile");
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_20%_20%,#fff3e9_0%,#ffe2d1_44%,#f2cbbf_100%)] px-5 py-6 text-[#2b2220]">
-      <div className="mx-auto w-[min(960px,96vw)]">
+    <main className="flex min-h-screen flex-col bg-[radial-gradient(circle_at_20%_20%,#fff3e9_0%,#ffe2d1_44%,#f2cbbf_100%)] px-5 py-6 text-[#2b2220]">
+      <div className="mx-auto w-full max-w-[960px] flex-1">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <p className="text-xs uppercase tracking-[0.14em] text-[#6f332f]">{t("game.pageTag")}</p>
           <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -71,7 +71,8 @@ export default function PublicAnniversaryGamePage() {
             <InteractiveLoveGame t={t} config={config} />
           </div>
         </section>
-
+      </div>
+      <div className="mx-auto w-full max-w-[960px]">
         <SiteFooter className="mt-6" />
       </div>
     </main>

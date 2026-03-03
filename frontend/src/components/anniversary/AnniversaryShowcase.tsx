@@ -216,16 +216,7 @@ export default function AnniversaryShowcase() {
         <ScrollReveal y={18}>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs uppercase tracking-[0.14em] text-[#2b2220]/70">{config.brand}</p>
-            {musicSource.kind === "audio" ? (
-              <button
-                type="button"
-                onClick={toggleMusic}
-                disabled={musicDisabled}
-                className="w-fit rounded-full border border-black/15 bg-white/70 px-4 py-2 text-sm font-semibold transition enabled:hover:-translate-y-0.5 disabled:opacity-60"
-              >
-                {musicDisabled ? t("showcase.musicNotSet") : isPlaying ? t("showcase.pauseSong") : t("showcase.playSong")}
-              </button>
-            ) : musicSource.kind === "youtube" ? (
+            {musicSource.kind === "youtube" ? (
               <a
                 href={musicSource.url}
                 target="_blank"
@@ -418,6 +409,25 @@ export default function AnniversaryShowcase() {
       <ScrollReveal delayMs={100}>
         <p className="mt-6 border-t border-black/10 pt-4 text-sm text-[#2b2220]/70">{config.footer_text}</p>
       </ScrollReveal>
+
+      {musicSource.kind === "audio" && !musicDisabled ? (
+        <button
+          type="button"
+          aria-label={isPlaying ? t("showcase.pauseSong") : t("showcase.playSong")}
+          onClick={toggleMusic}
+          className="fixed bottom-5 right-5 z-[70] inline-flex h-12 w-12 items-center justify-center rounded-full border border-[#9c4f46]/25 bg-[#9c4f46] text-white shadow-[0_14px_28px_rgba(111,51,47,0.38)] transition hover:scale-105 active:scale-95 sm:bottom-6 sm:right-6 sm:h-14 sm:w-14"
+        >
+          {isPlaying ? (
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-6 w-6 fill-current sm:h-7 sm:w-7">
+              <path d="M7 5h3v14H7zM14 5h3v14h-3z" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-6 w-6 fill-current sm:h-7 sm:w-7">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          )}
+        </button>
+      ) : null}
     </div>
   );
 }
