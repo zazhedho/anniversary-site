@@ -5,6 +5,8 @@ import (
 	"anniversary-site/utils"
 	"database/sql"
 	"fmt"
+	"net/url"
+	"strings"
 	"time"
 
 	"gorm.io/driver/postgres"
@@ -27,7 +29,7 @@ func ConnDb() (db *gorm.DB, sqlDB *sql.DB, err error) {
 
 	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{TranslateError: true})
 	if err != nil {
-		logger.WriteLog(logger.LogLevelError, fmt.Sprintf("ConnDb; %s Error: %s", dsn, err.Error()))
+		logger.WriteLog(logger.LogLevelError, fmt.Sprintf("ConnDb; %s Error: %s", redactDSN(dsn), err.Error()))
 		return
 	}
 
@@ -38,7 +40,7 @@ func ConnDb() (db *gorm.DB, sqlDB *sql.DB, err error) {
 
 	sqlDB, err = db.DB()
 	if err != nil {
-		logger.WriteLog(logger.LogLevelError, fmt.Sprintf("ConnDb.sqlDB; %s Error: %s", dsn, err.Error()))
+		logger.WriteLog(logger.LogLevelError, fmt.Sprintf("ConnDb.sqlDB; %s Error: %s", redactDSN(dsn), err.Error()))
 		return
 	}
 
@@ -50,4 +52,22 @@ func ConnDb() (db *gorm.DB, sqlDB *sql.DB, err error) {
 	db.Debug()
 
 	return
+}
+
+func redactDSN(dsn string) string {
+	parsed, err := url.Parse(dsn)
+	if err == nil && parsed != nil {
+		if parsed.User != nil {
+			username := parsed.User.Username()
+			parsed.User = url.UserPassword(username, "******")
+		}
+		return parsed.String()
+	}
+
+	// Best effort masking for key-value DSN format.
+	replacer := strings.NewReplacer(
+		"password=", "password=******",
+		"Password=", "Password=******",
+	)
+	return replacer.Replace(dsn)
 }

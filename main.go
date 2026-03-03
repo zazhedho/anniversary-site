@@ -27,6 +27,67 @@ func FailOnError(err error, msg string) {
 	}
 }
 
+func normalizeAnniversaryStore(raw string) string {
+	value := strings.ToLower(strings.TrimSpace(raw))
+	if value == "json" || value == "db" {
+		return value
+	}
+	return "json"
+}
+
+func logStartupMode(port string, runMigrate bool, enableAdminAPI bool, anniversaryStore string) {
+	setupAPIEnabled := utils.GetEnv("SETUP_API_ENABLED", true)
+	setupToken := strings.TrimSpace(utils.GetEnv("SETUP_TOKEN", ""))
+	dataFile := utils.GetEnv("ANNIVERSARY_DATA_FILE", "./data/anniversary.json")
+	uploadMaxMB := utils.GetEnv("ANNIVERSARY_UPLOAD_MAX_MB", 50)
+	storageProvider := strings.ToLower(strings.TrimSpace(utils.GetEnv("STORAGE_PROVIDER", "minio")))
+	if storageProvider == "" {
+		storageProvider = "minio"
+	}
+
+	setupTokenStatus := "missing"
+	if setupToken != "" {
+		setupTokenStatus = fmt.Sprintf("set(len=%d)", len(setupToken))
+	}
+
+	dbRequired := runMigrate || enableAdminAPI || anniversaryStore == "db"
+	modeLabel := "public/setup JSON mode"
+	if enableAdminAPI {
+		modeLabel = "admin mode (RBAC + anniversary)"
+	} else if anniversaryStore == "db" {
+		modeLabel = "public/setup with DB-backed anniversary config"
+	}
+
+	logger.WriteLog(logger.LogLevelInfo, fmt.Sprintf(
+		"Startup mode: %s | port=%s | migrate=%t | admin_api=%t | anniversary_store=%s | db_required=%t",
+		modeLabel,
+		port,
+		runMigrate,
+		enableAdminAPI,
+		anniversaryStore,
+		dbRequired,
+	))
+	logger.WriteLog(logger.LogLevelInfo, fmt.Sprintf(
+		"Setup summary: setup_api_enabled=%t | setup_token=%s | data_file=%s | upload_max_mb=%d | storage_provider=%s",
+		setupAPIEnabled,
+		setupTokenStatus,
+		dataFile,
+		uploadMaxMB,
+		storageProvider,
+	))
+	logger.WriteLog(logger.LogLevelInfo, fmt.Sprintf("Public endpoint: http://localhost:%s/api/public/anniversary?lang=id", port))
+
+	if anniversaryStore == "json" && !enableAdminAPI && !runMigrate {
+		logger.WriteLog(logger.LogLevelInfo, "No-DB mode active: backend can run without PostgreSQL/Redis.")
+		return
+	}
+
+	if anniversaryStore == "json" && !enableAdminAPI && runMigrate {
+		logger.WriteLog(logger.LogLevelInfo, "NOTICE: ANNIVERSARY_STORE=json but migration is enabled. DB is still required for startup migration.")
+		logger.WriteLog(logger.LogLevelInfo, "Tip: run `go run . -migrate=false` to start pure JSON no-DB mode.")
+	}
+}
+
 func main() {
 	var (
 		err        error
@@ -69,7 +130,13 @@ func main() {
 	logger.WriteLog(logger.LogLevelInfo, "APP: "+appName+"; PORT: "+port)
 
 	enableAdminAPI := utils.GetEnv("ENABLE_ADMIN_API", false)
-	anniversaryStore := strings.ToLower(strings.TrimSpace(utils.GetEnv("ANNIVERSARY_STORE", "json")))
+	storeRaw := utils.GetEnv("ANNIVERSARY_STORE", "json")
+	anniversaryStore := normalizeAnniversaryStore(storeRaw)
+	if normalized := strings.ToLower(strings.TrimSpace(storeRaw)); normalized != anniversaryStore {
+		logger.WriteLog(logger.LogLevelInfo, fmt.Sprintf("ANNIVERSARY_STORE=%q is invalid, defaulting to %q", storeRaw, anniversaryStore))
+	}
+	logStartupMode(port, runMigrate, enableAdminAPI, anniversaryStore)
+
 	if enableAdminAPI {
 		confID := config.GetAppConf("CONFIG_ID", "", nil)
 		logger.WriteLog(logger.LogLevelDebug, fmt.Sprintf("ConfigID: %s", confID))

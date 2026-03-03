@@ -273,7 +273,10 @@ Backend:
 ```bash
 cp .env.example .env
 go test ./...
-go run .
+# No DB mode (ANNIVERSARY_STORE=json, ENABLE_ADMIN_API=false):
+go run . -migrate=false
+# Admin + DB mode:
+# go run .
 ```
 
 Frontend:

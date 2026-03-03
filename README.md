@@ -95,6 +95,7 @@ anniversary-site/
 ## Quick Start (Public + Setup, No DB)
 
 Recommended for first local run.
+This mode does not require PostgreSQL/Redis.
 
 ### 1) Backend
 
@@ -106,9 +107,14 @@ go run . -migrate=false
 
 API will run on `http://localhost:8080`.
 
+Required `.env` values for truly no-DB mode:
+- `ENABLE_ADMIN_API=false`
+- `ANNIVERSARY_STORE=json`
+
 Why `-migrate=false`:
 - this mode uses JSON storage
 - avoids failing startup when PostgreSQL is not available locally
+- default `go run .` still runs DB migration on startup
 
 ### 2) Frontend
 
@@ -162,6 +168,7 @@ Important keys:
 DB/Redis values are required when:
 - `ENABLE_ADMIN_API=true`
 - or `ANNIVERSARY_STORE=db`
+- or backend is started with migration enabled (`go run .` default or `RUN_MIGRATION=true`)
 
 ### Frontend (`frontend/.env`)
 
@@ -267,6 +274,13 @@ X-Setup-Token: <SETUP_TOKEN>
 Check storage mode:
 - `ANNIVERSARY_STORE=json` -> update `data/anniversary.json`
 - `ANNIVERSARY_STORE=db` -> update via setup API/UI (DB becomes source of truth)
+
+### Still trying DB while using `ANNIVERSARY_STORE=json`
+
+Check all of these:
+- `ENABLE_ADMIN_API=false`
+- run backend with `go run . -migrate=false`
+- if using container, set `RUN_MIGRATION=false`
 
 ## Additional Docs
 
