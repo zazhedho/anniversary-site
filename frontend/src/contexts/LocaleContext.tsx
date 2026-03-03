@@ -235,8 +235,8 @@ const messages: Record<Language, Record<string, string>> = {
     "system.unauthorized": "Kamu tidak punya permission untuk mengakses halaman ini.",
     "system.backAnniversary": "Kembali ke Anniversary",
 
-    "dashboard.tag": "Private Space",
-    "dashboard.welcome": "Welcome, {name}",
+    "dashboard.tag": "Ruang Pribadi",
+    "dashboard.welcome": "Selamat datang, {name}",
     "dashboard.description": "Kamu sudah login. Kelola perjalanan anniversary kalian dari ruang ini.",
 
     "setup.tag": "Ruang Persiapan",
