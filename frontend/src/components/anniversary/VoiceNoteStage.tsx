@@ -65,6 +65,7 @@ export default function VoiceNoteStage({ t, url }: VoiceNoteStageProps) {
           <iframe
             src={source.embedUrl}
             title="Voice note"
+            loading="lazy"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
             className="h-56 w-full sm:h-72"

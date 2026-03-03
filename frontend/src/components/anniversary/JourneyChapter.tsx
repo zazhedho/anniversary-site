@@ -96,7 +96,13 @@ export default function JourneyChapter({
         {stage === "photos" ? (
           <div className="mx-auto w-full max-w-3xl">
             <div className="overflow-hidden rounded-2xl border border-[#9c4f46]/20 bg-white">
-              <img src={photos[photoIndex].image_url} alt={photos[photoIndex].title} className="h-56 w-full object-cover sm:h-72 md:h-[24rem]" />
+              <img
+                src={photos[photoIndex].image_url}
+                alt={photos[photoIndex].title}
+                loading="lazy"
+                decoding="async"
+                className="h-56 w-full object-cover sm:h-72 md:h-[24rem]"
+              />
             </div>
 
             <div className="mt-3 flex items-center justify-between gap-2">
@@ -128,7 +134,7 @@ export default function JourneyChapter({
                     onClick={() => onSelectPhoto(index)}
                     className={`overflow-hidden rounded-xl border ${photoIndex === index ? "border-[#9c4f46] ring-2 ring-[#9c4f46]/25" : "border-[#9c4f46]/20"}`}
                   >
-                    <img src={photo.image_url} alt={photo.title} className="h-16 w-20 object-cover sm:h-20 sm:w-24" />
+                    <img src={photo.image_url} alt={photo.title} loading="lazy" decoding="async" className="h-16 w-20 object-cover sm:h-20 sm:w-24" />
                   </button>
                 ))}
               </div>
@@ -139,7 +145,15 @@ export default function JourneyChapter({
         {stage === "videos" && hasVideos ? (
           <div className="grid gap-3 lg:grid-cols-[1.2fr_0.8fr]">
             <div className="overflow-hidden rounded-2xl border border-[#9c4f46]/20 bg-black/90">
-              <video key={videos[videoIndex].id} src={videos[videoIndex].video_url} poster={videos[videoIndex].poster_url} controls playsInline className="h-56 w-full object-cover sm:h-72 md:h-[24rem]" />
+              <video
+                key={videos[videoIndex].id}
+                src={videos[videoIndex].video_url}
+                poster={videos[videoIndex].poster_url}
+                controls
+                playsInline
+                preload="metadata"
+                className="h-56 w-full object-cover sm:h-72 md:h-[24rem]"
+              />
             </div>
             <div className="space-y-2">
               {videos.map((video, index) => (
