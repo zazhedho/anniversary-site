@@ -72,7 +72,7 @@ Catatan upload media:
 - Form-data:
   - `file`: berkas yang diupload
   - `type`: `photo` | `video` | `poster` | `audio`
-- URL hasil upload kembali di response `data.url` dan bisa langsung disimpan ke `gallery_photos[].image_url`, `gallery_videos[].video_url`, `gallery_videos[].poster_url`, atau `voice_note_url`.
+- URL hasil upload kembali di response `data.url` dan bisa langsung disimpan ke `gallery_photos[].image_url`, `gallery_videos[].video_url`, `gallery_videos[].poster_url`, `voice_note_url`, atau `music_url` (audio upload).
 - Upload menggunakan storage provider dari `infrastructure/media.InitStorage()` (MinIO/R2), sama pola dengan project `safety-riding`.
 - Konfigurasi upload mengikuti env `STORAGE_*` (`STORAGE_PROVIDER`, `STORAGE_ENDPOINT`, `STORAGE_BASE_URL`, dst).
 
@@ -108,6 +108,10 @@ Field teks setup menerima:
 - `gallery_photos` (opsional): dipakai untuk flow foto di `/anniversary/game`.
 - `gallery_videos` (opsional): jika ada, stage video ditampilkan; jika kosong, stage video disembunyikan.
 - `voice_note_url` (opsional): jika ada, stage voice note muncul setelah chapter surat/amplop.
+- `music_url` (opsional): mendukung URL audio direct, YouTube, atau link eksternal.
+  - audio direct: diputar sebagai background music,
+  - YouTube: ditampilkan sebagai embed/open link,
+  - link lain: fallback tombol "Open Music Link".
 - Jika `gallery_photos` kosong, frontend fallback menggunakan `memory_cards` + placeholder image.
 
 ### Field map opsional (public config)

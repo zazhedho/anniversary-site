@@ -239,7 +239,7 @@ export default function AnniversaryShowcase() {
               >
                 {t("showcase.openMusicLink")}
               </a>
-            ) : (
+            ) : musicSource.kind === "none" ? (
               <button
                 type="button"
                 disabled
@@ -247,7 +247,7 @@ export default function AnniversaryShowcase() {
               >
                 {t("showcase.musicNotSet")}
               </button>
-            )}
+            ) : null}
           </div>
         </ScrollReveal>
 

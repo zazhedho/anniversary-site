@@ -83,9 +83,16 @@ Jika kosong, frontend akan menggunakan path relatif (`/api/...`).
 - `PUT /api/setup/anniversary/moments` (`X-Setup-Token`)
 - `POST /api/setup/anniversary/moments` (`X-Setup-Token`)
 - `DELETE /api/setup/anniversary/moments/:year` (`X-Setup-Token`)
+- `POST /api/setup/anniversary/media/upload` (`X-Setup-Token`, `type=photo|video|poster|audio`)
 
 Pastikan backend dijalankan dengan `ENABLE_ADMIN_API=true` jika ingin memakai endpoint auth (`/api/user/*`).
 
 Catatan setup cover public:
 - Konten halaman `/anniversary` bisa diubah dari setup payload melalui key:
 `cover_badge`, `cover_title`, `cover_subtext`, `cover_cta`.
+
+Catatan music URL:
+- Setup Basic mendukung `Upload Music` (`type=audio`) untuk mengisi `music_url`.
+- Jika `music_url` adalah audio direct (`.mp3/.m4a/...`) maka bisa diputar di public showcase.
+- Jika `music_url` YouTube maka tampil sebagai embed/open link.
+- Jika `music_url` adalah link halaman biasa, UI fallback menjadi tombol `Open Music Link`.

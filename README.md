@@ -205,6 +205,13 @@ Upload payload:
 - `file`: multipart file
 - `type`: `photo` | `video` | `poster` | `audio`
 
+Setup UI note:
+- `type=audio` can be used for both `voice_note_url` and `music_url` via `Upload Voice` / `Upload Music`.
+- `music_url` behavior on public page:
+  - direct audio URL (`.mp3`, `.m4a`, etc) -> playable as background music
+  - YouTube URL -> shown as YouTube embed/open link
+  - other webpage URL -> shown as `Open Music Link` fallback
+
 ### Admin APIs (when `ENABLE_ADMIN_API=true`)
 
 Main groups:
@@ -286,3 +293,4 @@ Check all of these:
 ## Additional Docs
 
 - [Compact Context Guide](docs/COMPACT_CONTEXT_GUIDE.md)
+- [Multi Tenant Subdomain Plan](docs/MULTI_TENANT_SUBDOMAIN_PLAN.md)
