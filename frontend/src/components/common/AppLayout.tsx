@@ -8,7 +8,7 @@ import SiteFooter from "./SiteFooter";
 
 export default function AppLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { user, logoutUser, hasAccess, hasAnyAccess } = useAuth();
+  const { user, logoutUser, hasAccess, hasAnyAccess, availableTenants, activeTenantSlug, setActiveTenantSlug } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
@@ -16,6 +16,8 @@ export default function AppLayout() {
   const canListUsers = hasAccess({ resource: "users", action: "list" });
   const canListRoles = hasAccess({ resource: "roles", action: "list" });
   const canListMenus = hasAccess({ resource: "menus", action: "list" });
+  const canListTenants = hasAccess({ resource: "tenants", action: "list" });
+  const canAccessAllTenants = hasAccess({ resource: "tenants", action: "access_all" });
   const canOpenProfilePage = hasAnyAccess([
     { resource: "profile", action: "view" },
     { resource: "profile", action: "update_password" },
@@ -27,7 +29,8 @@ export default function AppLayout() {
     { resource: "users", action: "list" },
   ]);
   const defaultPublicSlug = normalizeTenantSlug(import.meta.env.VITE_DEFAULT_PUBLIC_TENANT || "default") || "default";
-  const defaultPublicPath = `/${defaultPublicSlug}`;
+  const selectedTenantSlug = normalizeTenantSlug(activeTenantSlug) || defaultPublicSlug;
+  const defaultPublicPath = `/${selectedTenantSlug}`;
   const homePath = canViewDashboard ? "/app/dashboard" : canOpenProfilePage ? "/app/profile" : defaultPublicPath;
 
   async function onLogout() {
@@ -93,6 +96,11 @@ export default function AppLayout() {
                   {t("nav.menus")}
                 </NavLink>
               ) : null}
+              {canListTenants ? (
+                <NavLink to="/app/tenants" className={desktopNavItemClass}>
+                  {t("nav.tenants")}
+                </NavLink>
+              ) : null}
               {canSetupAnniversary ? (
                 <NavLink to="/app/setup/anniversary" className={desktopNavItemClass}>
                   {t("nav.setup")}
@@ -107,6 +115,22 @@ export default function AppLayout() {
                 <NavLink to="/app/profile" className={desktopNavItemClass}>
                   {t("nav.profile")}
                 </NavLink>
+              ) : null}
+              {canAccessAllTenants && availableTenants.length > 0 ? (
+                <label className="inline-flex items-center gap-2 rounded-full border border-[#9c4f46]/25 bg-white/70 px-3 py-1.5 text-xs font-semibold">
+                  <span>{t("layout.activeTenant")}</span>
+                  <select
+                    value={selectedTenantSlug}
+                    onChange={(event) => setActiveTenantSlug(event.target.value)}
+                    className="max-w-[180px] rounded-md border border-[#9c4f46]/20 bg-white px-2 py-1 text-xs outline-none"
+                  >
+                    {availableTenants.map((tenant) => (
+                      <option key={tenant.id} value={tenant.slug}>
+                        {tenant.name} ({tenant.slug})
+                      </option>
+                    ))}
+                  </select>
+                </label>
               ) : null}
               <LanguageSwitcher />
               <button type="button" onClick={onLogout} className="ml-1 rounded-full border border-[#9c4f46]/30 bg-white/70 px-3 py-1.5 hover:bg-white">
@@ -178,6 +202,11 @@ export default function AppLayout() {
                 {t("nav.menus")}
               </NavLink>
             ) : null}
+            {canListTenants ? (
+              <NavLink to="/app/tenants" className={mobileNavItemClass}>
+                {t("nav.tenants")}
+              </NavLink>
+            ) : null}
             {canSetupAnniversary ? (
               <NavLink to="/app/setup/anniversary" className={mobileNavItemClass}>
                 {t("nav.setup")}
@@ -192,6 +221,22 @@ export default function AppLayout() {
               <NavLink to="/app/profile" className={mobileNavItemClass}>
                 {t("nav.profile")}
               </NavLink>
+            ) : null}
+            {canAccessAllTenants && availableTenants.length > 0 ? (
+              <label className="rounded-xl border border-[#9c4f46]/20 bg-white px-4 py-2.5 text-xs font-semibold text-[#2b2220]">
+                <span className="mb-1 block">{t("layout.activeTenant")}</span>
+                <select
+                  value={selectedTenantSlug}
+                  onChange={(event) => setActiveTenantSlug(event.target.value)}
+                  className="w-full rounded-lg border border-[#9c4f46]/20 bg-white px-2 py-2 text-sm outline-none"
+                >
+                  {availableTenants.map((tenant) => (
+                    <option key={tenant.id} value={tenant.slug}>
+                      {tenant.name} ({tenant.slug})
+                    </option>
+                  ))}
+                </select>
+              </label>
             ) : null}
             <button
               type="button"

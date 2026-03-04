@@ -168,6 +168,7 @@ func (m *Middleware) PermissionMiddleware(resource, action string) gin.HandlerFu
 
 		// Superadmin bypasses all permission checks
 		if userRole == utils.RoleSuperAdmin {
+			ctx.Set("permission_access_map", map[string]bool{"*:*": true})
 			ctx.Next()
 			return
 		}
@@ -200,14 +201,19 @@ func (m *Middleware) PermissionMiddleware(resource, action string) gin.HandlerFu
 
 		targetResource := strings.TrimSpace(resource)
 		targetAction := strings.TrimSpace(action)
+		permissionAccessMap := make(map[string]bool, len(permissions))
 		hasPermission := false
 		for _, perm := range permissions {
+			key := permissionAccessKey(perm.Resource, perm.Action)
+			permissionAccessMap[key] = true
+
 			if strings.EqualFold(strings.TrimSpace(perm.Resource), targetResource) &&
 				strings.EqualFold(strings.TrimSpace(perm.Action), targetAction) {
 				hasPermission = true
-				break
 			}
 		}
+
+		ctx.Set("permission_access_map", permissionAccessMap)
 
 		if !hasPermission {
 			logger.WriteLogWithContext(ctx, logger.LogLevelError, fmt.Sprintf("%s; User '%s' lacks permission '%s:%s'", logPrefix, userId, targetResource, targetAction))
@@ -219,4 +225,38 @@ func (m *Middleware) PermissionMiddleware(resource, action string) gin.HandlerFu
 
 		ctx.Next()
 	}
+}
+
+func HasAccess(ctx *gin.Context, resource, action string) bool {
+	if ctx == nil {
+		return false
+	}
+
+	authData := utils.GetAuthData(ctx)
+	if authData != nil {
+		role := strings.TrimSpace(strings.ToLower(utils.InterfaceString(authData["role"])))
+		if role == utils.RoleSuperAdmin {
+			return true
+		}
+	}
+
+	rawAccessMap, exists := ctx.Get("permission_access_map")
+	if !exists || rawAccessMap == nil {
+		return false
+	}
+
+	accessMap, ok := rawAccessMap.(map[string]bool)
+	if !ok {
+		return false
+	}
+
+	if accessMap["*:*"] {
+		return true
+	}
+
+	return accessMap[permissionAccessKey(resource, action)]
+}
+
+func permissionAccessKey(resource, action string) string {
+	return strings.TrimSpace(strings.ToLower(resource)) + ":" + strings.TrimSpace(strings.ToLower(action))
 }

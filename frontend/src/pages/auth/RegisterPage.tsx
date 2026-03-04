@@ -15,6 +15,7 @@ export default function RegisterPage() {
   const { notifyError, notifySuccess } = useNotification();
   const navigate = useNavigate();
   const [name, setName] = useState("");
+  const [tenantSlug, setTenantSlug] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
@@ -44,7 +45,7 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      await register({ name, email, phone, password });
+      await register({ name, email, phone, password, tenant_slug: normalizeTenantSlug(tenantSlug) });
       notifySuccess(t("register.success"));
       navigate("/app/login", { replace: true });
     } catch (err) {
@@ -62,6 +63,15 @@ export default function RegisterPage() {
         <AuthCard title={t("register.title")} subtitle={t("register.subtitle")}>
           <form onSubmit={onSubmit} className="space-y-3">
             <input className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm" placeholder={t("common.name")} value={name} onChange={(e) => setName(e.target.value)} required />
+            <input
+              className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm"
+              placeholder={t("register.tenantSlugPlaceholder")}
+              value={tenantSlug}
+              onChange={(e) => setTenantSlug(normalizeTenantSlug(e.target.value))}
+              required
+              minLength={3}
+              maxLength={100}
+            />
             <input className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm" placeholder={t("common.email")} type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
             <input className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm" placeholder={t("common.phone")} value={phone} onChange={(e) => setPhone(e.target.value)} required />
             <PasswordInput className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm" placeholder={t("common.password")} value={password} onChange={(e) => setPassword(e.target.value)} required />

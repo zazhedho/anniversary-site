@@ -16,6 +16,7 @@ Route utama:
 - `/app/users`, `/app/users/new`, `/app/users/:id/edit` (protected, admin-style flow)
 - `/app/roles`, `/app/roles/new`, `/app/roles/:id/edit` (protected, permission-based)
 - `/app/menus`, `/app/menus/new`, `/app/menus/:id/edit` (protected, permission-based)
+- `/app/tenants`, `/app/tenants/new`, `/app/tenants/:id/edit` (protected, permission-based)
 - `/app/setup/anniversary` (protected, editor JSON setup)
 - legacy compatibility: `/anniversary*`, `/login`, `/dashboard`, dll akan redirect ke path baru
 
@@ -27,6 +28,9 @@ Kontrol tombol aksi juga per permission action:
 Untuk modul baru:
 `Add Role -> roles:create`, `Edit Role -> roles:update`, `Assign Permission -> roles:assign_permissions`,
 `Assign Menu -> roles:assign_menus`, `Add Menu -> menus:create`, `Edit Menu -> menus:update`, `Delete Menu -> menus:delete`.
+Tenant module:
+`List Tenant -> tenants:list`, `Add Tenant -> tenants:create`, `Edit Tenant -> tenants:update`,
+`Delete Tenant -> tenants:delete`, `Cross-tenant switcher -> tenants:access_all`.
 
 ## Local Run
 
@@ -75,6 +79,12 @@ Jika kosong, frontend akan menggunakan path relatif (`/api/...`).
 - `POST /api/menu`
 - `PUT /api/menu/:id`
 - `DELETE /api/menu/:id`
+- `GET /api/tenants`
+- `GET /api/tenants/:id`
+- `POST /api/tenants`
+- `PATCH /api/tenants/:id`
+- `DELETE /api/tenants/:id`
+- `POST /api/tenants/:id/members`
 - `GET /api/permissions` (untuk pemilihan assign role)
 - `GET /api/permissions/me` (untuk evaluasi akses resource/action)
 - `PUT /api/user/change/password`
@@ -98,3 +108,7 @@ Catatan music URL:
 - Jika `music_url` adalah audio direct (`.mp3/.m4a/...`) maka bisa diputar di public showcase.
 - Jika `music_url` YouTube maka tampil sebagai embed/open link.
 - Jika `music_url` adalah link halaman biasa, UI fallback menjadi tombol `Open Music Link`.
+
+Catatan register:
+- Form register kini meminta `tenant_slug` (slug publik tenant milik user).
+- Untuk user biasa, slug tenant hanya bisa ditentukan sekali saat create tenant pertama.

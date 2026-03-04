@@ -87,7 +87,7 @@ export default function UserFormPage() {
         setName(user.name || "");
         setEmail(user.email || "");
         setPhone(user.phone || "");
-        setRole(user.role || "viewer");
+        setRole(user.role || "tenant_owner");
       } catch (err) {
         const text = err instanceof Error ? err.message : t("userForm.detailFailed");
         setError(text);

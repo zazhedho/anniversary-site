@@ -44,7 +44,7 @@ Backend and frontend run independently. Frontend only consumes backend APIs.
 - Config can be stored in JSON file or PostgreSQL
 
 ### Admin (optional)
-- Users, Roles, Menus, Profile
+- Users, Roles, Menus, Tenants, Profile
 - Permission-driven UI/API access (`resource + action`)
 - Session and Redis-based security features (when enabled)
 
@@ -225,6 +225,18 @@ Main groups:
 - `/api/roles`, `/api/role/*`
 - `/api/permissions`, `/api/permission/*`
 - `/api/menus`, `/api/menu/*`
+- `/api/tenants/*`
+
+Tenant management endpoints:
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/tenants` | list tenants (global sees all, non-global sees own memberships) |
+| `POST` | `/api/tenants` | create tenant and assign creator as owner |
+| `GET` | `/api/tenants/:id` | get tenant detail + members |
+| `PATCH` | `/api/tenants/:id` | update tenant (slug/name/status) |
+| `DELETE` | `/api/tenants/:id` | delete tenant (except `default`) |
+| `POST` | `/api/tenants/:id/members` | add/update tenant member (`owner`/`member`) |
 
 ## Docker
 
@@ -255,7 +267,15 @@ Examples:
 - `users:list`, `users:create`, `users:update`, `users:delete`
 - `roles:list`, `roles:assign_permissions`, `roles:assign_menus`
 - `menus:list`, `menus:update`
+- `tenants:list`, `tenants:create`, `tenants:update`, `tenants:access_all`
 - `profile:view`, `profile:update`, `profile:update_password`
+
+Registration behavior:
+- `POST /api/user/register` now defaults new user to role `tenant_owner`.
+- A personal tenant is created automatically, and the registrant is assigned as tenant `owner`.
+- Register payload must include `tenant_slug` (chosen by user).
+- Tenant slug is one-time for regular users; changing slug afterwards requires global permission `tenants:access_all`.
+- RBAC seed only includes `superadmin`, `admin`, and `tenant_owner`.
 
 ## Troubleshooting
 

@@ -12,9 +12,8 @@ const (
 )
 
 const (
-	RoleSuperAdmin = "superadmin"
-	RoleAdmin      = "admin"
-	RoleStaff      = "staff"
-	RoleMember     = "member"
-	RoleViewer     = "viewer"
+	RoleSuperAdmin  = "superadmin"
+	RoleAdmin       = "admin"
+	RoleTenantOwner = "tenant_owner"
+	RoleMember      = "member"
 )

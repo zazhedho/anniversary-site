@@ -13,7 +13,7 @@ function getToken(): string {
 }
 
 type RequestOptions = {
-  method?: "GET" | "POST" | "PUT" | "DELETE";
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   auth?: boolean;
   body?: unknown;
   headers?: Record<string, string>;

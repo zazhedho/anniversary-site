@@ -16,6 +16,7 @@ import (
 	permissionHandler "anniversary-site/internal/handlers/http/permission"
 	roleHandler "anniversary-site/internal/handlers/http/role"
 	sessionHandler "anniversary-site/internal/handlers/http/session"
+	tenantHandler "anniversary-site/internal/handlers/http/tenant"
 	userHandler "anniversary-site/internal/handlers/http/user"
 	interfaceanniversary "anniversary-site/internal/interfaces/anniversary"
 	anniversaryRepo "anniversary-site/internal/repositories/anniversary"
@@ -25,6 +26,7 @@ import (
 	permissionRepo "anniversary-site/internal/repositories/permission"
 	roleRepo "anniversary-site/internal/repositories/role"
 	sessionRepo "anniversary-site/internal/repositories/session"
+	tenantRepo "anniversary-site/internal/repositories/tenant"
 	userRepo "anniversary-site/internal/repositories/user"
 	anniversarySvc "anniversary-site/internal/services/anniversary"
 	auditSvc "anniversary-site/internal/services/audit"
@@ -33,6 +35,7 @@ import (
 	permissionSvc "anniversary-site/internal/services/permission"
 	roleSvc "anniversary-site/internal/services/role"
 	sessionSvc "anniversary-site/internal/services/session"
+	tenantSvc "anniversary-site/internal/services/tenant"
 	userSvc "anniversary-site/internal/services/user"
 	"anniversary-site/middlewares"
 	"anniversary-site/pkg/logger"
@@ -141,7 +144,8 @@ func (r *Routes) UserRoutes() {
 	repo := userRepo.NewUserRepo(r.DB)
 	rRepo := roleRepo.NewRoleRepo(r.DB)
 	pRepo := permissionRepo.NewPermissionRepo(r.DB)
-	uc := userSvc.NewUserService(repo, blacklistRepo, rRepo, pRepo)
+	tRepo := tenantRepo.NewTenantRepo(r.DB)
+	uc := userSvc.NewUserService(repo, blacklistRepo, rRepo, pRepo, tRepo)
 	repoAudit := auditRepo.NewAuditRepo(r.DB)
 	svcAudit := auditSvc.NewAuditService(repoAudit)
 
@@ -276,6 +280,29 @@ func (r *Routes) MenuRoutes() {
 		menu.GET("/:id", mdw.PermissionMiddleware("menus", "view"), h.GetByID)
 		menu.PUT("/:id", mdw.PermissionMiddleware("menus", "update"), h.Update)
 		menu.DELETE("/:id", mdw.PermissionMiddleware("menus", "delete"), h.Delete)
+	}
+}
+
+func (r *Routes) TenantRoutes() {
+	repo := tenantRepo.NewTenantRepo(r.DB)
+	repoUser := userRepo.NewUserRepo(r.DB)
+	svc := tenantSvc.NewTenantService(repo, repoUser)
+	repoAudit := auditRepo.NewAuditRepo(r.DB)
+	svcAudit := auditSvc.NewAuditService(repoAudit)
+	h := tenantHandler.NewTenantHandler(svc, svcAudit)
+	blacklistRepo := authRepo.NewBlacklistRepo(r.DB)
+	pRepo := permissionRepo.NewPermissionRepo(r.DB)
+	mdw := middlewares.NewMiddleware(blacklistRepo, pRepo)
+
+	r.App.GET("/api/tenants", mdw.AuthMiddleware(), mdw.PermissionMiddleware("tenants", "list"), h.GetAll)
+
+	tenant := r.App.Group("/api/tenants").Use(mdw.AuthMiddleware())
+	{
+		tenant.POST("", mdw.PermissionMiddleware("tenants", "create"), h.Create)
+		tenant.GET("/:id", mdw.PermissionMiddleware("tenants", "view"), h.GetByID)
+		tenant.PATCH("/:id", mdw.PermissionMiddleware("tenants", "update"), h.Update)
+		tenant.DELETE("/:id", mdw.PermissionMiddleware("tenants", "delete"), h.Delete)
+		tenant.POST("/:id/members", mdw.PermissionMiddleware("tenants", "update"), h.AddMember)
 	}
 }
 

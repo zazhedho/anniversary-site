@@ -11,9 +11,16 @@ Tujuan tambahan:
 2. ada akses global lintas tenant untuk operator platform
 
 Status saat ini:
-1. Phase 1 dimulai.
-2. Foundation migration disiapkan di `migrations/000007_create_tenants_and_tenantize_anniversary_configs.*.sql`.
-3. Phase 2 sudah berjalan: repository/service/handler anniversary tenant-aware + `TenantScopeMiddleware` aktif.
+1. Phase 1 selesai:
+   - migration foundation tenant selesai (`000007_create_tenants_and_tenantize_anniversary_configs.*.sql`).
+2. Phase 2 selesai:
+   - repository/service/handler anniversary sudah tenant-aware.
+   - `TenantScopeMiddleware` aktif untuk public/setup.
+3. Phase 3 selesai:
+   - seed RBAC tenant management selesai (digabung di `000005_sync_rbac_permissions.*.sql`).
+   - role `tenant_owner` default registrasi selesai (digabung di `000005_sync_rbac_permissions.*.sql`).
+   - API tenant management aktif (`/api/tenants*`).
+   - tenant switcher untuk user global (`tenants:access_all`) aktif di frontend.
 
 ## 1) Keputusan Utama
 
@@ -184,6 +191,23 @@ Fallback kompatibilitas:
 1. seed permission global tenant management
 2. tambah menu management tenant
 3. tenant switcher untuk user global
+
+Implementasi:
+1. Seed permission `tenants:list|view|create|update|delete|access_all|impersonate` + menu `tenants`.
+2. Endpoint:
+   - `GET /api/tenants`
+   - `POST /api/tenants`
+   - `GET /api/tenants/:id`
+   - `PATCH /api/tenants/:id`
+   - `DELETE /api/tenants/:id`
+   - `POST /api/tenants/:id/members`
+3. Enforcement:
+   - user dengan `tenants:access_all` bisa lintas tenant.
+   - tanpa `access_all`, list hanya tenant member, update/member management dibatasi owner tenant.
+4. Frontend:
+   - menu tenant management (`/app/tenants`).
+   - form create/edit tenant + assign member.
+   - tenant switcher (khusus user dengan `tenants:access_all`) tersimpan di auth context.
 
 ## Phase 4 - Optional Subdomain Rollout
 

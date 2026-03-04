@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LocaleContext";
 import { useNotification } from "../../contexts/NotificationContext";
 import { getSetupConfig, updateSetupConfig, uploadSetupMedia } from "../../services/setupService";
@@ -31,8 +32,10 @@ const SETUP_TOKEN_KEY = "anniv_setup_token";
 const SETUP_TENANT_SLUG_KEY = "anniv_setup_tenant_slug";
 
 export default function SetupAnniversaryPage() {
+  const { activeTenantSlug, hasAccess } = useAuth();
   const { t, language } = useLanguage();
   const { notifyError, notifySuccess } = useNotification();
+  const canAccessAllTenants = hasAccess({ resource: "tenants", action: "access_all" });
 
   const [setupToken, setSetupToken] = useState("");
   const [tenantSlug, setTenantSlug] = useState("default");
@@ -53,12 +56,21 @@ export default function SetupAnniversaryPage() {
 
   useEffect(() => {
     const savedToken = localStorage.getItem(SETUP_TOKEN_KEY) || "";
-    const savedTenantSlug = normalizeTenantSlug(localStorage.getItem(SETUP_TENANT_SLUG_KEY) || "") || "default";
+    const savedTenantSlug =
+      normalizeTenantSlug(localStorage.getItem(SETUP_TENANT_SLUG_KEY) || "") ||
+      normalizeTenantSlug(activeTenantSlug) ||
+      "default";
     if (savedToken) {
       setSetupToken(savedToken);
     }
     setTenantSlug(savedTenantSlug);
-  }, []);
+  }, [activeTenantSlug]);
+
+  useEffect(() => {
+    if (!canAccessAllTenants) return;
+    const resolved = normalizeTenantSlug(activeTenantSlug) || "default";
+    setTenantSlug(resolved);
+  }, [activeTenantSlug, canAccessAllTenants]);
 
   useEffect(() => {
     setEditLanguage(language);
@@ -431,10 +443,14 @@ export default function SetupAnniversaryPage() {
         t={t}
         setupToken={setupToken}
         tenantSlug={tenantSlug}
+        tenantSlugReadOnly={canAccessAllTenants}
         tokenMissing={tokenMissing}
         fetching={fetching}
         onSetupTokenChange={setSetupToken}
-        onTenantSlugChange={(value) => setTenantSlug(normalizeTenantSlug(value))}
+        onTenantSlugChange={(value) => {
+          if (canAccessAllTenants) return;
+          setTenantSlug(normalizeTenantSlug(value));
+        }}
         onSaveToken={saveToken}
         onLoadConfig={loadConfig}
       />

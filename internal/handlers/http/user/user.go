@@ -64,16 +64,23 @@ func (h *HandlerUser) Register(ctx *gin.Context) {
 			Message:      "Failed to register user",
 			ErrorMessage: err.Error(),
 			AfterData: map[string]interface{}{
-				"name":  req.Name,
-				"email": req.Email,
-				"phone": req.Phone,
+				"name":        req.Name,
+				"email":       req.Email,
+				"phone":       req.Phone,
+				"tenant_slug": req.TenantSlug,
 			},
 		})
 		logger.WriteLogWithContext(ctx, logger.LogLevelError, fmt.Sprintf("%s; Service.RegisterUser; Error: %+v", logPrefix, err))
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
-			logger.WriteLogWithContext(ctx, logger.LogLevelError, fmt.Sprintf("%s; Error: email or phone already exists", logPrefix))
+			logger.WriteLogWithContext(ctx, logger.LogLevelError, fmt.Sprintf("%s; Error: email/phone/tenant slug already exists", logPrefix))
 			res := response.Response(http.StatusBadRequest, messages.MsgExists, logId, nil)
-			res.Error = response.Errors{Code: http.StatusBadRequest, Message: "email or phone already exists"}
+			res.Error = response.Errors{Code: http.StatusBadRequest, Message: "email, phone, or tenant slug already exists"}
+			ctx.JSON(http.StatusBadRequest, res)
+			return
+		}
+		if err.Error() == "tenant slug already exists" || err.Error() == "invalid tenant slug" {
+			res := response.Response(http.StatusBadRequest, messages.MsgExists, logId, nil)
+			res.Error = response.Errors{Code: http.StatusBadRequest, Message: err.Error()}
 			ctx.JSON(http.StatusBadRequest, res)
 			return
 		}
@@ -90,11 +97,12 @@ func (h *HandlerUser) Register(ctx *gin.Context) {
 		Status:     domainaudit.StatusSuccess,
 		Message:    "Registered user",
 		AfterData: map[string]interface{}{
-			"id":    data.Id,
-			"name":  data.Name,
-			"email": data.Email,
-			"phone": data.Phone,
-			"role":  data.Role,
+			"id":          data.Id,
+			"name":        data.Name,
+			"email":       data.Email,
+			"phone":       data.Phone,
+			"role":        data.Role,
+			"tenant_slug": req.TenantSlug,
 		},
 	})
 

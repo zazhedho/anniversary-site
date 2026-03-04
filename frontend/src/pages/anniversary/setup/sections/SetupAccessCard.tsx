@@ -5,6 +5,7 @@ type SetupAccessCardProps = {
   t: TranslateFn;
   setupToken: string;
   tenantSlug: string;
+  tenantSlugReadOnly: boolean;
   tokenMissing: boolean;
   fetching: boolean;
   onSetupTokenChange: (value: string) => void;
@@ -17,6 +18,7 @@ export default function SetupAccessCard({
   t,
   setupToken,
   tenantSlug,
+  tenantSlugReadOnly,
   tokenMissing,
   fetching,
   onSetupTokenChange,
@@ -48,6 +50,7 @@ export default function SetupAccessCard({
             onChange={(event) => onTenantSlugChange(event.target.value)}
             className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#9c4f46]"
             placeholder={t("setup.tenantSlugPlaceholder")}
+            disabled={tenantSlugReadOnly}
           />
         </label>
         <button

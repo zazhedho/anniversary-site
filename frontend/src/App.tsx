@@ -21,6 +21,8 @@ const MenuFormPage = lazy(() => import("./pages/menus/MenuFormPage"));
 const MenuListPage = lazy(() => import("./pages/menus/MenuListPage"));
 const RoleFormPage = lazy(() => import("./pages/roles/RoleFormPage"));
 const RoleListPage = lazy(() => import("./pages/roles/RoleListPage"));
+const TenantFormPage = lazy(() => import("./pages/tenants/TenantFormPage"));
+const TenantListPage = lazy(() => import("./pages/tenants/TenantListPage"));
 const NotFoundPage = lazy(() => import("./pages/system/NotFoundPage"));
 const UnauthorizedPage = lazy(() => import("./pages/system/UnauthorizedPage"));
 const ProfilePage = lazy(() => import("./pages/users/ProfilePage"));
@@ -143,6 +145,30 @@ export default function App() {
                       }
                     />
                     <Route
+                      path="/app/tenants"
+                      element={
+                        <PermissionRoute requiredAccess={{ resource: "tenants", action: "list" }}>
+                          <TenantListPage />
+                        </PermissionRoute>
+                      }
+                    />
+                    <Route
+                      path="/app/tenants/new"
+                      element={
+                        <PermissionRoute requiredAccess={{ resource: "tenants", action: "create" }}>
+                          <TenantFormPage />
+                        </PermissionRoute>
+                      }
+                    />
+                    <Route
+                      path="/app/tenants/:id/edit"
+                      element={
+                        <PermissionRoute requiredAccess={{ resource: "tenants", action: "update" }}>
+                          <TenantFormPage />
+                        </PermissionRoute>
+                      }
+                    />
+                    <Route
                       path="/app/users"
                       element={
                         <PermissionRoute requiredAccess={{ resource: "users", action: "list" }}>
@@ -197,6 +223,7 @@ export default function App() {
                 <Route path="/setup/*" element={<LegacyPathRedirect from="/setup" to="/app/setup" />} />
                 <Route path="/roles/*" element={<LegacyPathRedirect from="/roles" to="/app/roles" />} />
                 <Route path="/menus/*" element={<LegacyPathRedirect from="/menus" to="/app/menus" />} />
+                <Route path="/tenants/*" element={<LegacyPathRedirect from="/tenants" to="/app/tenants" />} />
                 <Route path="/users/*" element={<LegacyPathRedirect from="/users" to="/app/users" />} />
                 <Route path="/profile/*" element={<LegacyPathRedirect from="/profile" to="/app/profile" />} />
                 <Route path="/change-password/*" element={<LegacyPathRedirect from="/change-password" to="/app/change-password" />} />

@@ -40,8 +40,10 @@ Frontend (React + TS + Tailwind):
 - Hanya API anniversary public/setup + frontend public/setup flow.
 
 `ENABLE_ADMIN_API=true`:
-- Menyalakan API admin RBAC (`/api/user`, `/api/roles`, `/api/permissions`, `/api/menus`, dst).
+- Menyalakan API admin RBAC (`/api/user`, `/api/roles`, `/api/permissions`, `/api/menus`, `/api/tenants`, dst).
 - Butuh DB (Postgres), dan Redis untuk session endpoint tambahan.
+- Register user (`POST /api/user/register`) default ke role `tenant_owner`, auto-create tenant personal, dan auto-assign member type `owner`.
+- Payload register wajib kirim `tenant_slug`; slug ini hanya bisa ditentukan sekali oleh user biasa.
 
 `ANNIVERSARY_STORE`:
 - `json` (default): setup/public anniversary membaca dan menulis file `data/anniversary.json`.
@@ -66,6 +68,14 @@ Setup (token protected):
 - `DELETE /api/setup/tenants/:slug/anniversary/moments/:year`
 - `POST /api/setup/tenants/:slug/anniversary/media/upload` (multipart upload foto/video/poster/audio)
 - kompatibilitas: endpoint lama `/api/setup/anniversary*` tetap bisa dipakai dengan query `tenant=:slug`
+
+Admin tenant management (auth + permission protected):
+- `GET /api/tenants`
+- `POST /api/tenants`
+- `GET /api/tenants/:id`
+- `PATCH /api/tenants/:id`
+- `DELETE /api/tenants/:id`
+- `POST /api/tenants/:id/members`
 
 Auth setup token:
 - Header `X-Setup-Token: <token>`
@@ -166,6 +176,7 @@ Routing utama:
 - Auth utama: `/app/login`, `/app/register`, `/app/forgot-password`, `/app/reset-password`
 - Auth kompatibilitas: `/login`, `/register`, `/forgot-password`, `/reset-password` (redirect)
 - Protected utama: `/app/dashboard`, `/app/users`, `/app/roles`, `/app/menus`, `/app/profile`, `/app/setup/anniversary`
+- Protected tenant: `/app/tenants`, `/app/tenants/new`, `/app/tenants/:id/edit`
 - `change-password` digabung ke `/app/profile`; path lama `/change-password` dipertahankan sebagai redirect kompatibilitas.
 - Protected form routes:
   - `/app/users/new`, `/app/users/:id/edit`
@@ -205,6 +216,8 @@ Setup Anniversary UI:
 - Halaman `/setup/anniversary` memakai alur non-teknis: simpan token, load data, edit form per section, lalu save.
 - Token setup disimpan lokal di browser (`anniv_setup_token`).
 - Tenant slug setup disimpan lokal di browser (`anniv_setup_tenant_slug`) untuk memilih tenant mana yang diedit.
+- Auth context menyimpan `activeTenant` untuk switcher global (`anniv_active_tenant_slug`).
+- User dengan permission `tenants:access_all` mendapatkan tenant switcher di navbar.
 - Editor JSON tetap ada sebagai `advanced mode` (opsional), bukan alur utama user.
 - Section gallery sudah tersedia untuk input link foto/video + upload langsung ke backend media (URL terisi otomatis setelah upload sukses).
 - Section map points tersedia untuk input titik tempat penting + catatan singkat (bilingual).
@@ -233,11 +246,12 @@ Contoh yang dipakai UI:
 - `roles:list`, `roles:create`, `roles:update`, `roles:delete`, `roles:assign_permissions`, `roles:assign_menus`
 - `menus:list`, `menus:create`, `menus:update`, `menus:delete`
 - `profile:view`, `profile:update`, `profile:update_password`
+- `tenants:list`, `tenants:view`, `tenants:create`, `tenants:update`, `tenants:delete`, `tenants:access_all`
 
 Sumber permission:
 - Endpoint `GET /api/permissions/me`
 - Seed migration sinkron:
-  - `migrations/000005_sync_rbac_permissions.up.sql`
+- `migrations/000005_sync_rbac_permissions.up.sql`
 
 Catatan:
 - Role hanya grouping permission.

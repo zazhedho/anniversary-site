@@ -2,11 +2,13 @@ package serviceuser
 
 import (
 	domainauth "anniversary-site/internal/domain/auth"
+	domaintenant "anniversary-site/internal/domain/tenant"
 	domainuser "anniversary-site/internal/domain/user"
 	"anniversary-site/internal/dto"
 	interfaceauth "anniversary-site/internal/interfaces/auth"
 	interfacepermission "anniversary-site/internal/interfaces/permission"
 	interfacerole "anniversary-site/internal/interfaces/role"
+	interfacetenant "anniversary-site/internal/interfaces/tenant"
 	interfaceuser "anniversary-site/internal/interfaces/user"
 	"anniversary-site/pkg/filter"
 	"anniversary-site/utils"
@@ -15,6 +17,7 @@ import (
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type ServiceUser struct {
@@ -22,14 +25,22 @@ type ServiceUser struct {
 	BlacklistRepo  interfaceauth.RepoAuthInterface
 	RoleRepo       interfacerole.RepoRoleInterface
 	PermissionRepo interfacepermission.RepoPermissionInterface
+	TenantRepo     interfacetenant.RepoTenantInterface
 }
 
-func NewUserService(userRepo interfaceuser.RepoUserInterface, blacklistRepo interfaceauth.RepoAuthInterface, roleRepo interfacerole.RepoRoleInterface, permissionRepo interfacepermission.RepoPermissionInterface) *ServiceUser {
+func NewUserService(
+	userRepo interfaceuser.RepoUserInterface,
+	blacklistRepo interfaceauth.RepoAuthInterface,
+	roleRepo interfacerole.RepoRoleInterface,
+	permissionRepo interfacepermission.RepoPermissionInterface,
+	tenantRepo interfacetenant.RepoTenantInterface,
+) *ServiceUser {
 	return &ServiceUser{
 		UserRepo:       userRepo,
 		BlacklistRepo:  blacklistRepo,
 		RoleRepo:       roleRepo,
 		PermissionRepo: permissionRepo,
+		TenantRepo:     tenantRepo,
 	}
 }
 
@@ -56,11 +67,12 @@ func (s *ServiceUser) RegisterUser(req dto.UserRegister) (domainuser.Users, erro
 		return domainuser.Users{}, err
 	}
 
-	// SECURITY: Public registration always uses vendor role
-	// This prevents privilege escalation through request manipulation
-	roleName := utils.RoleViewer
-
-	roleId, _ := findRoleIDByName(s.RoleRepo, roleName)
+	// Public registration defaults to tenant owner.
+	roleName := utils.RoleTenantOwner
+	roleId, ok := findRoleIDByName(s.RoleRepo, roleName)
+	if !ok {
+		return domainuser.Users{}, errors.New("role tenant_owner is not configured")
+	}
 
 	data = domainuser.Users{
 		Id:        utils.CreateUUID(),
@@ -75,6 +87,44 @@ func (s *ServiceUser) RegisterUser(req dto.UserRegister) (domainuser.Users, erro
 
 	if err = s.UserRepo.Store(data); err != nil {
 		return domainuser.Users{}, err
+	}
+
+	if s.TenantRepo != nil {
+		tenantSlug := sanitizeTenantSlug(req.TenantSlug)
+		if tenantSlug == "" {
+			return domainuser.Users{}, errors.New("invalid tenant slug")
+		}
+
+		if _, err := s.TenantRepo.GetBySlug(tenantSlug); err == nil {
+			return domainuser.Users{}, errors.New("tenant slug already exists")
+		} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return domainuser.Users{}, err
+		}
+
+		now := time.Now()
+		tenant := domaintenant.Tenant{
+			ID:        utils.CreateUUID(),
+			Slug:      tenantSlug,
+			Name:      data.Name,
+			Status:    "active",
+			CreatedAt: now,
+			UpdatedAt: &now,
+		}
+		if err := s.TenantRepo.Store(tenant); err != nil {
+			return domainuser.Users{}, err
+		}
+
+		member := domaintenant.TenantMember{
+			ID:         utils.CreateUUID(),
+			TenantID:   tenant.ID,
+			UserID:     data.Id,
+			MemberType: "owner",
+			CreatedAt:  now,
+			UpdatedAt:  &now,
+		}
+		if err := s.TenantRepo.AddOrUpdateMember(member); err != nil {
+			return domainuser.Users{}, err
+		}
 	}
 
 	return data, nil
