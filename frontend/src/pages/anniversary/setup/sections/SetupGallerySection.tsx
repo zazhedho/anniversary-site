@@ -1,5 +1,6 @@
 import type { EditLanguage, GalleryPhotoFormItem, GalleryVideoFormItem, TranslateFn } from "../types";
 import { setupFieldLimits } from "../fieldLimits";
+import FieldCounter from "../FieldCounter";
 
 type SetupGallerySectionProps = {
   t: TranslateFn;
@@ -78,6 +79,9 @@ export default function SetupGallerySection({
               placeholder={t("setup.placeholder.photoId")}
               className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
             />
+            <div className="flex justify-end">
+              <FieldCounter value={item.id} max={setupFieldLimits.galleryId} />
+            </div>
             <input
               type="text"
               value={item.title[editLanguage]}
@@ -86,6 +90,9 @@ export default function SetupGallerySection({
               placeholder={t("setup.placeholder.photoTitle")}
               className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
             />
+            <div className="flex justify-end">
+              <FieldCounter value={item.title[editLanguage]} max={setupFieldLimits.galleryTitle} />
+            </div>
             <input
               type="text"
               value={item.caption[editLanguage]}
@@ -94,6 +101,9 @@ export default function SetupGallerySection({
               placeholder={t("setup.placeholder.photoCaption")}
               className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
             />
+            <div className="flex justify-end">
+              <FieldCounter value={item.caption[editLanguage]} max={setupFieldLimits.galleryCaption} />
+            </div>
             <input
               type="text"
               value={item.image_url}
@@ -102,6 +112,9 @@ export default function SetupGallerySection({
               placeholder={t("setup.placeholder.photoUrl")}
               className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
             />
+            <div className="flex justify-end">
+              <FieldCounter value={item.image_url} max={setupFieldLimits.mediaUrl} />
+            </div>
 
             <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[#9c4f46]/30 bg-white px-3 py-2 text-xs font-semibold text-[#6f332f]">
               <input
@@ -150,6 +163,9 @@ export default function SetupGallerySection({
               placeholder={t("setup.placeholder.videoId")}
               className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
             />
+            <div className="flex justify-end">
+              <FieldCounter value={item.id} max={setupFieldLimits.galleryId} />
+            </div>
             <input
               type="text"
               value={item.title[editLanguage]}
@@ -158,6 +174,9 @@ export default function SetupGallerySection({
               placeholder={t("setup.placeholder.videoTitle")}
               className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
             />
+            <div className="flex justify-end">
+              <FieldCounter value={item.title[editLanguage]} max={setupFieldLimits.galleryTitle} />
+            </div>
             <textarea
               value={item.description[editLanguage]}
               onChange={(event) => onVideoLocalizedFieldChange(index, "description", event.target.value)}
@@ -165,6 +184,9 @@ export default function SetupGallerySection({
               placeholder={t("setup.placeholder.videoDescription")}
               className="min-h-[80px] w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
             />
+            <div className="flex justify-end">
+              <FieldCounter value={item.description[editLanguage]} max={setupFieldLimits.galleryDescription} />
+            </div>
             <input
               type="text"
               value={item.video_url}
@@ -173,6 +195,9 @@ export default function SetupGallerySection({
               placeholder={t("setup.placeholder.videoUrl")}
               className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
             />
+            <div className="flex justify-end">
+              <FieldCounter value={item.video_url} max={setupFieldLimits.mediaUrl} />
+            </div>
             <input
               type="text"
               value={item.poster_url}
@@ -181,6 +206,9 @@ export default function SetupGallerySection({
               placeholder={t("setup.placeholder.posterUrl")}
               className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
             />
+            <div className="flex justify-end">
+              <FieldCounter value={item.poster_url} max={setupFieldLimits.mediaUrl} />
+            </div>
 
             <div className="flex flex-wrap gap-2">
               <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[#9c4f46]/30 bg-white px-3 py-2 text-xs font-semibold text-[#6f332f]">

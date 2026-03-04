@@ -1,5 +1,6 @@
 import type { EditLanguage, MapFormItem, TranslateFn } from "../types";
 import { setupFieldLimits } from "../fieldLimits";
+import FieldCounter from "../FieldCounter";
 
 type SetupMapSectionProps = {
   t: TranslateFn;
@@ -49,6 +50,9 @@ export default function SetupMapSection({
             placeholder={t("setup.placeholder.mapPointTitle")}
             className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
           />
+          <div className="flex justify-end">
+            <FieldCounter value={item.title[editLanguage]} max={setupFieldLimits.mapTitle} />
+          </div>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <input
               type="text"
@@ -69,6 +73,14 @@ export default function SetupMapSection({
               className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
             />
           </div>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <div className="flex justify-end">
+              <FieldCounter value={item.lat} max={setupFieldLimits.mapCoordinate} />
+            </div>
+            <div className="flex justify-end">
+              <FieldCounter value={item.lng} max={setupFieldLimits.mapCoordinate} />
+            </div>
+          </div>
           <textarea
             value={item.note[editLanguage]}
             onChange={(event) => onMapPointLocalizedFieldChange(index, "note", event.target.value)}
@@ -76,6 +88,9 @@ export default function SetupMapSection({
             placeholder={t("setup.placeholder.mapPointNote")}
             className="min-h-[80px] w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
           />
+          <div className="flex justify-end">
+            <FieldCounter value={item.note[editLanguage]} max={setupFieldLimits.mapNote} />
+          </div>
         </div>
       ))}
     </article>

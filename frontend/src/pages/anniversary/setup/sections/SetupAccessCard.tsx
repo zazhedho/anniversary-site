@@ -1,5 +1,6 @@
 import type { TranslateFn } from "../types";
 import { setupFieldLimits } from "../fieldLimits";
+import FieldCounter from "../FieldCounter";
 
 type TenantOption = {
   slug: string;
@@ -33,7 +34,10 @@ export default function SetupAccessCard({
       </div>
       <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
         <label className="block">
-          <span className="mb-1 block text-sm font-semibold">{t("setup.tenantSlugLabel")}</span>
+          <div className="mb-1 flex items-center justify-between gap-2">
+            <span className="block text-sm font-semibold">{t("setup.tenantSlugLabel")}</span>
+            <FieldCounter value={tenantSlug} max={setupFieldLimits.tenantSlug} />
+          </div>
           <input
             type="text"
             value={tenantSlug}

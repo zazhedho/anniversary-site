@@ -1,5 +1,6 @@
 import type { RootLocalizedKey, SetupForm, TranslateFn, EditLanguage } from "../types";
 import { setupFieldLimits } from "../fieldLimits";
+import FieldCounter from "../FieldCounter";
 
 type SetupBasicSectionProps = {
   t: TranslateFn;
@@ -48,7 +49,10 @@ export default function SetupBasicSection({
 
       <div className="grid gap-3 md:grid-cols-2">
         <label className="block">
-          <span className="mb-1 block text-sm font-semibold">{t("setup.brand")}</span>
+          <div className="mb-1 flex items-center justify-between gap-2">
+            <span className="block text-sm font-semibold">{t("setup.brand")}</span>
+            <FieldCounter value={form.brand[editLanguage]} max={setupFieldLimits.brand} />
+          </div>
           <input
             type="text"
             value={form.brand[editLanguage]}
@@ -61,7 +65,10 @@ export default function SetupBasicSection({
         </label>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-semibold">{t("setup.coupleNames")}</span>
+          <div className="mb-1 flex items-center justify-between gap-2">
+            <span className="block text-sm font-semibold">{t("setup.coupleNames")}</span>
+            <FieldCounter value={form.couple_names[editLanguage]} max={setupFieldLimits.coupleNames} />
+          </div>
           <input
             type="text"
             value={form.couple_names[editLanguage]}
@@ -87,7 +94,10 @@ export default function SetupBasicSection({
         </label>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-semibold">{t("setup.musicUrl")}</span>
+          <div className="mb-1 flex items-center justify-between gap-2">
+            <span className="block text-sm font-semibold">{t("setup.musicUrl")}</span>
+            <FieldCounter value={form.music_url} max={setupFieldLimits.musicUrl} />
+          </div>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto] sm:items-end">
             <input
               type="text"
@@ -117,7 +127,10 @@ export default function SetupBasicSection({
         </label>
 
         <label className="block md:col-span-2">
-          <span className="mb-1 block text-sm font-semibold">{t("setup.voiceNoteUrl")}</span>
+          <div className="mb-1 flex items-center justify-between gap-2">
+            <span className="block text-sm font-semibold">{t("setup.voiceNoteUrl")}</span>
+            <FieldCounter value={form.voice_note_url} max={setupFieldLimits.voiceNoteUrl} />
+          </div>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto] sm:items-end">
             <input
               type="text"

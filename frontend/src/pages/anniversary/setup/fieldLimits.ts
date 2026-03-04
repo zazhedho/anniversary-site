@@ -27,5 +27,5 @@ export const setupFieldLimits = {
   galleryCaption: 240,
   galleryDescription: 700,
   mediaUrl: 500,
+  advancedJson: 50000,
 } as const;
-

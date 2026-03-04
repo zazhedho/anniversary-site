@@ -1,4 +1,6 @@
 import type { TranslateFn } from "../types";
+import { setupFieldLimits } from "../fieldLimits";
+import FieldCounter from "../FieldCounter";
 
 type SetupAdvancedJsonSectionProps = {
   t: TranslateFn;
@@ -23,9 +25,13 @@ export default function SetupAdvancedJsonSection({
         <textarea
           value={advancedJson}
           onChange={(event) => onAdvancedJsonChange(event.target.value)}
+          maxLength={setupFieldLimits.advancedJson}
           className="min-h-[320px] w-full rounded-xl border border-[#9c4f46]/20 bg-[#2b2220] p-3 font-mono text-xs text-[#ffe8d9] outline-none focus:border-[#9c4f46]"
           spellCheck={false}
         />
+        <div className="flex justify-end">
+          <FieldCounter value={advancedJson} max={setupFieldLimits.advancedJson} />
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"

@@ -18,6 +18,7 @@ import SetupSaveSection from "./setup/sections/SetupSaveSection";
 import SetupStorySection from "./setup/sections/SetupStorySection";
 import SetupTimelineSection from "./setup/sections/SetupTimelineSection";
 import { normalizeTenantSlug, normalizeTenantSlugInput } from "../../utils/tenantSlug";
+import { setupFieldLimits } from "./setup/fieldLimits";
 import type {
   EditLanguage,
   MemoryFormItem,
@@ -29,6 +30,24 @@ import type {
 import { EMPTY_SETUP_FORM } from "./setup/types";
 
 const SETUP_TENANT_SLUG_KEY = "anniv_setup_tenant_slug";
+const MAX_YEAR_VALUE = 9999;
+
+const ROOT_LOCALIZED_LIMITS: Record<RootLocalizedKey, number> = {
+  brand: setupFieldLimits.brand,
+  couple_names: setupFieldLimits.coupleNames,
+  cover_badge: setupFieldLimits.coverBadge,
+  cover_title: setupFieldLimits.coverTitle,
+  cover_subtext: setupFieldLimits.coverSubtext,
+  cover_cta: setupFieldLimits.coverCTA,
+  hero_title: setupFieldLimits.heroTitle,
+  hero_subtext: setupFieldLimits.heroSubtext,
+  letter: setupFieldLimits.letter,
+  footer_text: setupFieldLimits.footerText,
+};
+
+function clampText(value: string, maxLength: number): string {
+  return value.slice(0, maxLength);
+}
 
 export default function SetupAnniversaryPage() {
   const { activeTenantSlug, availableTenants } = useAuth();
@@ -89,23 +108,26 @@ export default function SetupAnniversaryPage() {
   }, [form]);
 
   function setLocalizedField(key: RootLocalizedKey, value: string) {
+    const nextValue = clampText(value, ROOT_LOCALIZED_LIMITS[key]);
     setForm((prev) => ({
       ...prev,
       [key]: {
         ...prev[key],
-        [editLanguage]: value,
+        [editLanguage]: nextValue,
       },
     }));
   }
 
   function setTimelineField(index: number, key: keyof TimelineFormItem, value: string) {
+    const maxLength = key === "title" ? setupFieldLimits.timelineTitle : setupFieldLimits.timelineDescription;
+    const nextValue = clampText(value, maxLength);
     setForm((prev) => {
       const next = [...prev.timeline];
       next[index] = {
         ...next[index],
         [key]: {
           ...next[index][key],
-          [editLanguage]: value,
+          [editLanguage]: nextValue,
         },
       };
       return { ...prev, timeline: next };
@@ -113,13 +135,19 @@ export default function SetupAnniversaryPage() {
   }
 
   function setMemoryField(index: number, key: keyof MemoryFormItem, value: string) {
+    const memoryFieldLimits: Record<keyof MemoryFormItem, number> = {
+      title: setupFieldLimits.memoryTitle,
+      summary: setupFieldLimits.memorySummary,
+      note: setupFieldLimits.memoryNote,
+    };
+    const nextValue = clampText(value, memoryFieldLimits[key]);
     setForm((prev) => {
       const next = [...prev.memory_cards];
       next[index] = {
         ...next[index],
         [key]: {
           ...next[index][key],
-          [editLanguage]: value,
+          [editLanguage]: nextValue,
         },
       };
       return { ...prev, memory_cards: next };
@@ -127,13 +155,15 @@ export default function SetupAnniversaryPage() {
   }
 
   function setMapPointLocalizedField(index: number, key: "title" | "note", value: string) {
+    const maxLength = key === "title" ? setupFieldLimits.mapTitle : setupFieldLimits.mapNote;
+    const nextValue = clampText(value, maxLength);
     setForm((prev) => {
       const next = [...prev.map_points];
       next[index] = {
         ...next[index],
         [key]: {
           ...next[index][key],
-          [editLanguage]: value,
+          [editLanguage]: nextValue,
         },
       };
       return { ...prev, map_points: next };
@@ -141,11 +171,12 @@ export default function SetupAnniversaryPage() {
   }
 
   function setMapPointCoordinateField(index: number, key: "lat" | "lng", value: string) {
+    const nextValue = clampText(value, setupFieldLimits.mapCoordinate);
     setForm((prev) => {
       const next = [...prev.map_points];
       next[index] = {
         ...next[index],
-        [key]: value,
+        [key]: nextValue,
       };
       return { ...prev, map_points: next };
     });
@@ -155,16 +186,18 @@ export default function SetupAnniversaryPage() {
     setForm((prev) => {
       const next = [...prev.annual_moments];
       if (key === "year") {
-        next[index] = { ...next[index], year: Number(value) || 1 };
+        const parsedYear = Number(value) || 1;
+        next[index] = { ...next[index], year: Math.min(MAX_YEAR_VALUE, Math.max(1, parsedYear)) };
       } else if (key === "date") {
         next[index] = { ...next[index], date: String(value) };
       } else {
         const localizedKey = key as "title" | "note";
+        const maxLength = localizedKey === "title" ? setupFieldLimits.momentTitle : setupFieldLimits.momentNote;
         next[index] = {
           ...next[index],
           [localizedKey]: {
             ...next[index][localizedKey],
-            [editLanguage]: String(value),
+            [editLanguage]: clampText(String(value), maxLength),
           },
         };
       }
@@ -173,13 +206,15 @@ export default function SetupAnniversaryPage() {
   }
 
   function setGalleryPhotoLocalizedField(index: number, key: "title" | "caption", value: string) {
+    const maxLength = key === "title" ? setupFieldLimits.galleryTitle : setupFieldLimits.galleryCaption;
+    const nextValue = clampText(value, maxLength);
     setForm((prev) => {
       const next = [...prev.gallery_photos];
       next[index] = {
         ...next[index],
         [key]: {
           ...next[index][key],
-          [editLanguage]: value,
+          [editLanguage]: nextValue,
         },
       };
       return { ...prev, gallery_photos: next };
@@ -187,24 +222,28 @@ export default function SetupAnniversaryPage() {
   }
 
   function setGalleryPhotoField(index: number, key: "id" | "image_url", value: string) {
+    const maxLength = key === "id" ? setupFieldLimits.galleryId : setupFieldLimits.mediaUrl;
+    const nextValue = clampText(value, maxLength);
     setForm((prev) => {
       const next = [...prev.gallery_photos];
       next[index] = {
         ...next[index],
-        [key]: value,
+        [key]: nextValue,
       };
       return { ...prev, gallery_photos: next };
     });
   }
 
   function setGalleryVideoLocalizedField(index: number, key: "title" | "description", value: string) {
+    const maxLength = key === "title" ? setupFieldLimits.galleryTitle : setupFieldLimits.galleryDescription;
+    const nextValue = clampText(value, maxLength);
     setForm((prev) => {
       const next = [...prev.gallery_videos];
       next[index] = {
         ...next[index],
         [key]: {
           ...next[index][key],
-          [editLanguage]: value,
+          [editLanguage]: nextValue,
         },
       };
       return { ...prev, gallery_videos: next };
@@ -212,11 +251,13 @@ export default function SetupAnniversaryPage() {
   }
 
   function setGalleryVideoField(index: number, key: "id" | "video_url" | "poster_url", value: string) {
+    const maxLength = key === "id" ? setupFieldLimits.galleryId : setupFieldLimits.mediaUrl;
+    const nextValue = clampText(value, maxLength);
     setForm((prev) => {
       const next = [...prev.gallery_videos];
       next[index] = {
         ...next[index],
-        [key]: value,
+        [key]: nextValue,
       };
       return { ...prev, gallery_videos: next };
     });
@@ -453,7 +494,7 @@ export default function SetupAnniversaryPage() {
         tenantSlug={tenantSlug}
         tenantOptions={tenantOptions}
         fetching={fetching}
-        onTenantSlugChange={(value) => setTenantSlug(normalizeTenantSlugInput(value))}
+        onTenantSlugChange={(value) => setTenantSlug(clampText(normalizeTenantSlugInput(value), setupFieldLimits.tenantSlug))}
         onLoadConfig={loadConfig}
       />
       <SetupLanguageCard t={t} editLanguage={editLanguage} onChangeLanguage={setEditLanguage} />
@@ -467,10 +508,10 @@ export default function SetupAnniversaryPage() {
           saving={saving}
           onLocalizedFieldChange={setLocalizedField}
           onWeddingDateChange={(value) => setForm((prev) => ({ ...prev, wedding_date: value }))}
-          onMusicUrlChange={(value) => setForm((prev) => ({ ...prev, music_url: value }))}
+          onMusicUrlChange={(value) => setForm((prev) => ({ ...prev, music_url: clampText(value, setupFieldLimits.musicUrl) }))}
           onUploadMusic={uploadMusic}
           uploadingMusic={uploadingMusic}
-          onVoiceNoteUrlChange={(value) => setForm((prev) => ({ ...prev, voice_note_url: value }))}
+          onVoiceNoteUrlChange={(value) => setForm((prev) => ({ ...prev, voice_note_url: clampText(value, setupFieldLimits.voiceNoteUrl) }))}
           onUploadVoice={uploadVoice}
           uploadingVoice={uploadingVoice}
         />
@@ -533,7 +574,7 @@ export default function SetupAnniversaryPage() {
       <SetupAdvancedJsonSection
         t={t}
         advancedJson={advancedJson}
-        onAdvancedJsonChange={setAdvancedJson}
+        onAdvancedJsonChange={(value) => setAdvancedJson(clampText(value, setupFieldLimits.advancedJson))}
         onApplyJson={applyJsonToForm}
         onRefreshJson={() => setAdvancedJson(toPrettyJson(toPayload(form)))}
       />

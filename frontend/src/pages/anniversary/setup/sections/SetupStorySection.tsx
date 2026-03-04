@@ -1,5 +1,6 @@
 import type { EditLanguage, RootLocalizedKey, SetupForm, TranslateFn } from "../types";
 import { setupFieldLimits } from "../fieldLimits";
+import FieldCounter from "../FieldCounter";
 
 type SetupStorySectionProps = {
   t: TranslateFn;
@@ -16,7 +17,10 @@ export default function SetupStorySection({ t, form, editLanguage, onLocalizedFi
 
       <div className="grid gap-3 md:grid-cols-2">
         <label className="block">
-          <span className="mb-1 block text-sm font-semibold">{t("setup.coverBadge")}</span>
+          <div className="mb-1 flex items-center justify-between gap-2">
+            <span className="block text-sm font-semibold">{t("setup.coverBadge")}</span>
+            <FieldCounter value={form.cover_badge[editLanguage]} max={setupFieldLimits.coverBadge} />
+          </div>
           <input
             type="text"
             value={form.cover_badge[editLanguage]}
@@ -29,7 +33,10 @@ export default function SetupStorySection({ t, form, editLanguage, onLocalizedFi
         </label>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-semibold">{t("setup.coverCta")}</span>
+          <div className="mb-1 flex items-center justify-between gap-2">
+            <span className="block text-sm font-semibold">{t("setup.coverCta")}</span>
+            <FieldCounter value={form.cover_cta[editLanguage]} max={setupFieldLimits.coverCTA} />
+          </div>
           <input
             type="text"
             value={form.cover_cta[editLanguage]}
@@ -42,7 +49,10 @@ export default function SetupStorySection({ t, form, editLanguage, onLocalizedFi
         </label>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-semibold">{t("setup.coverTitle")}</span>
+          <div className="mb-1 flex items-center justify-between gap-2">
+            <span className="block text-sm font-semibold">{t("setup.coverTitle")}</span>
+            <FieldCounter value={form.cover_title[editLanguage]} max={setupFieldLimits.coverTitle} />
+          </div>
           <input
             type="text"
             value={form.cover_title[editLanguage]}
@@ -55,7 +65,10 @@ export default function SetupStorySection({ t, form, editLanguage, onLocalizedFi
         </label>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-semibold">{t("setup.heroTitle")}</span>
+          <div className="mb-1 flex items-center justify-between gap-2">
+            <span className="block text-sm font-semibold">{t("setup.heroTitle")}</span>
+            <FieldCounter value={form.hero_title[editLanguage]} max={setupFieldLimits.heroTitle} />
+          </div>
           <input
             type="text"
             value={form.hero_title[editLanguage]}
@@ -68,7 +81,10 @@ export default function SetupStorySection({ t, form, editLanguage, onLocalizedFi
         </label>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-semibold">{t("setup.footerText")}</span>
+          <div className="mb-1 flex items-center justify-between gap-2">
+            <span className="block text-sm font-semibold">{t("setup.footerText")}</span>
+            <FieldCounter value={form.footer_text[editLanguage]} max={setupFieldLimits.footerText} />
+          </div>
           <input
             type="text"
             value={form.footer_text[editLanguage]}
@@ -82,7 +98,10 @@ export default function SetupStorySection({ t, form, editLanguage, onLocalizedFi
       </div>
 
       <label className="block">
-        <span className="mb-1 block text-sm font-semibold">{t("setup.coverSubtext")}</span>
+        <div className="mb-1 flex items-center justify-between gap-2">
+          <span className="block text-sm font-semibold">{t("setup.coverSubtext")}</span>
+          <FieldCounter value={form.cover_subtext[editLanguage]} max={setupFieldLimits.coverSubtext} />
+        </div>
         <textarea
           value={form.cover_subtext[editLanguage]}
           onChange={(event) => onLocalizedFieldChange("cover_subtext", event.target.value)}
@@ -94,7 +113,10 @@ export default function SetupStorySection({ t, form, editLanguage, onLocalizedFi
       </label>
 
       <label className="block">
-        <span className="mb-1 block text-sm font-semibold">{t("setup.heroSubtext")}</span>
+        <div className="mb-1 flex items-center justify-between gap-2">
+          <span className="block text-sm font-semibold">{t("setup.heroSubtext")}</span>
+          <FieldCounter value={form.hero_subtext[editLanguage]} max={setupFieldLimits.heroSubtext} />
+        </div>
         <textarea
           value={form.hero_subtext[editLanguage]}
           onChange={(event) => onLocalizedFieldChange("hero_subtext", event.target.value)}
@@ -106,7 +128,10 @@ export default function SetupStorySection({ t, form, editLanguage, onLocalizedFi
       </label>
 
       <label className="block">
-        <span className="mb-1 block text-sm font-semibold">{t("setup.letter")}</span>
+        <div className="mb-1 flex items-center justify-between gap-2">
+          <span className="block text-sm font-semibold">{t("setup.letter")}</span>
+          <FieldCounter value={form.letter[editLanguage]} max={setupFieldLimits.letter} />
+        </div>
         <textarea
           value={form.letter[editLanguage]}
           onChange={(event) => onLocalizedFieldChange("letter", event.target.value)}
