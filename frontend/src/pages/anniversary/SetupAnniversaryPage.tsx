@@ -17,7 +17,7 @@ import SetupMomentsSection from "./setup/sections/SetupMomentsSection";
 import SetupSaveSection from "./setup/sections/SetupSaveSection";
 import SetupStorySection from "./setup/sections/SetupStorySection";
 import SetupTimelineSection from "./setup/sections/SetupTimelineSection";
-import { normalizeTenantSlug } from "../../utils/tenantSlug";
+import { normalizeTenantSlug, normalizeTenantSlugInput } from "../../utils/tenantSlug";
 import type {
   EditLanguage,
   MemoryFormItem,
@@ -28,16 +28,13 @@ import type {
 } from "./setup/types";
 import { EMPTY_SETUP_FORM } from "./setup/types";
 
-const SETUP_TOKEN_KEY = "anniv_setup_token";
 const SETUP_TENANT_SLUG_KEY = "anniv_setup_tenant_slug";
 
 export default function SetupAnniversaryPage() {
-  const { activeTenantSlug, hasAccess } = useAuth();
+  const { activeTenantSlug, availableTenants } = useAuth();
   const { t, language } = useLanguage();
   const { notifyError, notifySuccess } = useNotification();
-  const canAccessAllTenants = hasAccess({ resource: "tenants", action: "access_all" });
 
-  const [setupToken, setSetupToken] = useState("");
   const [tenantSlug, setTenantSlug] = useState("default");
   const [editLanguage, setEditLanguage] = useState<EditLanguage>(language);
   const [form, setForm] = useState<SetupForm>(EMPTY_SETUP_FORM);
@@ -52,25 +49,36 @@ export default function SetupAnniversaryPage() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  const tokenMissing = useMemo(() => setupToken.trim() === "", [setupToken]);
+  const tenantOptions = useMemo(
+    () =>
+      availableTenants
+        .map((tenant) => ({
+          slug: normalizeTenantSlug(tenant.slug),
+          name: tenant.name?.trim() || tenant.slug,
+        }))
+        .filter((tenant, index, arr) => tenant.slug !== "" && arr.findIndex((item) => item.slug === tenant.slug) === index),
+    [availableTenants]
+  );
 
   useEffect(() => {
-    const savedToken = localStorage.getItem(SETUP_TOKEN_KEY) || "";
-    const savedTenantSlug =
-      normalizeTenantSlug(localStorage.getItem(SETUP_TENANT_SLUG_KEY) || "") ||
-      normalizeTenantSlug(activeTenantSlug) ||
-      "default";
-    if (savedToken) {
-      setSetupToken(savedToken);
+    const savedTenantSlug = normalizeTenantSlug(localStorage.getItem(SETUP_TENANT_SLUG_KEY) || "");
+    const activeSlug = normalizeTenantSlug(activeTenantSlug);
+    const currentSlug = normalizeTenantSlug(tenantSlug);
+    const allowedSlugs = tenantOptions.map((tenant) => tenant.slug);
+    const fallbackSlug = allowedSlugs[0] || activeSlug || "default";
+    const preferredSlug = savedTenantSlug || activeSlug || fallbackSlug;
+    const nextSlug = currentSlug && allowedSlugs.includes(currentSlug) ? currentSlug : preferredSlug;
+    if (nextSlug && nextSlug !== tenantSlug) {
+      setTenantSlug(nextSlug);
     }
-    setTenantSlug(savedTenantSlug);
-  }, [activeTenantSlug]);
+  }, [activeTenantSlug, tenantOptions, tenantSlug]);
 
   useEffect(() => {
-    if (!canAccessAllTenants) return;
-    const resolved = normalizeTenantSlug(activeTenantSlug) || "default";
-    setTenantSlug(resolved);
-  }, [activeTenantSlug, canAccessAllTenants]);
+    const normalized = normalizeTenantSlug(tenantSlug);
+    if (normalized) {
+      localStorage.setItem(SETUP_TENANT_SLUG_KEY, normalized);
+    }
+  }, [tenantSlug]);
 
   useEffect(() => {
     setEditLanguage(language);
@@ -286,21 +294,29 @@ export default function SetupAnniversaryPage() {
   function removeVideo(index: number) {
     setForm((prev) => ({ ...prev, gallery_videos: prev.gallery_videos.filter((_, idx) => idx !== index) }));
   }
-  function saveToken() {
-    localStorage.setItem(SETUP_TOKEN_KEY, setupToken.trim());
-    localStorage.setItem(SETUP_TENANT_SLUG_KEY, normalizeTenantSlug(tenantSlug) || "default");
-    const text = t("setup.tokenSaved");
-    setMessage(text);
-    setError("");
-    notifySuccess(text);
+
+  function requireTenantSlug(): string | null {
+    const normalized = normalizeTenantSlug(tenantSlug);
+    const allowed = tenantOptions.some((tenant) => tenant.slug === normalized);
+    if (!normalized || !allowed) {
+      const text = t("setup.tenantSelectRequired");
+      setError(text);
+      notifyError(text);
+      return null;
+    }
+    return normalized;
   }
+
   async function loadConfig() {
+    const selectedSlug = requireTenantSlug();
+    if (!selectedSlug) return;
+
     setMessage("");
     setError("");
     setFetching(true);
 
     try {
-      const config = await getSetupConfig(setupToken, normalizeTenantSlug(tenantSlug) || "default");
+      const config = await getSetupConfig(selectedSlug);
       const normalized = normalizeConfig(config);
       setForm(normalized);
       const text = t("setup.configLoaded");
@@ -317,12 +333,15 @@ export default function SetupAnniversaryPage() {
 
   async function onSaveConfig(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const selectedSlug = requireTenantSlug();
+    if (!selectedSlug) return;
+
     setMessage("");
     setError("");
     setSaving(true);
 
     try {
-      await updateSetupConfig(setupToken, toPayload(form), normalizeTenantSlug(tenantSlug) || "default");
+      await updateSetupConfig(toPayload(form), selectedSlug);
       const text = t("setup.configSaved");
       setMessage(text);
       notifySuccess(text);
@@ -336,14 +355,12 @@ export default function SetupAnniversaryPage() {
   }
 
   async function uploadPhoto(index: number, file: File) {
-    if (tokenMissing) {
-      notifyError(t("setup.tokenRequired"));
-      return;
-    }
+    const selectedSlug = requireTenantSlug();
+    if (!selectedSlug) return;
 
     setUploadingPhotoIndex(index);
     try {
-      const result = await uploadSetupMedia(setupToken, file, "photo", normalizeTenantSlug(tenantSlug) || "default");
+      const result = await uploadSetupMedia(file, "photo", selectedSlug);
       setGalleryPhotoField(index, "image_url", result.url);
       notifySuccess(t("setup.uploadSuccess"));
     } catch (err) {
@@ -354,14 +371,12 @@ export default function SetupAnniversaryPage() {
   }
 
   async function uploadVideo(index: number, file: File) {
-    if (tokenMissing) {
-      notifyError(t("setup.tokenRequired"));
-      return;
-    }
+    const selectedSlug = requireTenantSlug();
+    if (!selectedSlug) return;
 
     setUploadingVideoIndex(index);
     try {
-      const result = await uploadSetupMedia(setupToken, file, "video", normalizeTenantSlug(tenantSlug) || "default");
+      const result = await uploadSetupMedia(file, "video", selectedSlug);
       setGalleryVideoField(index, "video_url", result.url);
       notifySuccess(t("setup.uploadSuccess"));
     } catch (err) {
@@ -372,14 +387,12 @@ export default function SetupAnniversaryPage() {
   }
 
   async function uploadPoster(index: number, file: File) {
-    if (tokenMissing) {
-      notifyError(t("setup.tokenRequired"));
-      return;
-    }
+    const selectedSlug = requireTenantSlug();
+    if (!selectedSlug) return;
 
     setUploadingPosterIndex(index);
     try {
-      const result = await uploadSetupMedia(setupToken, file, "poster", normalizeTenantSlug(tenantSlug) || "default");
+      const result = await uploadSetupMedia(file, "poster", selectedSlug);
       setGalleryVideoField(index, "poster_url", result.url);
       notifySuccess(t("setup.uploadSuccess"));
     } catch (err) {
@@ -390,14 +403,12 @@ export default function SetupAnniversaryPage() {
   }
 
   async function uploadVoice(file: File) {
-    if (tokenMissing) {
-      notifyError(t("setup.tokenRequired"));
-      return;
-    }
+    const selectedSlug = requireTenantSlug();
+    if (!selectedSlug) return;
 
     setUploadingVoice(true);
     try {
-      const result = await uploadSetupMedia(setupToken, file, "audio", normalizeTenantSlug(tenantSlug) || "default");
+      const result = await uploadSetupMedia(file, "audio", selectedSlug);
       setForm((prev) => ({ ...prev, voice_note_url: result.url }));
       notifySuccess(t("setup.uploadSuccess"));
     } catch (err) {
@@ -408,14 +419,12 @@ export default function SetupAnniversaryPage() {
   }
 
   async function uploadMusic(file: File) {
-    if (tokenMissing) {
-      notifyError(t("setup.tokenRequired"));
-      return;
-    }
+    const selectedSlug = requireTenantSlug();
+    if (!selectedSlug) return;
 
     setUploadingMusic(true);
     try {
-      const result = await uploadSetupMedia(setupToken, file, "audio", normalizeTenantSlug(tenantSlug) || "default");
+      const result = await uploadSetupMedia(file, "audio", selectedSlug);
       setForm((prev) => ({ ...prev, music_url: result.url }));
       notifySuccess(t("setup.uploadSuccess"));
     } catch (err) {
@@ -441,17 +450,10 @@ export default function SetupAnniversaryPage() {
       <SetupHeaderCard t={t} />
       <SetupAccessCard
         t={t}
-        setupToken={setupToken}
         tenantSlug={tenantSlug}
-        tenantSlugReadOnly={canAccessAllTenants}
-        tokenMissing={tokenMissing}
+        tenantOptions={tenantOptions}
         fetching={fetching}
-        onSetupTokenChange={setSetupToken}
-        onTenantSlugChange={(value) => {
-          if (canAccessAllTenants) return;
-          setTenantSlug(normalizeTenantSlug(value));
-        }}
-        onSaveToken={saveToken}
+        onTenantSlugChange={(value) => setTenantSlug(normalizeTenantSlugInput(value))}
         onLoadConfig={loadConfig}
       />
       <SetupLanguageCard t={t} editLanguage={editLanguage} onChangeLanguage={setEditLanguage} />
@@ -463,7 +465,6 @@ export default function SetupAnniversaryPage() {
           form={form}
           editLanguage={editLanguage}
           saving={saving}
-          tokenMissing={tokenMissing}
           onLocalizedFieldChange={setLocalizedField}
           onWeddingDateChange={(value) => setForm((prev) => ({ ...prev, wedding_date: value }))}
           onMusicUrlChange={(value) => setForm((prev) => ({ ...prev, music_url: value }))}
@@ -527,7 +528,7 @@ export default function SetupAnniversaryPage() {
           onUploadVideo={uploadVideo}
           onUploadPoster={uploadPoster}
         />
-        <SetupSaveSection t={t} saving={saving} tokenMissing={tokenMissing} />
+        <SetupSaveSection t={t} saving={saving} />
       </form>
       <SetupAdvancedJsonSection
         t={t}

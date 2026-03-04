@@ -3,7 +3,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LocaleContext";
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const { user, activeTenantSlug } = useAuth();
   const { t } = useLanguage();
 
   return (
@@ -15,7 +15,7 @@ export default function DashboardPage() {
           {t("dashboard.description")}
         </p>
       </div>
-      <AnniversaryShowcase />
+      <AnniversaryShowcase tenantSlug={activeTenantSlug} />
     </section>
   );
 }

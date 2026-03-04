@@ -1,4 +1,5 @@
 import type { EditLanguage, GalleryPhotoFormItem, GalleryVideoFormItem, TranslateFn } from "../types";
+import { setupFieldLimits } from "../fieldLimits";
 
 type SetupGallerySectionProps = {
   t: TranslateFn;
@@ -73,6 +74,7 @@ export default function SetupGallerySection({
               type="text"
               value={item.id}
               onChange={(event) => onPhotoFieldChange(index, "id", event.target.value)}
+              maxLength={setupFieldLimits.galleryId}
               placeholder={t("setup.placeholder.photoId")}
               className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
             />
@@ -80,6 +82,7 @@ export default function SetupGallerySection({
               type="text"
               value={item.title[editLanguage]}
               onChange={(event) => onPhotoLocalizedFieldChange(index, "title", event.target.value)}
+              maxLength={setupFieldLimits.galleryTitle}
               placeholder={t("setup.placeholder.photoTitle")}
               className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
             />
@@ -87,6 +90,7 @@ export default function SetupGallerySection({
               type="text"
               value={item.caption[editLanguage]}
               onChange={(event) => onPhotoLocalizedFieldChange(index, "caption", event.target.value)}
+              maxLength={setupFieldLimits.galleryCaption}
               placeholder={t("setup.placeholder.photoCaption")}
               className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
             />
@@ -94,6 +98,7 @@ export default function SetupGallerySection({
               type="text"
               value={item.image_url}
               onChange={(event) => onPhotoFieldChange(index, "image_url", event.target.value)}
+              maxLength={setupFieldLimits.mediaUrl}
               placeholder={t("setup.placeholder.photoUrl")}
               className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
             />
@@ -141,6 +146,7 @@ export default function SetupGallerySection({
               type="text"
               value={item.id}
               onChange={(event) => onVideoFieldChange(index, "id", event.target.value)}
+              maxLength={setupFieldLimits.galleryId}
               placeholder={t("setup.placeholder.videoId")}
               className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
             />
@@ -148,12 +154,14 @@ export default function SetupGallerySection({
               type="text"
               value={item.title[editLanguage]}
               onChange={(event) => onVideoLocalizedFieldChange(index, "title", event.target.value)}
+              maxLength={setupFieldLimits.galleryTitle}
               placeholder={t("setup.placeholder.videoTitle")}
               className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
             />
             <textarea
               value={item.description[editLanguage]}
               onChange={(event) => onVideoLocalizedFieldChange(index, "description", event.target.value)}
+              maxLength={setupFieldLimits.galleryDescription}
               placeholder={t("setup.placeholder.videoDescription")}
               className="min-h-[80px] w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
             />
@@ -161,6 +169,7 @@ export default function SetupGallerySection({
               type="text"
               value={item.video_url}
               onChange={(event) => onVideoFieldChange(index, "video_url", event.target.value)}
+              maxLength={setupFieldLimits.mediaUrl}
               placeholder={t("setup.placeholder.videoUrl")}
               className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
             />
@@ -168,6 +177,7 @@ export default function SetupGallerySection({
               type="text"
               value={item.poster_url}
               onChange={(event) => onVideoFieldChange(index, "poster_url", event.target.value)}
+              maxLength={setupFieldLimits.mediaUrl}
               placeholder={t("setup.placeholder.posterUrl")}
               className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
             />

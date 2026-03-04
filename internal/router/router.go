@@ -95,6 +95,7 @@ func (r *Routes) AnniversaryRoutes() {
 	}
 
 	svc := anniversarySvc.NewAnniversaryService(repo, loc)
+	tRepo := tenantRepo.NewTenantRepo(r.DB)
 	storageProvider, storageErr := media.InitStorage()
 	if storageErr != nil {
 		logger.WriteLog(logger.LogLevelError, "Failed to initialize storage provider for anniversary upload: "+storageErr.Error())
@@ -102,6 +103,7 @@ func (r *Routes) AnniversaryRoutes() {
 
 	h := anniversaryHandler.NewHandler(
 		svc,
+		tRepo,
 		storageProvider,
 		int64(utils.GetEnv("ANNIVERSARY_UPLOAD_MAX_MB", 50)),
 	)
@@ -117,25 +119,37 @@ func (r *Routes) AnniversaryRoutes() {
 		public.GET("/tenants/:slug/moments", h.GetMoments)
 	}
 
+	if r.DB == nil {
+		setupUnavailable := r.App.Group("/api/setup")
+		setupUnavailable.Use(middlewares.TenantScopeMiddleware(defaultTenantSlug))
+		setupUnavailable.Any("/*path", func(ctx *gin.Context) {
+			ctx.JSON(http.StatusServiceUnavailable, gin.H{
+				"status":  false,
+				"message": "setup API requires database and authenticated mode",
+			})
+		})
+		return
+	}
+
+	blacklistRepo := authRepo.NewBlacklistRepo(r.DB)
+	pRepo := permissionRepo.NewPermissionRepo(r.DB)
+	mdw := middlewares.NewMiddleware(blacklistRepo, pRepo)
+
 	setup := r.App.Group("/api/setup")
-	setup.Use(middlewares.SetupTokenMiddleware(
-		utils.GetEnv("SETUP_API_ENABLED", true),
-		utils.GetEnv("SETUP_TOKEN", ""),
-	))
-	setup.Use(middlewares.TenantScopeMiddleware(defaultTenantSlug))
+	setup.Use(mdw.AuthMiddleware(), middlewares.TenantScopeMiddleware(defaultTenantSlug))
 	{
-		setup.GET("/anniversary", h.GetSetup)
-		setup.PUT("/anniversary", h.UpdateConfig)
-		setup.PUT("/anniversary/moments", h.ReplaceMoments)
-		setup.POST("/anniversary/moments", h.AddMoment)
-		setup.DELETE("/anniversary/moments/:year", h.DeleteMoment)
-		setup.POST("/anniversary/media/upload", h.UploadMedia)
-		setup.GET("/tenants/:slug/anniversary", h.GetSetup)
-		setup.PUT("/tenants/:slug/anniversary", h.UpdateConfig)
-		setup.PUT("/tenants/:slug/anniversary/moments", h.ReplaceMoments)
-		setup.POST("/tenants/:slug/anniversary/moments", h.AddMoment)
-		setup.DELETE("/tenants/:slug/anniversary/moments/:year", h.DeleteMoment)
-		setup.POST("/tenants/:slug/anniversary/media/upload", h.UploadMedia)
+		setup.GET("/anniversary", mdw.PermissionMiddleware("dashboard", "view"), h.GetSetup)
+		setup.PUT("/anniversary", mdw.PermissionMiddleware("tenants", "update"), h.UpdateConfig)
+		setup.PUT("/anniversary/moments", mdw.PermissionMiddleware("tenants", "update"), h.ReplaceMoments)
+		setup.POST("/anniversary/moments", mdw.PermissionMiddleware("tenants", "update"), h.AddMoment)
+		setup.DELETE("/anniversary/moments/:year", mdw.PermissionMiddleware("tenants", "update"), h.DeleteMoment)
+		setup.POST("/anniversary/media/upload", mdw.PermissionMiddleware("tenants", "update"), h.UploadMedia)
+		setup.GET("/tenants/:slug/anniversary", mdw.PermissionMiddleware("dashboard", "view"), h.GetSetup)
+		setup.PUT("/tenants/:slug/anniversary", mdw.PermissionMiddleware("tenants", "update"), h.UpdateConfig)
+		setup.PUT("/tenants/:slug/anniversary/moments", mdw.PermissionMiddleware("tenants", "update"), h.ReplaceMoments)
+		setup.POST("/tenants/:slug/anniversary/moments", mdw.PermissionMiddleware("tenants", "update"), h.AddMoment)
+		setup.DELETE("/tenants/:slug/anniversary/moments/:year", mdw.PermissionMiddleware("tenants", "update"), h.DeleteMoment)
+		setup.POST("/tenants/:slug/anniversary/media/upload", mdw.PermissionMiddleware("tenants", "update"), h.UploadMedia)
 	}
 }
 

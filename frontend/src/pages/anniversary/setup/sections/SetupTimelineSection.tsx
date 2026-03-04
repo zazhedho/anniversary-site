@@ -1,4 +1,5 @@
 import type { EditLanguage, TimelineFormItem, TranslateFn } from "../types";
+import { setupFieldLimits } from "../fieldLimits";
 
 type SetupTimelineSectionProps = {
   t: TranslateFn;
@@ -42,12 +43,14 @@ export default function SetupTimelineSection({
             type="text"
             value={item.title[editLanguage]}
             onChange={(event) => onTimelineFieldChange(index, "title", event.target.value)}
+            maxLength={setupFieldLimits.timelineTitle}
             placeholder={t("setup.placeholder.timelineTitle")}
             className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
           />
           <textarea
             value={item.description[editLanguage]}
             onChange={(event) => onTimelineFieldChange(index, "description", event.target.value)}
+            maxLength={setupFieldLimits.timelineDescription}
             placeholder={t("setup.placeholder.timelineDescription")}
             className="min-h-[80px] w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
           />

@@ -63,7 +63,7 @@ SET
     updated_at = CURRENT_TIMESTAMP;
 
 INSERT INTO menu_items (id, name, display_name, path, icon, order_index, is_active, created_at, updated_at)
-VALUES (gen_random_uuid(), 'tenants', 'Tenants', '/tenants', 'bi-buildings', 903, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+VALUES (gen_random_uuid(), 'tenants', 'Tenants', '/tenants', 'bi-buildings', 3, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON CONFLICT (name) DO UPDATE
 SET
     display_name = EXCLUDED.display_name,

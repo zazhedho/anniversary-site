@@ -77,9 +77,8 @@ Admin tenant management (auth + permission protected):
 - `DELETE /api/tenants/:id`
 - `POST /api/tenants/:id/members`
 
-Auth setup token:
-- Header `X-Setup-Token: <token>`
-- atau `Authorization: Bearer <token>`
+Auth setup:
+- Header `Authorization: Bearer <user_jwt_token>`
 
 Catatan upload media:
 - Form-data:
@@ -92,7 +91,6 @@ Catatan upload media:
 Referensi:
 - `internal/router/router.go`
 - `internal/handlers/http/anniversary/handler.go`
-- `middlewares/setup_token.go`
 - `middlewares/tenant_scope.go`
 
 ## 5) Kontrak Data Bilingual

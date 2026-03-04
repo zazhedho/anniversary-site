@@ -7,7 +7,7 @@ import SiteFooter from "../../components/common/SiteFooter";
 import { useLanguage } from "../../contexts/LocaleContext";
 import { useNotification } from "../../contexts/NotificationContext";
 import { register } from "../../services/authService";
-import { normalizeTenantSlug } from "../../utils/tenantSlug";
+import { normalizeTenantSlug, normalizeTenantSlugInput } from "../../utils/tenantSlug";
 import { isPasswordValid, validatePassword } from "../../utils/passwordValidation";
 
 export default function RegisterPage() {
@@ -67,7 +67,7 @@ export default function RegisterPage() {
               className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm"
               placeholder={t("register.tenantSlugPlaceholder")}
               value={tenantSlug}
-              onChange={(e) => setTenantSlug(normalizeTenantSlug(e.target.value))}
+              onChange={(e) => setTenantSlug(normalizeTenantSlugInput(e.target.value))}
               required
               minLength={3}
               maxLength={100}

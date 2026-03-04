@@ -4,7 +4,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LocaleContext";
 import { useNotification } from "../../contexts/NotificationContext";
 import { addTenantMember, createTenant, getTenantById, updateTenant } from "../../services/tenantsService";
-import { normalizeTenantSlug } from "../../utils/tenantSlug";
+import { normalizeTenantSlug, normalizeTenantSlugInput } from "../../utils/tenantSlug";
 import type { TenantMemberRecord } from "../../types/tenant";
 
 export default function TenantFormPage() {
@@ -152,7 +152,7 @@ export default function TenantFormPage() {
             <input
               type="text"
               value={slug}
-              onChange={(event) => setSlug(normalizeTenantSlug(event.target.value))}
+              onChange={(event) => setSlug(normalizeTenantSlugInput(event.target.value))}
               className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#9c4f46]"
               placeholder={t("tenantForm.slugPlaceholder")}
               required

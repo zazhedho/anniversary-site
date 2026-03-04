@@ -21,6 +21,20 @@ export function normalizeTenantSlug(value?: string | null): string {
   return cleaned;
 }
 
+// Keeps slug typing natural in inputs (including trailing "-"),
+// while final normalization is still applied on submit/request.
+export function normalizeTenantSlugInput(value?: string | null): string {
+  const normalized = (value || "").toLowerCase();
+  if (!normalized) return "";
+
+  const cleaned = normalized
+    .replace(/[^a-z0-9-]+/g, "-")
+    .replace(/-{2,}/g, "-")
+    .slice(0, 100);
+
+  return cleaned;
+}
+
 export function resolveTenantSlug(preferred?: string | null): string {
   const fromPreferred = normalizeTenantSlug(preferred);
   if (fromPreferred) return fromPreferred;

@@ -1,4 +1,5 @@
 import type { EditLanguage, MomentFormItem, TranslateFn } from "../types";
+import { setupFieldLimits } from "../fieldLimits";
 
 type SetupMomentsSectionProps = {
   t: TranslateFn;
@@ -60,12 +61,14 @@ export default function SetupMomentsSection({
             type="text"
             value={item.title[editLanguage]}
             onChange={(event) => onMomentFieldChange(index, "title", event.target.value)}
+            maxLength={setupFieldLimits.momentTitle}
             placeholder={t("setup.placeholder.momentTitle")}
             className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
           />
           <textarea
             value={item.note[editLanguage]}
             onChange={(event) => onMomentFieldChange(index, "note", event.target.value)}
+            maxLength={setupFieldLimits.momentNote}
             placeholder={t("setup.placeholder.momentNote")}
             className="min-h-[80px] w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
           />

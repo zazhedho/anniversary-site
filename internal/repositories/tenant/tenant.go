@@ -40,7 +40,7 @@ func (r *repo) GetBySlug(slug string) (ret domaintenant.Tenant, err error) {
 }
 
 func (r *repo) GetAll(params filter.BaseParams) (ret []dto.TenantListItem, totalData int64, err error) {
-	return r.queryTenantList(r.DB, params)
+	return r.queryTenantList(r.DB.Table("tenants t"), params)
 }
 
 func (r *repo) GetAllByUser(userID string, params filter.BaseParams) (ret []dto.TenantListItem, totalData int64, err error) {

@@ -162,8 +162,6 @@ Important keys:
 | `ANNIVERSARY_DATA_FILE` | `./data/anniversary.json` | JSON storage path |
 | `TENANT_DEFAULT_SLUG` | `default` | fallback tenant slug when no slug/header/query is provided |
 | `PUBLIC_BASE_URL` | `https://anniversary.example.com` | optional base URL shown in startup public endpoint log |
-| `SETUP_API_ENABLED` | `true` | setup API switch |
-| `SETUP_TOKEN` | `change-this-setup-token` | setup token |
 | `ANNIVERSARY_UPLOAD_MAX_MB` | `50` | max upload size |
 | `STORAGE_PROVIDER` | `minio` / `r2` | upload provider |
 
@@ -190,11 +188,10 @@ DB/Redis values are required when:
 | `GET` | `/api/public/anniversary?tenant=:slug&lang=id|en` | compatibility endpoint (tenant via query/header) |
 | `GET` | `/api/public/anniversary/moments?tenant=:slug&lang=id|en` | compatibility endpoint (tenant via query/header) |
 
-### Setup APIs (token protected)
+### Setup APIs (auth protected)
 
 Auth header:
-- `X-Setup-Token: <SETUP_TOKEN>`
-- or `Authorization: Bearer <SETUP_TOKEN>`
+- `Authorization: Bearer <USER_JWT_TOKEN>`
 
 | Method | Endpoint | Description |
 |---|---|---|
@@ -217,6 +214,7 @@ Setup UI note:
   - direct audio URL (`.mp3`, `.m4a`, etc) -> playable as background music
   - YouTube URL -> shown as YouTube embed/open link
   - other webpage URL -> shown as `Open Music Link` fallback
+- Setup form fields now enforce character limits on frontend; backend also sanitizes and clamps text/url lengths before saving.
 
 ### Admin APIs (when `ENABLE_ADMIN_API=true`)
 
@@ -298,9 +296,9 @@ npm run dev:poll
 
 ### Setup API returns unauthorized
 
-Make sure header contains valid token:
+Make sure request uses valid user JWT:
 ```bash
-X-Setup-Token: <SETUP_TOKEN>
+Authorization: Bearer <USER_JWT_TOKEN>
 ```
 
 ### Public page still old after update

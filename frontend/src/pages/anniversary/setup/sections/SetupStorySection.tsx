@@ -1,4 +1,5 @@
 import type { EditLanguage, RootLocalizedKey, SetupForm, TranslateFn } from "../types";
+import { setupFieldLimits } from "../fieldLimits";
 
 type SetupStorySectionProps = {
   t: TranslateFn;
@@ -20,6 +21,7 @@ export default function SetupStorySection({ t, form, editLanguage, onLocalizedFi
             type="text"
             value={form.cover_badge[editLanguage]}
             onChange={(event) => onLocalizedFieldChange("cover_badge", event.target.value)}
+            maxLength={setupFieldLimits.coverBadge}
             placeholder={t("setup.placeholder.coverBadge")}
             className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#9c4f46]"
             required
@@ -32,6 +34,7 @@ export default function SetupStorySection({ t, form, editLanguage, onLocalizedFi
             type="text"
             value={form.cover_cta[editLanguage]}
             onChange={(event) => onLocalizedFieldChange("cover_cta", event.target.value)}
+            maxLength={setupFieldLimits.coverCTA}
             placeholder={t("setup.placeholder.coverCta")}
             className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#9c4f46]"
             required
@@ -44,6 +47,7 @@ export default function SetupStorySection({ t, form, editLanguage, onLocalizedFi
             type="text"
             value={form.cover_title[editLanguage]}
             onChange={(event) => onLocalizedFieldChange("cover_title", event.target.value)}
+            maxLength={setupFieldLimits.coverTitle}
             placeholder={t("setup.placeholder.coverTitle")}
             className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#9c4f46]"
             required
@@ -56,6 +60,7 @@ export default function SetupStorySection({ t, form, editLanguage, onLocalizedFi
             type="text"
             value={form.hero_title[editLanguage]}
             onChange={(event) => onLocalizedFieldChange("hero_title", event.target.value)}
+            maxLength={setupFieldLimits.heroTitle}
             placeholder={t("setup.placeholder.heroTitle")}
             className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#9c4f46]"
             required
@@ -68,6 +73,7 @@ export default function SetupStorySection({ t, form, editLanguage, onLocalizedFi
             type="text"
             value={form.footer_text[editLanguage]}
             onChange={(event) => onLocalizedFieldChange("footer_text", event.target.value)}
+            maxLength={setupFieldLimits.footerText}
             placeholder={t("setup.placeholder.footerText")}
             className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#9c4f46]"
             required
@@ -80,6 +86,7 @@ export default function SetupStorySection({ t, form, editLanguage, onLocalizedFi
         <textarea
           value={form.cover_subtext[editLanguage]}
           onChange={(event) => onLocalizedFieldChange("cover_subtext", event.target.value)}
+          maxLength={setupFieldLimits.coverSubtext}
           placeholder={t("setup.placeholder.coverSubtext")}
           className="min-h-[88px] w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#9c4f46]"
           required
@@ -91,6 +98,7 @@ export default function SetupStorySection({ t, form, editLanguage, onLocalizedFi
         <textarea
           value={form.hero_subtext[editLanguage]}
           onChange={(event) => onLocalizedFieldChange("hero_subtext", event.target.value)}
+          maxLength={setupFieldLimits.heroSubtext}
           placeholder={t("setup.placeholder.heroSubtext")}
           className="min-h-[88px] w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#9c4f46]"
           required
@@ -102,6 +110,7 @@ export default function SetupStorySection({ t, form, editLanguage, onLocalizedFi
         <textarea
           value={form.letter[editLanguage]}
           onChange={(event) => onLocalizedFieldChange("letter", event.target.value)}
+          maxLength={setupFieldLimits.letter}
           placeholder={t("setup.placeholder.letter")}
           className="min-h-[120px] w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#9c4f46]"
           required

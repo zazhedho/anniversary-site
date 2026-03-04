@@ -1,4 +1,5 @@
 import type { EditLanguage, MemoryFormItem, TranslateFn } from "../types";
+import { setupFieldLimits } from "../fieldLimits";
 
 type SetupMemoriesSectionProps = {
   t: TranslateFn;
@@ -42,6 +43,7 @@ export default function SetupMemoriesSection({
             type="text"
             value={item.title[editLanguage]}
             onChange={(event) => onMemoryFieldChange(index, "title", event.target.value)}
+            maxLength={setupFieldLimits.memoryTitle}
             placeholder={t("setup.placeholder.memoryTitle")}
             className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
           />
@@ -49,12 +51,14 @@ export default function SetupMemoriesSection({
             type="text"
             value={item.summary[editLanguage]}
             onChange={(event) => onMemoryFieldChange(index, "summary", event.target.value)}
+            maxLength={setupFieldLimits.memorySummary}
             placeholder={t("setup.placeholder.memorySummary")}
             className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
           />
           <textarea
             value={item.note[editLanguage]}
             onChange={(event) => onMemoryFieldChange(index, "note", event.target.value)}
+            maxLength={setupFieldLimits.memoryNote}
             placeholder={t("setup.placeholder.memoryNote")}
             className="min-h-[80px] w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
           />

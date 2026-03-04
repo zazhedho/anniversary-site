@@ -90,18 +90,19 @@ Jika kosong, frontend akan menggunakan path relatif (`/api/...`).
 - `PUT /api/user/change/password`
 - `GET /api/public/tenants/:slug/anniversary`
 - `GET /api/public/tenants/:slug/anniversary/moments`
-- `GET /api/setup/tenants/:slug/anniversary` (`X-Setup-Token`)
-- `PUT /api/setup/tenants/:slug/anniversary` (`X-Setup-Token`)
-- `PUT /api/setup/tenants/:slug/anniversary/moments` (`X-Setup-Token`)
-- `POST /api/setup/tenants/:slug/anniversary/moments` (`X-Setup-Token`)
-- `DELETE /api/setup/tenants/:slug/anniversary/moments/:year` (`X-Setup-Token`)
-- `POST /api/setup/tenants/:slug/anniversary/media/upload` (`X-Setup-Token`, `type=photo|video|poster|audio`)
+- `GET /api/setup/tenants/:slug/anniversary` (`Authorization: Bearer <JWT>`)
+- `PUT /api/setup/tenants/:slug/anniversary` (`Authorization: Bearer <JWT>`)
+- `PUT /api/setup/tenants/:slug/anniversary/moments` (`Authorization: Bearer <JWT>`)
+- `POST /api/setup/tenants/:slug/anniversary/moments` (`Authorization: Bearer <JWT>`)
+- `DELETE /api/setup/tenants/:slug/anniversary/moments/:year` (`Authorization: Bearer <JWT>`)
+- `POST /api/setup/tenants/:slug/anniversary/media/upload` (`Authorization: Bearer <JWT>`, `type=photo|video|poster|audio`)
 
 Pastikan backend dijalankan dengan `ENABLE_ADMIN_API=true` jika ingin memakai endpoint auth (`/api/user/*`).
 
 Catatan setup cover public:
 - Konten halaman `/anniversary` bisa diubah dari setup payload melalui key:
 `cover_badge`, `cover_title`, `cover_subtext`, `cover_cta`.
+- Seluruh input Setup sudah punya batas karakter (`maxLength`) agar input tetap aman dan konsisten.
 
 Catatan music URL:
 - Setup Basic mendukung `Upload Music` (`type=audio`) untuk mengisi `music_url`.
