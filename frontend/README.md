@@ -8,15 +8,16 @@ Struktur (mirip safety-riding):
 - `src/pages/auth`, `src/pages/dashboard`, `src/pages/users`, `src/pages/roles`, `src/pages/menus`, `src/pages/anniversary`, `src/pages/system` untuk screen
 
 Route utama:
-- `/anniversary` (public cover page, single CTA to start linear journey)
-- `/anniversary/game` (public interactive flow: yes/no -> romantic note -> envelope note -> photos -> optional videos)
-- `/anniversary/showcase` (public anniversary showcase from DB/JSON, shown after finishing game)
-- `/login`, `/register`, `/forgot-password`, `/reset-password`
-- `/dashboard`, `/profile`, `/change-password` (protected)
-- `/users`, `/users/new`, `/users/:id/edit` (protected, admin-style flow)
-- `/roles`, `/roles/new`, `/roles/:id/edit` (protected, permission-based)
-- `/menus`, `/menus/new`, `/menus/:id/edit` (protected, permission-based)
-- `/setup/anniversary` (protected, editor JSON setup)
+- `/:slug` (public cover page, main tenant path)
+- `/:slug/game` (public interactive flow by tenant)
+- `/:slug/showcase` (public showcase by tenant)
+- `/app/login`, `/app/register`, `/app/forgot-password`, `/app/reset-password`
+- `/app/dashboard`, `/app/profile`, `/app/change-password` (protected)
+- `/app/users`, `/app/users/new`, `/app/users/:id/edit` (protected, admin-style flow)
+- `/app/roles`, `/app/roles/new`, `/app/roles/:id/edit` (protected, permission-based)
+- `/app/menus`, `/app/menus/new`, `/app/menus/:id/edit` (protected, permission-based)
+- `/app/setup/anniversary` (protected, editor JSON setup)
+- legacy compatibility: `/anniversary*`, `/login`, `/dashboard`, dll akan redirect ke path baru
 
 Kontrol menu dan akses route protected menggunakan permission dari backend (bukan hardcoded role),
 dengan acuan `resource + action` dari endpoint `GET /api/permissions/me`
@@ -45,6 +46,7 @@ npm run preview
 ## Environment
 
 - `VITE_API_BASE_URL` (contoh: `http://localhost:8080`)
+- `VITE_DEFAULT_PUBLIC_TENANT` (default: `default`)
 
 Jika kosong, frontend akan menggunakan path relatif (`/api/...`).
 
@@ -76,14 +78,14 @@ Jika kosong, frontend akan menggunakan path relatif (`/api/...`).
 - `GET /api/permissions` (untuk pemilihan assign role)
 - `GET /api/permissions/me` (untuk evaluasi akses resource/action)
 - `PUT /api/user/change/password`
-- `GET /api/public/anniversary`
-- `GET /api/public/anniversary/moments`
-- `GET /api/setup/anniversary` (`X-Setup-Token`)
-- `PUT /api/setup/anniversary` (`X-Setup-Token`)
-- `PUT /api/setup/anniversary/moments` (`X-Setup-Token`)
-- `POST /api/setup/anniversary/moments` (`X-Setup-Token`)
-- `DELETE /api/setup/anniversary/moments/:year` (`X-Setup-Token`)
-- `POST /api/setup/anniversary/media/upload` (`X-Setup-Token`, `type=photo|video|poster|audio`)
+- `GET /api/public/tenants/:slug/anniversary`
+- `GET /api/public/tenants/:slug/anniversary/moments`
+- `GET /api/setup/tenants/:slug/anniversary` (`X-Setup-Token`)
+- `PUT /api/setup/tenants/:slug/anniversary` (`X-Setup-Token`)
+- `PUT /api/setup/tenants/:slug/anniversary/moments` (`X-Setup-Token`)
+- `POST /api/setup/tenants/:slug/anniversary/moments` (`X-Setup-Token`)
+- `DELETE /api/setup/tenants/:slug/anniversary/moments/:year` (`X-Setup-Token`)
+- `POST /api/setup/tenants/:slug/anniversary/media/upload` (`X-Setup-Token`, `type=photo|video|poster|audio`)
 
 Pastikan backend dijalankan dengan `ENABLE_ADMIN_API=true` jika ingin memakai endpoint auth (`/api/user/*`).
 

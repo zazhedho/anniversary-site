@@ -102,11 +102,16 @@ func (r *Routes) AnniversaryRoutes() {
 		storageProvider,
 		int64(utils.GetEnv("ANNIVERSARY_UPLOAD_MAX_MB", 50)),
 	)
+	defaultTenantSlug := utils.GetEnv("TENANT_DEFAULT_SLUG", "default")
 
 	public := r.App.Group("/api/public")
+	public.Use(middlewares.TenantScopeMiddleware(defaultTenantSlug))
 	{
 		public.GET("/anniversary", h.GetPublic)
 		public.GET("/anniversary/moments", h.GetMoments)
+		public.GET("/tenants/:slug/anniversary", h.GetPublic)
+		public.GET("/tenants/:slug/anniversary/moments", h.GetMoments)
+		public.GET("/tenants/:slug/moments", h.GetMoments)
 	}
 
 	setup := r.App.Group("/api/setup")
@@ -114,6 +119,7 @@ func (r *Routes) AnniversaryRoutes() {
 		utils.GetEnv("SETUP_API_ENABLED", true),
 		utils.GetEnv("SETUP_TOKEN", ""),
 	))
+	setup.Use(middlewares.TenantScopeMiddleware(defaultTenantSlug))
 	{
 		setup.GET("/anniversary", h.GetSetup)
 		setup.PUT("/anniversary", h.UpdateConfig)
@@ -121,6 +127,12 @@ func (r *Routes) AnniversaryRoutes() {
 		setup.POST("/anniversary/moments", h.AddMoment)
 		setup.DELETE("/anniversary/moments/:year", h.DeleteMoment)
 		setup.POST("/anniversary/media/upload", h.UploadMedia)
+		setup.GET("/tenants/:slug/anniversary", h.GetSetup)
+		setup.PUT("/tenants/:slug/anniversary", h.UpdateConfig)
+		setup.PUT("/tenants/:slug/anniversary/moments", h.ReplaceMoments)
+		setup.POST("/tenants/:slug/anniversary/moments", h.AddMoment)
+		setup.DELETE("/tenants/:slug/anniversary/moments/:year", h.DeleteMoment)
+		setup.POST("/tenants/:slug/anniversary/media/upload", h.UploadMedia)
 	}
 }
 

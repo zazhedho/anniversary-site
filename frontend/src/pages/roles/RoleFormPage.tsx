@@ -168,7 +168,7 @@ export default function RoleFormPage() {
         const text = t("roleForm.createSuccess");
         setMessage(text);
         notifySuccess(text);
-        navigate("/roles");
+        navigate("/app/roles");
       }
     } catch (err) {
       const text = err instanceof Error ? err.message : t("roleForm.saveFailed");
@@ -308,7 +308,7 @@ export default function RoleFormPage() {
           >
             {loading ? t("roleForm.saving") : t("roleForm.save")}
           </button>
-          <Link to="/roles" className="rounded-xl border border-[#9c4f46]/30 bg-white px-4 py-2.5 text-sm font-semibold">
+          <Link to="/app/roles" className="rounded-xl border border-[#9c4f46]/30 bg-white px-4 py-2.5 text-sm font-semibold">
             {t("roleForm.backToList")}
           </Link>
         </div>

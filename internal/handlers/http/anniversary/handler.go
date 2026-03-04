@@ -4,6 +4,7 @@ import (
 	"anniversary-site/internal/dto"
 	interfaceanniversary "anniversary-site/internal/interfaces/anniversary"
 	serviceanniversary "anniversary-site/internal/services/anniversary"
+	"anniversary-site/middlewares"
 	"anniversary-site/pkg/storage"
 	"errors"
 	"fmt"
@@ -37,8 +38,13 @@ func NewHandler(
 }
 
 func (h *Handler) GetPublic(ctx *gin.Context) {
-	payload, err := h.service.GetPublicPayload(languageFromQuery(ctx.Query("lang")))
+	tenantSlug := middlewares.TenantSlugFromContext(ctx)
+	payload, err := h.service.GetPublicPayload(tenantSlug, languageFromQuery(ctx.Query("lang")))
 	if err != nil {
+		if errors.Is(err, serviceanniversary.ErrTenantNotFound) {
+			ctx.JSON(http.StatusNotFound, gin.H{"status": false, "message": "tenant not found"})
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, gin.H{"status": false, "message": err.Error()})
 		return
 	}
@@ -47,8 +53,13 @@ func (h *Handler) GetPublic(ctx *gin.Context) {
 }
 
 func (h *Handler) GetMoments(ctx *gin.Context) {
-	moments, err := h.service.GetPublicMoments(languageFromQuery(ctx.Query("lang")))
+	tenantSlug := middlewares.TenantSlugFromContext(ctx)
+	moments, err := h.service.GetPublicMoments(tenantSlug, languageFromQuery(ctx.Query("lang")))
 	if err != nil {
+		if errors.Is(err, serviceanniversary.ErrTenantNotFound) {
+			ctx.JSON(http.StatusNotFound, gin.H{"status": false, "message": "tenant not found"})
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, gin.H{"status": false, "message": err.Error()})
 		return
 	}
@@ -64,8 +75,13 @@ func languageFromQuery(value string) string {
 }
 
 func (h *Handler) GetSetup(ctx *gin.Context) {
-	cfg, err := h.service.GetSetupConfig()
+	tenantSlug := middlewares.TenantSlugFromContext(ctx)
+	cfg, err := h.service.GetSetupConfig(tenantSlug)
 	if err != nil {
+		if errors.Is(err, serviceanniversary.ErrTenantNotFound) {
+			ctx.JSON(http.StatusNotFound, gin.H{"status": false, "message": "tenant not found"})
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, gin.H{"status": false, "message": err.Error()})
 		return
 	}
@@ -73,14 +89,19 @@ func (h *Handler) GetSetup(ctx *gin.Context) {
 }
 
 func (h *Handler) UpdateConfig(ctx *gin.Context) {
+	tenantSlug := middlewares.TenantSlugFromContext(ctx)
 	var req dto.AnniversarySiteConfig
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"status": false, "message": "invalid JSON body"})
 		return
 	}
 
-	payload, err := h.service.UpdateConfig(req)
+	payload, err := h.service.UpdateConfig(tenantSlug, req)
 	if err != nil {
+		if errors.Is(err, serviceanniversary.ErrTenantNotFound) {
+			ctx.JSON(http.StatusNotFound, gin.H{"status": false, "message": "tenant not found"})
+			return
+		}
 		if errors.Is(err, serviceanniversary.ErrSaveConfig) {
 			ctx.JSON(http.StatusBadRequest, gin.H{"status": false, "message": err.Error()})
 			return
@@ -93,14 +114,19 @@ func (h *Handler) UpdateConfig(ctx *gin.Context) {
 }
 
 func (h *Handler) ReplaceMoments(ctx *gin.Context) {
+	tenantSlug := middlewares.TenantSlugFromContext(ctx)
 	var req []dto.AnniversaryMoment
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"status": false, "message": "invalid JSON body"})
 		return
 	}
 
-	moments, err := h.service.ReplaceMoments(req)
+	moments, err := h.service.ReplaceMoments(tenantSlug, req)
 	if err != nil {
+		if errors.Is(err, serviceanniversary.ErrTenantNotFound) {
+			ctx.JSON(http.StatusNotFound, gin.H{"status": false, "message": "tenant not found"})
+			return
+		}
 		if errors.Is(err, serviceanniversary.ErrLoadConfig) {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"status": false, "message": err.Error()})
 			return
@@ -117,14 +143,19 @@ func (h *Handler) ReplaceMoments(ctx *gin.Context) {
 }
 
 func (h *Handler) AddMoment(ctx *gin.Context) {
+	tenantSlug := middlewares.TenantSlugFromContext(ctx)
 	var req dto.AnniversaryMoment
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"status": false, "message": "invalid JSON body"})
 		return
 	}
 
-	moments, err := h.service.AddMoment(req)
+	moments, err := h.service.AddMoment(tenantSlug, req)
 	if err != nil {
+		if errors.Is(err, serviceanniversary.ErrTenantNotFound) {
+			ctx.JSON(http.StatusNotFound, gin.H{"status": false, "message": "tenant not found"})
+			return
+		}
 		if errors.Is(err, serviceanniversary.ErrLoadConfig) {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"status": false, "message": err.Error()})
 			return
@@ -141,14 +172,19 @@ func (h *Handler) AddMoment(ctx *gin.Context) {
 }
 
 func (h *Handler) DeleteMoment(ctx *gin.Context) {
+	tenantSlug := middlewares.TenantSlugFromContext(ctx)
 	year, err := strconv.Atoi(ctx.Param("year"))
 	if err != nil || year < 1 {
 		ctx.JSON(http.StatusBadRequest, gin.H{"status": false, "message": "invalid year"})
 		return
 	}
 
-	moments, err := h.service.DeleteMoment(year)
+	moments, err := h.service.DeleteMoment(tenantSlug, year)
 	if err != nil {
+		if errors.Is(err, serviceanniversary.ErrTenantNotFound) {
+			ctx.JSON(http.StatusNotFound, gin.H{"status": false, "message": "tenant not found"})
+			return
+		}
 		if errors.Is(err, serviceanniversary.ErrMomentNotFound) {
 			ctx.JSON(http.StatusNotFound, gin.H{"status": false, "message": "moment not found"})
 			return
@@ -169,6 +205,7 @@ func (h *Handler) DeleteMoment(ctx *gin.Context) {
 }
 
 func (h *Handler) UploadMedia(ctx *gin.Context) {
+	tenantSlug := middlewares.TenantSlugFromContext(ctx)
 	if h.storageProvider == nil {
 		ctx.JSON(http.StatusServiceUnavailable, gin.H{
 			"status":  false,
@@ -205,6 +242,7 @@ func (h *Handler) UploadMedia(ctx *gin.Context) {
 	} else if mediaType == "audio" {
 		folder = "anniversary-audios"
 	}
+	folder = fmt.Sprintf("tenant-%s/%s", sanitizePathSegment(tenantSlug), folder)
 
 	file, err := fileHeader.Open()
 	if err != nil {

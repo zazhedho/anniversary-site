@@ -1,5 +1,6 @@
 import { apiRequest } from "./api";
 import type { PublicPayload, SetupAnnualMoment, SetupSiteConfig } from "../types/anniversary";
+import { normalizeTenantSlug } from "../utils/tenantSlug";
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
 
@@ -29,8 +30,22 @@ export type SetupUploadResponse = {
   filename: string;
 };
 
-export async function getSetupConfig(setupToken: string): Promise<SetupSiteConfig> {
-  const response = await apiRequest<SetupSiteConfig>("/api/setup/anniversary", {
+function setupAnniversaryPath(tenantSlug?: string): string {
+  const slug = normalizeTenantSlug(tenantSlug);
+  if (!slug) return "/api/setup/anniversary";
+  return `/api/setup/tenants/${encodeURIComponent(slug)}/anniversary`;
+}
+
+function setupMomentsPath(tenantSlug?: string): string {
+  return `${setupAnniversaryPath(tenantSlug)}/moments`;
+}
+
+function setupMediaUploadPath(tenantSlug?: string): string {
+  return `${setupAnniversaryPath(tenantSlug)}/media/upload`;
+}
+
+export async function getSetupConfig(setupToken: string, tenantSlug?: string): Promise<SetupSiteConfig> {
+  const response = await apiRequest<SetupSiteConfig>(setupAnniversaryPath(tenantSlug), {
     headers: setupHeaders(setupToken),
   });
 
@@ -41,8 +56,8 @@ export async function getSetupConfig(setupToken: string): Promise<SetupSiteConfi
   return response.data;
 }
 
-export async function updateSetupConfig(setupToken: string, payload: SetupSiteConfig): Promise<PublicPayload> {
-  const response = await apiRequest<PublicPayload>("/api/setup/anniversary", {
+export async function updateSetupConfig(setupToken: string, payload: SetupSiteConfig, tenantSlug?: string): Promise<PublicPayload> {
+  const response = await apiRequest<PublicPayload>(setupAnniversaryPath(tenantSlug), {
     method: "PUT",
     headers: setupHeaders(setupToken),
     body: payload,
@@ -57,9 +72,10 @@ export async function updateSetupConfig(setupToken: string, payload: SetupSiteCo
 
 export async function replaceSetupMoments(
   setupToken: string,
-  payload: SetupAnnualMoment[]
+  payload: SetupAnnualMoment[],
+  tenantSlug?: string
 ): Promise<SetupAnnualMoment[]> {
-  const response = await apiRequest<SetupAnnualMoment[]>("/api/setup/anniversary/moments", {
+  const response = await apiRequest<SetupAnnualMoment[]>(setupMomentsPath(tenantSlug), {
     method: "PUT",
     headers: setupHeaders(setupToken),
     body: payload,
@@ -68,8 +84,8 @@ export async function replaceSetupMoments(
   return response.data || [];
 }
 
-export async function addSetupMoment(setupToken: string, payload: SetupAnnualMoment): Promise<SetupAnnualMoment[]> {
-  const response = await apiRequest<SetupAnnualMoment[]>("/api/setup/anniversary/moments", {
+export async function addSetupMoment(setupToken: string, payload: SetupAnnualMoment, tenantSlug?: string): Promise<SetupAnnualMoment[]> {
+  const response = await apiRequest<SetupAnnualMoment[]>(setupMomentsPath(tenantSlug), {
     method: "POST",
     headers: setupHeaders(setupToken),
     body: payload,
@@ -78,8 +94,8 @@ export async function addSetupMoment(setupToken: string, payload: SetupAnnualMom
   return response.data || [];
 }
 
-export async function deleteSetupMoment(setupToken: string, year: number): Promise<SetupAnnualMoment[]> {
-  const response = await apiRequest<SetupAnnualMoment[]>(`/api/setup/anniversary/moments/${year}`, {
+export async function deleteSetupMoment(setupToken: string, year: number, tenantSlug?: string): Promise<SetupAnnualMoment[]> {
+  const response = await apiRequest<SetupAnnualMoment[]>(`${setupMomentsPath(tenantSlug)}/${year}`, {
     method: "DELETE",
     headers: setupHeaders(setupToken),
   });
@@ -90,13 +106,14 @@ export async function deleteSetupMoment(setupToken: string, year: number): Promi
 export async function uploadSetupMedia(
   setupToken: string,
   file: File,
-  type: SetupUploadType
+  type: SetupUploadType,
+  tenantSlug?: string
 ): Promise<SetupUploadResponse> {
   const payload = new FormData();
   payload.append("file", file);
   payload.append("type", type);
 
-  const response = await fetch(buildUrl("/api/setup/anniversary/media/upload"), {
+  const response = await fetch(buildUrl(setupMediaUploadPath(tenantSlug)), {
     method: "POST",
     headers: setupHeaders(setupToken),
     body: payload,

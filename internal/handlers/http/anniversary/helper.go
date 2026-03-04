@@ -87,3 +87,29 @@ func validateUploadFile(fileHeader *multipart.FileHeader, mediaType string) (str
 
 	return detectedType, ext, nil
 }
+
+func sanitizePathSegment(value string) string {
+	normalized := strings.TrimSpace(strings.ToLower(value))
+	if normalized == "" {
+		return "default"
+	}
+
+	builder := strings.Builder{}
+	builder.Grow(len(normalized))
+	for _, char := range normalized {
+		if (char >= 'a' && char <= 'z') || (char >= '0' && char <= '9') || char == '-' {
+			builder.WriteRune(char)
+		}
+	}
+
+	cleaned := strings.Trim(builder.String(), "-")
+	if cleaned == "" {
+		return "default"
+	}
+
+	for strings.Contains(cleaned, "--") {
+		cleaned = strings.ReplaceAll(cleaned, "--", "-")
+	}
+
+	return cleaned
+}

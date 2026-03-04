@@ -258,7 +258,7 @@ export default function UserFormPage() {
             {loading ? t("userForm.saving") : t("userForm.saveUser")}
           </button>
           <Link
-            to="/users"
+            to="/app/users"
             className="rounded-xl border border-[#9c4f46]/30 bg-white px-4 py-2.5 text-sm font-semibold"
           >
             {t("userForm.backToList")}
@@ -267,7 +267,7 @@ export default function UserFormPage() {
             <button
               type="button"
               className="rounded-xl border border-[#9c4f46]/30 bg-white px-4 py-2.5 text-sm font-semibold"
-              onClick={() => navigate("/users")}
+              onClick={() => navigate("/app/users")}
             >
               {t("userForm.goToUsers")}
             </button>

@@ -75,7 +75,7 @@ export default function ResetPasswordPage() {
             </button>
 
             <p className="text-sm text-[#2b2220]/70">
-              {t("reset.backTo")} <Link to="/login" className="font-semibold text-[#6f332f]">{t("login.submit")}</Link>
+              {t("reset.backTo")} <Link to="/app/login" className="font-semibold text-[#6f332f]">{t("login.submit")}</Link>
             </p>
           </form>
         </AuthCard>

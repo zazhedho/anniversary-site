@@ -4,9 +4,11 @@ import type { TranslateFn } from "../types";
 type SetupAccessCardProps = {
   t: TranslateFn;
   setupToken: string;
+  tenantSlug: string;
   tokenMissing: boolean;
   fetching: boolean;
   onSetupTokenChange: (value: string) => void;
+  onTenantSlugChange: (value: string) => void;
   onSaveToken: () => void;
   onLoadConfig: () => void;
 };
@@ -14,9 +16,11 @@ type SetupAccessCardProps = {
 export default function SetupAccessCard({
   t,
   setupToken,
+  tenantSlug,
   tokenMissing,
   fetching,
   onSetupTokenChange,
+  onTenantSlugChange,
   onSaveToken,
   onLoadConfig,
 }: SetupAccessCardProps) {
@@ -26,7 +30,7 @@ export default function SetupAccessCard({
         <h2 className="text-sm font-semibold">{t("setup.sectionAccess")}</h2>
         <p className="text-xs text-[#2b2220]/70">{t("setup.accessHint")}</p>
       </div>
-      <div className="grid gap-3 md:grid-cols-[1fr_auto_auto] md:items-end">
+      <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto_auto] md:items-end">
         <label className="block">
           <span className="mb-1 block text-sm font-semibold">{t("setup.tokenLabel")}</span>
           <PasswordInput
@@ -34,6 +38,16 @@ export default function SetupAccessCard({
             onChange={(event) => onSetupTokenChange(event.target.value)}
             className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#9c4f46]"
             placeholder={t("setup.tokenPlaceholder")}
+          />
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-sm font-semibold">{t("setup.tenantSlugLabel")}</span>
+          <input
+            type="text"
+            value={tenantSlug}
+            onChange={(event) => onTenantSlugChange(event.target.value)}
+            className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#9c4f46]"
+            placeholder={t("setup.tenantSlugPlaceholder")}
           />
         </label>
         <button

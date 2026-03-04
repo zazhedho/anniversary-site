@@ -16,6 +16,7 @@ import SetupMomentsSection from "./setup/sections/SetupMomentsSection";
 import SetupSaveSection from "./setup/sections/SetupSaveSection";
 import SetupStorySection from "./setup/sections/SetupStorySection";
 import SetupTimelineSection from "./setup/sections/SetupTimelineSection";
+import { normalizeTenantSlug } from "../../utils/tenantSlug";
 import type {
   EditLanguage,
   MemoryFormItem,
@@ -27,12 +28,14 @@ import type {
 import { EMPTY_SETUP_FORM } from "./setup/types";
 
 const SETUP_TOKEN_KEY = "anniv_setup_token";
+const SETUP_TENANT_SLUG_KEY = "anniv_setup_tenant_slug";
 
 export default function SetupAnniversaryPage() {
   const { t, language } = useLanguage();
   const { notifyError, notifySuccess } = useNotification();
 
   const [setupToken, setSetupToken] = useState("");
+  const [tenantSlug, setTenantSlug] = useState("default");
   const [editLanguage, setEditLanguage] = useState<EditLanguage>(language);
   const [form, setForm] = useState<SetupForm>(EMPTY_SETUP_FORM);
   const [advancedJson, setAdvancedJson] = useState("{}");
@@ -50,9 +53,11 @@ export default function SetupAnniversaryPage() {
 
   useEffect(() => {
     const savedToken = localStorage.getItem(SETUP_TOKEN_KEY) || "";
+    const savedTenantSlug = normalizeTenantSlug(localStorage.getItem(SETUP_TENANT_SLUG_KEY) || "") || "default";
     if (savedToken) {
       setSetupToken(savedToken);
     }
+    setTenantSlug(savedTenantSlug);
   }, []);
 
   useEffect(() => {
@@ -271,6 +276,7 @@ export default function SetupAnniversaryPage() {
   }
   function saveToken() {
     localStorage.setItem(SETUP_TOKEN_KEY, setupToken.trim());
+    localStorage.setItem(SETUP_TENANT_SLUG_KEY, normalizeTenantSlug(tenantSlug) || "default");
     const text = t("setup.tokenSaved");
     setMessage(text);
     setError("");
@@ -282,7 +288,7 @@ export default function SetupAnniversaryPage() {
     setFetching(true);
 
     try {
-      const config = await getSetupConfig(setupToken);
+      const config = await getSetupConfig(setupToken, normalizeTenantSlug(tenantSlug) || "default");
       const normalized = normalizeConfig(config);
       setForm(normalized);
       const text = t("setup.configLoaded");
@@ -304,7 +310,7 @@ export default function SetupAnniversaryPage() {
     setSaving(true);
 
     try {
-      await updateSetupConfig(setupToken, toPayload(form));
+      await updateSetupConfig(setupToken, toPayload(form), normalizeTenantSlug(tenantSlug) || "default");
       const text = t("setup.configSaved");
       setMessage(text);
       notifySuccess(text);
@@ -325,7 +331,7 @@ export default function SetupAnniversaryPage() {
 
     setUploadingPhotoIndex(index);
     try {
-      const result = await uploadSetupMedia(setupToken, file, "photo");
+      const result = await uploadSetupMedia(setupToken, file, "photo", normalizeTenantSlug(tenantSlug) || "default");
       setGalleryPhotoField(index, "image_url", result.url);
       notifySuccess(t("setup.uploadSuccess"));
     } catch (err) {
@@ -343,7 +349,7 @@ export default function SetupAnniversaryPage() {
 
     setUploadingVideoIndex(index);
     try {
-      const result = await uploadSetupMedia(setupToken, file, "video");
+      const result = await uploadSetupMedia(setupToken, file, "video", normalizeTenantSlug(tenantSlug) || "default");
       setGalleryVideoField(index, "video_url", result.url);
       notifySuccess(t("setup.uploadSuccess"));
     } catch (err) {
@@ -361,7 +367,7 @@ export default function SetupAnniversaryPage() {
 
     setUploadingPosterIndex(index);
     try {
-      const result = await uploadSetupMedia(setupToken, file, "poster");
+      const result = await uploadSetupMedia(setupToken, file, "poster", normalizeTenantSlug(tenantSlug) || "default");
       setGalleryVideoField(index, "poster_url", result.url);
       notifySuccess(t("setup.uploadSuccess"));
     } catch (err) {
@@ -379,7 +385,7 @@ export default function SetupAnniversaryPage() {
 
     setUploadingVoice(true);
     try {
-      const result = await uploadSetupMedia(setupToken, file, "audio");
+      const result = await uploadSetupMedia(setupToken, file, "audio", normalizeTenantSlug(tenantSlug) || "default");
       setForm((prev) => ({ ...prev, voice_note_url: result.url }));
       notifySuccess(t("setup.uploadSuccess"));
     } catch (err) {
@@ -397,7 +403,7 @@ export default function SetupAnniversaryPage() {
 
     setUploadingMusic(true);
     try {
-      const result = await uploadSetupMedia(setupToken, file, "audio");
+      const result = await uploadSetupMedia(setupToken, file, "audio", normalizeTenantSlug(tenantSlug) || "default");
       setForm((prev) => ({ ...prev, music_url: result.url }));
       notifySuccess(t("setup.uploadSuccess"));
     } catch (err) {
@@ -424,9 +430,11 @@ export default function SetupAnniversaryPage() {
       <SetupAccessCard
         t={t}
         setupToken={setupToken}
+        tenantSlug={tenantSlug}
         tokenMissing={tokenMissing}
         fetching={fetching}
         onSetupTokenChange={setSetupToken}
+        onTenantSlugChange={(value) => setTenantSlug(normalizeTenantSlug(value))}
         onSaveToken={saveToken}
         onLoadConfig={loadConfig}
       />

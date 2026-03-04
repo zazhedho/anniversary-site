@@ -15,7 +15,7 @@ export default function NotFoundPage() {
           </div>
           <p className="font-display text-7xl text-[#9c4f46]">404</p>
           <p className="text-sm text-[#2b2220]/70">{t("system.notFound")}</p>
-          <Link to="/dashboard" className="mt-4 inline-block rounded-full bg-[#9c4f46] px-4 py-2 text-sm font-semibold text-white">
+          <Link to="/app/dashboard" className="mt-4 inline-block rounded-full bg-[#9c4f46] px-4 py-2 text-sm font-semibold text-white">
             {t("system.backDashboard")}
           </Link>
         </div>

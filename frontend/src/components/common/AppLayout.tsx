@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LocaleContext";
+import { normalizeTenantSlug } from "../../utils/tenantSlug";
 import LanguageSwitcher from "./LanguageSwitcher";
 import SiteFooter from "./SiteFooter";
 
@@ -25,11 +26,13 @@ export default function AppLayout() {
     { resource: "profile", action: "view" },
     { resource: "users", action: "list" },
   ]);
-  const homePath = canViewDashboard ? "/dashboard" : canOpenProfilePage ? "/profile" : "/anniversary";
+  const defaultPublicSlug = normalizeTenantSlug(import.meta.env.VITE_DEFAULT_PUBLIC_TENANT || "default") || "default";
+  const defaultPublicPath = `/${defaultPublicSlug}`;
+  const homePath = canViewDashboard ? "/app/dashboard" : canOpenProfilePage ? "/app/profile" : defaultPublicPath;
 
   async function onLogout() {
     await logoutUser();
-    navigate("/login", { replace: true });
+    navigate("/app/login", { replace: true });
   }
 
   useEffect(() => {
@@ -71,37 +74,37 @@ export default function AppLayout() {
             </Link>
             <nav className="hidden flex-wrap items-center justify-end gap-2 text-sm md:flex">
               {canViewDashboard ? (
-                <NavLink to="/dashboard" className={desktopNavItemClass}>
+                <NavLink to="/app/dashboard" className={desktopNavItemClass}>
                   {t("nav.dashboard")}
                 </NavLink>
               ) : null}
               {canListUsers ? (
-                <NavLink to="/users" className={desktopNavItemClass}>
+                <NavLink to="/app/users" className={desktopNavItemClass}>
                   {t("nav.users")}
                 </NavLink>
               ) : null}
               {canListRoles ? (
-                <NavLink to="/roles" className={desktopNavItemClass}>
+                <NavLink to="/app/roles" className={desktopNavItemClass}>
                   {t("nav.roles")}
                 </NavLink>
               ) : null}
               {canListMenus ? (
-                <NavLink to="/menus" className={desktopNavItemClass}>
+                <NavLink to="/app/menus" className={desktopNavItemClass}>
                   {t("nav.menus")}
                 </NavLink>
               ) : null}
               {canSetupAnniversary ? (
-                <NavLink to="/setup/anniversary" className={desktopNavItemClass}>
+                <NavLink to="/app/setup/anniversary" className={desktopNavItemClass}>
                   {t("nav.setup")}
                 </NavLink>
               ) : null}
               {canViewPublic ? (
-                <NavLink to="/anniversary" className={desktopNavItemClass}>
+                <NavLink to={defaultPublicPath} className={desktopNavItemClass}>
                   {t("nav.public")}
                 </NavLink>
               ) : null}
               {canOpenProfilePage ? (
-                <NavLink to="/profile" className={desktopNavItemClass}>
+                <NavLink to="/app/profile" className={desktopNavItemClass}>
                   {t("nav.profile")}
                 </NavLink>
               ) : null}
@@ -156,37 +159,37 @@ export default function AppLayout() {
 
           <nav className="grid gap-2 pb-1 text-sm">
             {canViewDashboard ? (
-              <NavLink to="/dashboard" className={mobileNavItemClass}>
+              <NavLink to="/app/dashboard" className={mobileNavItemClass}>
                 {t("nav.dashboard")}
               </NavLink>
             ) : null}
             {canListUsers ? (
-              <NavLink to="/users" className={mobileNavItemClass}>
+              <NavLink to="/app/users" className={mobileNavItemClass}>
                 {t("nav.users")}
               </NavLink>
             ) : null}
             {canListRoles ? (
-              <NavLink to="/roles" className={mobileNavItemClass}>
+              <NavLink to="/app/roles" className={mobileNavItemClass}>
                 {t("nav.roles")}
               </NavLink>
             ) : null}
             {canListMenus ? (
-              <NavLink to="/menus" className={mobileNavItemClass}>
+              <NavLink to="/app/menus" className={mobileNavItemClass}>
                 {t("nav.menus")}
               </NavLink>
             ) : null}
             {canSetupAnniversary ? (
-              <NavLink to="/setup/anniversary" className={mobileNavItemClass}>
+              <NavLink to="/app/setup/anniversary" className={mobileNavItemClass}>
                 {t("nav.setup")}
               </NavLink>
             ) : null}
             {canViewPublic ? (
-              <NavLink to="/anniversary" className={mobileNavItemClass}>
+              <NavLink to={defaultPublicPath} className={mobileNavItemClass}>
                 {t("nav.public")}
               </NavLink>
             ) : null}
             {canOpenProfilePage ? (
-              <NavLink to="/profile" className={mobileNavItemClass}>
+              <NavLink to="/app/profile" className={mobileNavItemClass}>
                 {t("nav.profile")}
               </NavLink>
             ) : null}

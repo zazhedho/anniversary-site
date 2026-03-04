@@ -3,7 +3,10 @@ package serviceanniversary
 import (
 	"anniversary-site/internal/dto"
 	interfaceanniversary "anniversary-site/internal/interfaces/anniversary"
+	"errors"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type Service struct {
@@ -22,9 +25,12 @@ func NewAnniversaryService(repo interfaceanniversary.RepoAnniversaryInterface, l
 	}
 }
 
-func (s *Service) GetPublicPayload(language string) (dto.AnniversaryPublicPayload, error) {
-	cfg, err := s.Repo.Load()
+func (s *Service) GetPublicPayload(tenantSlug, language string) (dto.AnniversaryPublicPayload, error) {
+	cfg, err := s.Repo.LoadByTenantSlug(tenantSlug)
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return dto.AnniversaryPublicPayload{}, newServiceError(ErrTenantNotFound, err)
+		}
 		return dto.AnniversaryPublicPayload{}, newServiceError(ErrLoadConfig, err)
 	}
 
@@ -36,8 +42,8 @@ func (s *Service) GetPublicPayload(language string) (dto.AnniversaryPublicPayloa
 	return payload, nil
 }
 
-func (s *Service) GetPublicMoments(language string) ([]dto.AnniversaryMomentView, error) {
-	payload, err := s.GetPublicPayload(language)
+func (s *Service) GetPublicMoments(tenantSlug, language string) ([]dto.AnniversaryMomentView, error) {
+	payload, err := s.GetPublicPayload(tenantSlug, language)
 	if err != nil {
 		return nil, err
 	}
@@ -45,18 +51,24 @@ func (s *Service) GetPublicMoments(language string) ([]dto.AnniversaryMomentView
 	return payload.Moments, nil
 }
 
-func (s *Service) GetSetupConfig() (dto.AnniversarySiteConfig, error) {
-	cfg, err := s.Repo.Load()
+func (s *Service) GetSetupConfig(tenantSlug string) (dto.AnniversarySiteConfig, error) {
+	cfg, err := s.Repo.LoadByTenantSlug(tenantSlug)
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return dto.AnniversarySiteConfig{}, newServiceError(ErrTenantNotFound, err)
+		}
 		return dto.AnniversarySiteConfig{}, newServiceError(ErrLoadConfig, err)
 	}
 
 	return cfg, nil
 }
 
-func (s *Service) UpdateConfig(req dto.AnniversarySiteConfig) (dto.AnniversaryPublicPayload, error) {
-	saved, err := s.Repo.Save(req)
+func (s *Service) UpdateConfig(tenantSlug string, req dto.AnniversarySiteConfig) (dto.AnniversaryPublicPayload, error) {
+	saved, err := s.Repo.SaveByTenantSlug(tenantSlug, req)
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return dto.AnniversaryPublicPayload{}, newServiceError(ErrTenantNotFound, err)
+		}
 		return dto.AnniversaryPublicPayload{}, newServiceError(ErrSaveConfig, err)
 	}
 
@@ -68,39 +80,54 @@ func (s *Service) UpdateConfig(req dto.AnniversarySiteConfig) (dto.AnniversaryPu
 	return payload, nil
 }
 
-func (s *Service) ReplaceMoments(req []dto.AnniversaryMoment) ([]dto.AnniversaryMoment, error) {
-	cfg, err := s.Repo.Load()
+func (s *Service) ReplaceMoments(tenantSlug string, req []dto.AnniversaryMoment) ([]dto.AnniversaryMoment, error) {
+	cfg, err := s.Repo.LoadByTenantSlug(tenantSlug)
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, newServiceError(ErrTenantNotFound, err)
+		}
 		return nil, newServiceError(ErrLoadConfig, err)
 	}
 
 	cfg.Moments = req
-	saved, err := s.Repo.Save(cfg)
+	saved, err := s.Repo.SaveByTenantSlug(tenantSlug, cfg)
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, newServiceError(ErrTenantNotFound, err)
+		}
 		return nil, newServiceError(ErrSaveConfig, err)
 	}
 
 	return saved.Moments, nil
 }
 
-func (s *Service) AddMoment(req dto.AnniversaryMoment) ([]dto.AnniversaryMoment, error) {
-	cfg, err := s.Repo.Load()
+func (s *Service) AddMoment(tenantSlug string, req dto.AnniversaryMoment) ([]dto.AnniversaryMoment, error) {
+	cfg, err := s.Repo.LoadByTenantSlug(tenantSlug)
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, newServiceError(ErrTenantNotFound, err)
+		}
 		return nil, newServiceError(ErrLoadConfig, err)
 	}
 
 	cfg.Moments = append(cfg.Moments, req)
-	saved, err := s.Repo.Save(cfg)
+	saved, err := s.Repo.SaveByTenantSlug(tenantSlug, cfg)
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, newServiceError(ErrTenantNotFound, err)
+		}
 		return nil, newServiceError(ErrSaveConfig, err)
 	}
 
 	return saved.Moments, nil
 }
 
-func (s *Service) DeleteMoment(year int) ([]dto.AnniversaryMoment, error) {
-	cfg, err := s.Repo.Load()
+func (s *Service) DeleteMoment(tenantSlug string, year int) ([]dto.AnniversaryMoment, error) {
+	cfg, err := s.Repo.LoadByTenantSlug(tenantSlug)
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, newServiceError(ErrTenantNotFound, err)
+		}
 		return nil, newServiceError(ErrLoadConfig, err)
 	}
 
@@ -120,8 +147,11 @@ func (s *Service) DeleteMoment(year int) ([]dto.AnniversaryMoment, error) {
 	}
 
 	cfg.Moments = nextMoments
-	saved, err := s.Repo.Save(cfg)
+	saved, err := s.Repo.SaveByTenantSlug(tenantSlug, cfg)
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, newServiceError(ErrTenantNotFound, err)
+		}
 		return nil, newServiceError(ErrSaveConfig, err)
 	}
 

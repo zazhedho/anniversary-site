@@ -2,9 +2,11 @@ import { Link } from "react-router-dom";
 import LanguageSwitcher from "../../components/common/LanguageSwitcher";
 import SiteFooter from "../../components/common/SiteFooter";
 import { useLanguage } from "../../contexts/LocaleContext";
+import { normalizeTenantSlug } from "../../utils/tenantSlug";
 
 export default function UnauthorizedPage() {
   const { t } = useLanguage();
+  const defaultPublicPath = `/${normalizeTenantSlug(import.meta.env.VITE_DEFAULT_PUBLIC_TENANT || "default") || "default"}`;
 
   return (
     <main className="flex min-h-screen flex-col bg-[#fff8f1] px-5 py-8">
@@ -15,7 +17,7 @@ export default function UnauthorizedPage() {
           </div>
           <p className="font-display text-7xl text-[#9c4f46]">403</p>
           <p className="text-sm text-[#2b2220]/70">{t("system.unauthorized")}</p>
-          <Link to="/anniversary" className="mt-4 inline-block rounded-full bg-[#9c4f46] px-4 py-2 text-sm font-semibold text-white">
+          <Link to={defaultPublicPath} className="mt-4 inline-block rounded-full bg-[#9c4f46] px-4 py-2 text-sm font-semibold text-white">
             {t("system.backAnniversary")}
           </Link>
         </div>

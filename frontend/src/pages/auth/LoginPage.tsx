@@ -6,6 +6,7 @@ import SiteFooter from "../../components/common/SiteFooter";
 import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LocaleContext";
 import { useNotification } from "../../contexts/NotificationContext";
+import { normalizeTenantSlug } from "../../utils/tenantSlug";
 
 export default function LoginPage() {
   const { loginUser } = useAuth();
@@ -17,6 +18,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const defaultPublicPath = `/${normalizeTenantSlug(import.meta.env.VITE_DEFAULT_PUBLIC_TENANT || "default") || "default"}`;
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -25,7 +27,7 @@ export default function LoginPage() {
 
     try {
       await loginUser({ email, password });
-      const destination = (location.state as { from?: string } | undefined)?.from || "/dashboard";
+      const destination = (location.state as { from?: string } | undefined)?.from || "/app/dashboard";
       navigate(destination, { replace: true });
     } catch (err) {
       const text = err instanceof Error ? err.message : t("login.error");
@@ -84,16 +86,16 @@ export default function LoginPage() {
 
             <div className="space-y-1 text-sm text-[#2b2220]/70">
               <p>
-                {t("login.noAccount")} <Link to="/register" className="font-semibold text-[#6f332f]">{t("login.register")}</Link>
+                {t("login.noAccount")} <Link to="/app/register" className="font-semibold text-[#6f332f]">{t("login.register")}</Link>
               </p>
               <p>
-                <Link to="/forgot-password" className="font-semibold text-[#6f332f]">{t("login.forgotPrompt")}</Link>
+                <Link to="/app/forgot-password" className="font-semibold text-[#6f332f]">{t("login.forgotPrompt")}</Link>
               </p>
             </div>
 
             <div className="pt-1 flex justify-end">
               <Link
-                to="/anniversary"
+                to={defaultPublicPath}
                 className="inline-flex items-center rounded-full border border-[#9c4f46]/30 bg-white px-3 py-1.5 text-sm font-semibold text-[#6f332f] transition hover:-translate-y-0.5 hover:bg-[#fff6f0]"
               >
                 {t("login.viewPublic")}

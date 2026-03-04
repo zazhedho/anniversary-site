@@ -3,6 +3,7 @@ package utils
 const (
 	CtxKeyId       = "CTX_ID"
 	CtxKeyAuthData = "auth_data"
+	CtxKeyTenant   = "tenant_slug"
 )
 
 const (

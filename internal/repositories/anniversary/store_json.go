@@ -35,7 +35,7 @@ func NewAnniversaryRepo(path string, loc *time.Location) interfaceanniversary.Re
 	}
 }
 
-func (r *repo) Load() (dto.AnniversarySiteConfig, error) {
+func (r *repo) LoadByTenantSlug(_ string) (dto.AnniversarySiteConfig, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -71,7 +71,7 @@ func (r *repo) Load() (dto.AnniversarySiteConfig, error) {
 	return cfg, nil
 }
 
-func (r *repo) Save(cfg dto.AnniversarySiteConfig) (dto.AnniversarySiteConfig, error) {
+func (r *repo) SaveByTenantSlug(_ string, cfg dto.AnniversarySiteConfig) (dto.AnniversarySiteConfig, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 

@@ -11,6 +11,7 @@ Panduan ini dibuat supaya saat context percakapan terpotong (compact), engineer/
 5. Role boleh fleksibel, tetapi evaluasi akses UI/API tetap berbasis permission.
 6. Public page harus responsif mobile.
 7. Konten anniversary kini mendukung bilingual `id` dan `en`.
+8. Multi-tenant path-first aktif: public route utama memakai slug `/:slug`.
 
 ## 2) Peta Struktur Repo
 
@@ -53,16 +54,18 @@ Referensi:
 ## 4) Endpoint Inti Anniversary
 
 Public:
-- `GET /api/public/anniversary?lang=id|en`
-- `GET /api/public/anniversary/moments?lang=id|en`
+- `GET /api/public/tenants/:slug/anniversary?lang=id|en`
+- `GET /api/public/tenants/:slug/anniversary/moments?lang=id|en`
+- kompatibilitas: `GET /api/public/anniversary?tenant=:slug&lang=id|en`
 
 Setup (token protected):
-- `GET /api/setup/anniversary`
-- `PUT /api/setup/anniversary`
-- `PUT /api/setup/anniversary/moments`
-- `POST /api/setup/anniversary/moments`
-- `DELETE /api/setup/anniversary/moments/:year`
-- `POST /api/setup/anniversary/media/upload` (multipart upload foto/video/poster)
+- `GET /api/setup/tenants/:slug/anniversary`
+- `PUT /api/setup/tenants/:slug/anniversary`
+- `PUT /api/setup/tenants/:slug/anniversary/moments`
+- `POST /api/setup/tenants/:slug/anniversary/moments`
+- `DELETE /api/setup/tenants/:slug/anniversary/moments/:year`
+- `POST /api/setup/tenants/:slug/anniversary/media/upload` (multipart upload foto/video/poster/audio)
+- kompatibilitas: endpoint lama `/api/setup/anniversary*` tetap bisa dipakai dengan query `tenant=:slug`
 
 Auth setup token:
 - Header `X-Setup-Token: <token>`
@@ -80,6 +83,7 @@ Referensi:
 - `internal/router/router.go`
 - `internal/handlers/http/anniversary/handler.go`
 - `middlewares/setup_token.go`
+- `middlewares/tenant_scope.go`
 
 ## 5) Kontrak Data Bilingual
 
@@ -134,13 +138,14 @@ Referensi:
 
 ## 6) Alur Anniversary di Backend
 
-1. Handler membaca `lang` query (`id` default, `en` jika valid).
-2. Service load config JSON dari repository.
-3. Repository sanitize config:
+1. `TenantScopeMiddleware` resolve slug dari path/query/header/host lalu simpan di context (`tenant_slug`).
+2. Handler membaca `lang` query (`id` default, `en` jika valid).
+3. Service load config by tenant slug dari repository.
+4. Repository sanitize config:
    - fallback default,
    - validasi tanggal,
    - sort annual moments by year.
-4. Service membentuk public payload:
+5. Service membentuk public payload:
    - resolve localized text sesuai bahasa,
    - hitung next anniversary + countdown (hari/jam/menit/detik),
    - progressive reveal momen: momen tahun di atas fase saat ini disembunyikan.
@@ -155,16 +160,17 @@ Referensi:
 ## 7) Alur Frontend
 
 Routing utama:
-- Public cover: `/anniversary` (single CTA ke game)
-- Public interactive: `/anniversary/game`
-- Public showcase: `/anniversary/showcase` (menampilkan `AnniversaryShowcase` dari DB/JSON)
-- Auth: `/login`, `/register`, `/forgot-password`, `/reset-password`
-- Protected: `/dashboard`, `/users`, `/roles`, `/menus`, `/profile`, `/setup/anniversary`
-- `change-password` digabung ke `/profile`; path `/change-password` dipertahankan sebagai redirect kompatibilitas.
+- Public cover: `/:slug` (path utama) + kompatibilitas `/anniversary`
+- Public interactive: `/:slug/game` + kompatibilitas `/anniversary/game`
+- Public showcase: `/:slug/showcase` + kompatibilitas `/anniversary/showcase`
+- Auth utama: `/app/login`, `/app/register`, `/app/forgot-password`, `/app/reset-password`
+- Auth kompatibilitas: `/login`, `/register`, `/forgot-password`, `/reset-password` (redirect)
+- Protected utama: `/app/dashboard`, `/app/users`, `/app/roles`, `/app/menus`, `/app/profile`, `/app/setup/anniversary`
+- `change-password` digabung ke `/app/profile`; path lama `/change-password` dipertahankan sebagai redirect kompatibilitas.
 - Protected form routes:
-  - `/users/new`, `/users/:id/edit`
-  - `/roles/new`, `/roles/:id/edit`
-  - `/menus/new`, `/menus/:id/edit`
+  - `/app/users/new`, `/app/users/:id/edit`
+  - `/app/roles/new`, `/app/roles/:id/edit`
+  - `/app/menus/new`, `/app/menus/:id/edit`
 
 Permission guard:
 - Route-level: `ProtectedRoute` + `PermissionRoute`
@@ -186,7 +192,7 @@ Public interactive flow:
   - chapter `unlock`: buka kartu kenangan (minimum 3 kartu) sebelum bisa lanjut,
   - chapter `photos`: auto-slide + bisa pilih foto manual,
   - chapter `videos`: hanya muncul jika data video tersedia.
-- Pada step terakhir, tombol `Finish` menuju `/anniversary/showcase` (public, tanpa login).
+- Pada step terakhir, tombol `Finish` menuju `/:slug/showcase` (public, tanpa login).
 - Tidak ada progress indicator di UI flow game (dibuat misterius).
 - Komponen chapter dipisah agar file utama tetap <500 baris:
   - `JourneyChapter.tsx` untuk renderer chapter/stage,
@@ -198,6 +204,7 @@ Public interactive flow:
 Setup Anniversary UI:
 - Halaman `/setup/anniversary` memakai alur non-teknis: simpan token, load data, edit form per section, lalu save.
 - Token setup disimpan lokal di browser (`anniv_setup_token`).
+- Tenant slug setup disimpan lokal di browser (`anniv_setup_tenant_slug`) untuk memilih tenant mana yang diedit.
 - Editor JSON tetap ada sebagai `advanced mode` (opsional), bukan alur utama user.
 - Section gallery sudah tersedia untuk input link foto/video + upload langsung ke backend media (URL terisi otomatis setelah upload sukses).
 - Section map points tersedia untuk input titik tempat penting + catatan singkat (bilingual).

@@ -8,8 +8,8 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-supported-336791?logo=postgresql&logoColor=white)](#)
 
 Anniversary website with:
-- public romantic experience (`/anniversary`, `/anniversary/game`, `/anniversary/showcase`)
-- setup CMS-like flow for non-technical users (`/setup/anniversary`)
+- public romantic experience (`/{slug}`, `/{slug}/game`, `/{slug}/showcase`)
+- setup CMS-like flow for non-technical users (`/app/setup/anniversary`)
 - optional admin RBAC modules (Users, Roles, Menus, Profile)
 
 Backend and frontend run independently. Frontend only consumes backend APIs.
@@ -160,6 +160,7 @@ Important keys:
 | `ENABLE_ADMIN_API` | `false` / `true` | enable or disable admin RBAC routes |
 | `ANNIVERSARY_STORE` | `json` / `db` | config storage mode |
 | `ANNIVERSARY_DATA_FILE` | `./data/anniversary.json` | JSON storage path |
+| `TENANT_DEFAULT_SLUG` | `default` | fallback tenant slug when no slug/header/query is provided |
 | `PUBLIC_BASE_URL` | `https://anniversary.example.com` | optional base URL shown in startup public endpoint log |
 | `SETUP_API_ENABLED` | `true` | setup API switch |
 | `SETUP_TOKEN` | `change-this-setup-token` | setup token |
@@ -176,6 +177,7 @@ DB/Redis values are required when:
 | Key | Example | Description |
 |---|---|---|
 | `VITE_API_BASE_URL` | `http://localhost:8080` | backend base URL |
+| `VITE_DEFAULT_PUBLIC_TENANT` | `default` | fallback tenant slug for public pages |
 
 ## API Overview
 
@@ -183,8 +185,10 @@ DB/Redis values are required when:
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `GET` | `/api/public/anniversary?lang=id|en` | full public payload |
-| `GET` | `/api/public/anniversary/moments?lang=id|en` | yearly moments only |
+| `GET` | `/api/public/tenants/:slug/anniversary?lang=id|en` | full public payload for specific tenant |
+| `GET` | `/api/public/tenants/:slug/anniversary/moments?lang=id|en` | yearly moments for specific tenant |
+| `GET` | `/api/public/anniversary?tenant=:slug&lang=id|en` | compatibility endpoint (tenant via query/header) |
+| `GET` | `/api/public/anniversary/moments?tenant=:slug&lang=id|en` | compatibility endpoint (tenant via query/header) |
 
 ### Setup APIs (token protected)
 
@@ -194,12 +198,14 @@ Auth header:
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `GET` | `/api/setup/anniversary` | get setup config |
-| `PUT` | `/api/setup/anniversary` | update setup config |
-| `PUT` | `/api/setup/anniversary/moments` | replace moments |
-| `POST` | `/api/setup/anniversary/moments` | add moment |
-| `DELETE` | `/api/setup/anniversary/moments/:year` | delete moment |
-| `POST` | `/api/setup/anniversary/media/upload` | upload media |
+| `GET` | `/api/setup/tenants/:slug/anniversary` | get setup config by tenant |
+| `PUT` | `/api/setup/tenants/:slug/anniversary` | update setup config by tenant |
+| `PUT` | `/api/setup/tenants/:slug/anniversary/moments` | replace moments by tenant |
+| `POST` | `/api/setup/tenants/:slug/anniversary/moments` | add moment by tenant |
+| `DELETE` | `/api/setup/tenants/:slug/anniversary/moments/:year` | delete moment by tenant |
+| `POST` | `/api/setup/tenants/:slug/anniversary/media/upload` | upload media by tenant |
+| `GET` | `/api/setup/anniversary?tenant=:slug` | compatibility endpoint |
+| `PUT` | `/api/setup/anniversary?tenant=:slug` | compatibility endpoint |
 
 Upload payload:
 - `file`: multipart file
@@ -293,4 +299,4 @@ Check all of these:
 ## Additional Docs
 
 - [Compact Context Guide](docs/COMPACT_CONTEXT_GUIDE.md)
-- [Multi Tenant Subdomain Plan](docs/MULTI_TENANT_SUBDOMAIN_PLAN.md)
+- [Multi Tenant URL Plan (Path-First)](docs/MULTI_TENANT_PLAN.md)
