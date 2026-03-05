@@ -50,8 +50,15 @@ func (r *dbRepo) LoadByTenantSlug(tenantSlug string) (dto.AnniversarySiteConfig,
 	cfgModel := domainanniversary.AnniversarySiteConfig{}
 	err = r.db.Where("tenant_id = ? AND edition_year = ?", tenantID, defaultEditionYear).First(&cfgModel).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		defaultCfg := defaultConfig()
-		normalized, sanitizeErr := sanitizeConfig(defaultCfg, r.loc)
+		baseCfg := defaultConfig()
+		templateCfg, templateErr := r.loadDefaultTemplateConfig()
+		if templateErr == nil {
+			baseCfg = templateCfg
+		} else if !errors.Is(templateErr, gorm.ErrRecordNotFound) {
+			return dto.AnniversarySiteConfig{}, templateErr
+		}
+
+		normalized, sanitizeErr := sanitizeConfig(baseCfg, r.loc)
 		if sanitizeErr != nil {
 			return dto.AnniversarySiteConfig{}, sanitizeErr
 		}
@@ -83,6 +90,20 @@ func (r *dbRepo) LoadByTenantSlug(tenantSlug string) (dto.AnniversarySiteConfig,
 	}
 
 	return normalized, nil
+}
+
+func (r *dbRepo) loadDefaultTemplateConfig() (dto.AnniversarySiteConfig, error) {
+	cfgModel := domainanniversary.AnniversarySiteConfig{}
+	if err := r.db.Where("tenant_id = ? AND edition_year = ?", defaultTenantID, defaultEditionYear).First(&cfgModel).Error; err != nil {
+		return dto.AnniversarySiteConfig{}, err
+	}
+
+	cfg := dto.AnniversarySiteConfig{}
+	if err := json.Unmarshal(cfgModel.Payload, &cfg); err != nil {
+		return dto.AnniversarySiteConfig{}, err
+	}
+
+	return cfg, nil
 }
 
 func (r *dbRepo) SaveByTenantSlug(tenantSlug string, cfg dto.AnniversarySiteConfig) (dto.AnniversarySiteConfig, error) {

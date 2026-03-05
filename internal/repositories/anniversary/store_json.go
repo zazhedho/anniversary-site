@@ -307,7 +307,10 @@ func defaultConfig() dto.AnniversarySiteConfig {
 			ID: "Mulai Perjalanan",
 			EN: "Start The Journey",
 		}.Normalize(),
-		HeroTitle: dto.NewLocalizedText("My another Z, I'm YourZ"),
+		HeroTitle: dto.LocalizedText{
+			ID: "Selamat Anniversary Pertama, My Another Z",
+			EN: "Happy 1st Anniversary, My Another Z",
+		}.Normalize(),
 		HeroSubtext: dto.LocalizedText{
 			ID: "First anniversary ini jadi bab pertama perjalanan resmi kita sebagai suami istri. Dari 27 April 2025 sampai hari ini, setiap langkah kita selalu terasa lebih berarti karena dijalani berdua.",
 			EN: "This first anniversary is the first chapter of our official journey as husband and wife. Since April 27, 2025, every step has felt more meaningful because we walk it together.",
@@ -320,7 +323,7 @@ func defaultConfig() dto.AnniversarySiteConfig {
 			ID: "Dibuat oleh Zaidus Zhuhur untuk Zaqia Khana Meriza, di anniversary pertama kita.",
 			EN: "Made by Zaidus Zhuhur for Zaqia Khana Meriza, on our first anniversary.",
 		}.Normalize(),
-		MusicURL:     "/our-song.mp3",
+		MusicURL:     "https://image2url.com/r2/default/audio/1772528386754-8843de09-d7af-4507-819e-25b5e428694c.mp3",
 		VoiceNoteURL: "",
 		Timeline: []dto.AnniversaryTimelineItem{
 			{
@@ -404,27 +407,36 @@ func defaultConfig() dto.AnniversarySiteConfig {
 		GalleryVideos: []dto.AnniversaryGalleryVideo{},
 		Moments: []dto.AnniversaryMoment{
 			{
-				Year:  1,
-				Title: dto.NewLocalizedText("First Anniversary"),
-				Date:  "2026-04-27",
+				Year: 1,
+				Title: dto.LocalizedText{
+					ID: "Anniversary Pertama",
+					EN: "First Anniversary",
+				}.Normalize(),
+				Date: "2026-04-27",
 				Note: dto.LocalizedText{
 					ID: "Satu tahun pertama bersama: My another Z, I'm YourZ.",
 					EN: "Our very first year together: My another Z, I'm YourZ.",
 				}.Normalize(),
 			},
 			{
-				Year:  2,
-				Title: dto.NewLocalizedText("Second Anniversary"),
-				Date:  "2027-04-27",
+				Year: 2,
+				Title: dto.LocalizedText{
+					ID: "Anniversary Kedua",
+					EN: "Second Anniversary",
+				}.Normalize(),
+				Date: "2027-04-27",
 				Note: dto.LocalizedText{
 					ID: "Saatnya menambah cerita baru dan merayakan pertumbuhan kita sebagai tim.",
 					EN: "Time to add new stories and celebrate how we grow as a team.",
 				}.Normalize(),
 			},
 			{
-				Year:  3,
-				Title: dto.NewLocalizedText("Third Anniversary"),
-				Date:  "2028-04-27",
+				Year: 3,
+				Title: dto.LocalizedText{
+					ID: "Anniversary Ketiga",
+					EN: "Third Anniversary",
+				}.Normalize(),
+				Date: "2028-04-27",
 				Note: dto.LocalizedText{
 					ID: "Tetap bertumbuh, tetap saling memilih, dan tetap pulang pada cinta yang sama.",
 					EN: "Keep growing, keep choosing each other, and keep coming home to the same love.",
