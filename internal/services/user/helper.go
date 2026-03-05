@@ -4,11 +4,8 @@ import (
 	domainuser "anniversary-site/internal/domain/user"
 	interfacerole "anniversary-site/internal/interfaces/role"
 	"errors"
-	"fmt"
 	"regexp"
 	"strings"
-
-	"gorm.io/gorm"
 )
 
 func ValidatePasswordStrength(password string) error {
@@ -84,57 +81,4 @@ func sanitizeTenantSlug(value string) string {
 		return ""
 	}
 	return cleaned
-}
-
-func slugCandidateFromNameOrEmail(name, email string) string {
-	emailLocal := strings.TrimSpace(strings.ToLower(email))
-	if at := strings.Index(emailLocal, "@"); at > 0 {
-		emailLocal = emailLocal[:at]
-	}
-
-	base := sanitizeTenantSlug(name)
-	if base == "" {
-		base = sanitizeTenantSlug(emailLocal)
-	}
-	if base == "" {
-		base = "tenant"
-	}
-	return base
-}
-
-func (s *ServiceUser) buildUniqueTenantSlug(name, email, userID string) (string, error) {
-	if s.TenantRepo == nil {
-		return "", errors.New("tenant repository is not initialized")
-	}
-
-	base := slugCandidateFromNameOrEmail(name, email)
-	idSuffix := strings.ToLower(strings.ReplaceAll(strings.TrimSpace(userID), "-", ""))
-	if len(idSuffix) > 8 {
-		idSuffix = idSuffix[:8]
-	}
-	if idSuffix != "" {
-		base = sanitizeTenantSlug(base + "-" + idSuffix)
-	}
-	if base == "" {
-		base = "tenant"
-	}
-
-	candidate := base
-	index := 1
-	for {
-		_, err := s.TenantRepo.GetBySlug(candidate)
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return candidate, nil
-		}
-		if err != nil {
-			return "", err
-		}
-
-		index++
-		next := fmt.Sprintf("%s-%d", base, index)
-		candidate = sanitizeTenantSlug(next)
-		if candidate == "" {
-			return "", errors.New("failed to generate tenant slug")
-		}
-	}
 }
