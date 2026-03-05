@@ -10,6 +10,9 @@ import { register } from "../../services/authService";
 import { normalizeTenantSlug, normalizeTenantSlugInput } from "../../utils/tenantSlug";
 import { isPasswordValid, validatePassword } from "../../utils/passwordValidation";
 
+const ACTIVE_TENANT_STORAGE_KEY = "anniv_active_tenant_slug";
+const SETUP_TENANT_SLUG_KEY = "anniv_setup_tenant_slug";
+
 export default function RegisterPage() {
   const { t } = useLanguage();
   const { notifyError, notifySuccess } = useNotification();
@@ -45,7 +48,12 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      await register({ name, email, phone, password, tenant_slug: normalizeTenantSlug(tenantSlug) });
+      const normalizedTenantSlug = normalizeTenantSlug(tenantSlug);
+      await register({ name, email, phone, password, tenant_slug: normalizedTenantSlug });
+      if (normalizedTenantSlug) {
+        localStorage.setItem(ACTIVE_TENANT_STORAGE_KEY, normalizedTenantSlug);
+        localStorage.setItem(SETUP_TENANT_SLUG_KEY, normalizedTenantSlug);
+      }
       notifySuccess(t("register.success"));
       navigate("/app/login", { replace: true });
     } catch (err) {

@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import type { TranslateFn } from "../types";
 import { setupFieldLimits } from "../fieldLimits";
 import FieldCounter from "../FieldCounter";
@@ -24,7 +25,17 @@ export default function SetupAccessCard({
   onTenantSlugChange,
   onLoadConfig,
 }: SetupAccessCardProps) {
+  const [isOpen, setIsOpen] = useState(false);
   const selectedTenantName = tenantOptions.find((item) => item.slug === tenantSlug)?.name || "";
+  const keyword = tenantSlug.trim().toLowerCase();
+  const filteredOptions = useMemo(
+    () =>
+      tenantOptions.filter((item) => {
+        if (!keyword) return true;
+        return item.slug.toLowerCase().includes(keyword) || item.name.toLowerCase().includes(keyword);
+      }),
+    [tenantOptions, keyword]
+  );
 
   return (
     <article className="rounded-2xl border border-[#9c4f46]/20 bg-white/65 p-4">
@@ -38,15 +49,46 @@ export default function SetupAccessCard({
             <span className="block text-sm font-semibold">{t("setup.tenantSlugLabel")}</span>
             <FieldCounter value={tenantSlug} max={setupFieldLimits.tenantSlug} />
           </div>
-          <input
-            type="text"
-            value={tenantSlug}
-            list="setup-tenant-options"
-            onChange={(event) => onTenantSlugChange(event.target.value)}
-            maxLength={setupFieldLimits.tenantSlug}
-            className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#9c4f46]"
-            placeholder={t("setup.tenantSlugPlaceholder")}
-          />
+          <div className="relative">
+            <input
+              type="text"
+              value={tenantSlug}
+              onFocus={() => setIsOpen(true)}
+              onBlur={() => window.setTimeout(() => setIsOpen(false), 120)}
+              onChange={(event) => {
+                onTenantSlugChange(event.target.value);
+                setIsOpen(true);
+              }}
+              maxLength={setupFieldLimits.tenantSlug}
+              className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#9c4f46]"
+              placeholder={t("setup.tenantSlugPlaceholder")}
+            />
+            {isOpen ? (
+              <div className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-xl border border-[#9c4f46]/20 bg-white p-1 shadow-lg">
+                {filteredOptions.length === 0 ? (
+                  <p className="px-2 py-2 text-xs text-[#2b2220]/60">No tenant found</p>
+                ) : (
+                  filteredOptions.map((tenant) => (
+                    <button
+                      key={tenant.slug}
+                      type="button"
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={() => {
+                        onTenantSlugChange(tenant.slug);
+                        setIsOpen(false);
+                      }}
+                      className={`block w-full rounded-lg px-2 py-2 text-left text-sm transition ${
+                        tenant.slug === tenantSlug ? "bg-[#fff0e6] text-[#6f332f]" : "hover:bg-[#fff6f0]"
+                      }`}
+                    >
+                      <p className="font-semibold">{tenant.name}</p>
+                      <p className="text-xs text-[#2b2220]/60">{tenant.slug}</p>
+                    </button>
+                  ))
+                )}
+              </div>
+            ) : null}
+          </div>
         </label>
         <button
           type="button"
@@ -56,13 +98,6 @@ export default function SetupAccessCard({
         >
           {fetching ? t("setup.loading") : t("setup.loadConfig")}
         </button>
-        <datalist id="setup-tenant-options">
-          {tenantOptions.map((tenant) => (
-            <option key={tenant.slug} value={tenant.slug}>
-              {tenant.name}
-            </option>
-          ))}
-        </datalist>
         {selectedTenantName ? <p className="text-xs text-[#2b2220]/65 md:col-span-2">{selectedTenantName}</p> : null}
       </div>
     </article>

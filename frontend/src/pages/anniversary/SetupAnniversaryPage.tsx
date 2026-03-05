@@ -17,6 +17,7 @@ import SetupMomentsSection from "./setup/sections/SetupMomentsSection";
 import SetupSaveSection from "./setup/sections/SetupSaveSection";
 import SetupStorySection from "./setup/sections/SetupStorySection";
 import SetupTimelineSection from "./setup/sections/SetupTimelineSection";
+import SetupScrollToSaveButton from "./setup/sections/SetupScrollToSaveButton";
 import { normalizeTenantSlug, normalizeTenantSlugInput } from "../../utils/tenantSlug";
 import { setupFieldLimits } from "./setup/fieldLimits";
 import type {
@@ -82,15 +83,19 @@ export default function SetupAnniversaryPage() {
   useEffect(() => {
     const savedTenantSlug = normalizeTenantSlug(localStorage.getItem(SETUP_TENANT_SLUG_KEY) || "");
     const activeSlug = normalizeTenantSlug(activeTenantSlug);
-    const currentSlug = normalizeTenantSlug(tenantSlug);
     const allowedSlugs = tenantOptions.map((tenant) => tenant.slug);
     const fallbackSlug = allowedSlugs[0] || activeSlug || "default";
-    const preferredSlug = savedTenantSlug || activeSlug || fallbackSlug;
-    const nextSlug = currentSlug && allowedSlugs.includes(currentSlug) ? currentSlug : preferredSlug;
-    if (nextSlug && nextSlug !== tenantSlug) {
-      setTenantSlug(nextSlug);
-    }
-  }, [activeTenantSlug, tenantOptions, tenantSlug]);
+    const preferredSlug =
+      (savedTenantSlug && allowedSlugs.includes(savedTenantSlug) && savedTenantSlug) ||
+      (activeSlug && allowedSlugs.includes(activeSlug) && activeSlug) ||
+      fallbackSlug;
+
+    setTenantSlug((previous) => {
+      const currentSlug = normalizeTenantSlug(previous);
+      const nextSlug = currentSlug && allowedSlugs.includes(currentSlug) ? currentSlug : preferredSlug;
+      return nextSlug && nextSlug !== previous ? nextSlug : previous;
+    });
+  }, [activeTenantSlug, tenantOptions]);
 
   useEffect(() => {
     const normalized = normalizeTenantSlug(tenantSlug);
@@ -486,6 +491,13 @@ export default function SetupAnniversaryPage() {
     }
   }
 
+  function scrollToSaveSection() {
+    const saveAnchor = document.getElementById("setup-save-anchor");
+    if (saveAnchor) {
+      saveAnchor.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }
+
   return (
     <section className="space-y-4">
       <SetupHeaderCard t={t} />
@@ -569,7 +581,9 @@ export default function SetupAnniversaryPage() {
           onUploadVideo={uploadVideo}
           onUploadPoster={uploadPoster}
         />
-        <SetupSaveSection t={t} saving={saving} />
+        <div id="setup-save-anchor">
+          <SetupSaveSection t={t} saving={saving} />
+        </div>
       </form>
       <SetupAdvancedJsonSection
         t={t}
@@ -578,6 +592,7 @@ export default function SetupAnniversaryPage() {
         onApplyJson={applyJsonToForm}
         onRefreshJson={() => setAdvancedJson(toPrettyJson(toPayload(form)))}
       />
+      <SetupScrollToSaveButton onClick={scrollToSaveSection} />
     </section>
   );
 }
