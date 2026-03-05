@@ -75,7 +75,7 @@ function resolveMusicSource(value?: string): MusicSource {
     return {
       kind: "youtube",
       url,
-      embedUrl: `https://www.youtube.com/embed/${youtubeId}?rel=0&modestbranding=1`,
+      embedUrl: `https://www.youtube.com/embed/${youtubeId}?rel=0&modestbranding=1&loop=1&playlist=${youtubeId}`,
     };
   }
 

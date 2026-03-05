@@ -44,6 +44,10 @@ Frontend (React + TS + Tailwind):
 - Butuh DB (Postgres), dan Redis untuk session endpoint tambahan.
 - Register user (`POST /api/user/register`) default ke role `tenant_owner`, auto-create tenant personal, dan auto-assign member type `owner`.
 - Payload register wajib kirim `tenant_slug`; slug ini hanya bisa ditentukan sekali oleh user biasa.
+- Kuota jumlah tenant per user sudah SaaS-ready via env:
+  - `SAAS_TENANT_PLAN_LIMITS` (default `free:1,starter:2,pro:5`)
+  - `SAAS_TENANT_DEFAULT_PLAN` (default `free`)
+  - `SAAS_TENANT_PLAN_OVERRIDES` (opsional override per user/email)
 
 `ANNIVERSARY_STORE`:
 - `json` (default): setup/public anniversary membaca dan menulis file `data/anniversary.json`.
@@ -60,7 +64,7 @@ Public:
 - `GET /api/public/tenants/:slug/anniversary/moments?lang=id|en`
 - kompatibilitas: `GET /api/public/anniversary?tenant=:slug&lang=id|en`
 
-Setup (token protected):
+Setup (auth protected):
 - `GET /api/setup/tenants/:slug/anniversary`
 - `PUT /api/setup/tenants/:slug/anniversary`
 - `PUT /api/setup/tenants/:slug/anniversary/moments`
@@ -211,14 +215,20 @@ Public interactive flow:
   - `gameBranching.ts` untuk logika cabang teks romantis.
 
 Setup Anniversary UI:
-- Halaman `/setup/anniversary` memakai alur non-teknis: simpan token, load data, edit form per section, lalu save.
-- Token setup disimpan lokal di browser (`anniv_setup_token`).
+- Halaman `/app/setup/anniversary` memakai alur non-teknis: login, load data, edit form per section, lalu save.
+- Setup memakai JWT login user (`Authorization: Bearer <token>`), bukan setup token khusus.
 - Tenant slug setup disimpan lokal di browser (`anniv_setup_tenant_slug`) untuk memilih tenant mana yang diedit.
 - Auth context menyimpan `activeTenant` untuk switcher global (`anniv_active_tenant_slug`).
 - User dengan permission `tenants:access_all` mendapatkan tenant switcher di navbar.
 - Editor JSON tetap ada sebagai `advanced mode` (opsional), bukan alur utama user.
 - Section gallery sudah tersedia untuk input link foto/video + upload langsung ke backend media (URL terisi otomatis setelah upload sukses).
 - Section map points tersedia untuk input titik tempat penting + catatan singkat (bilingual).
+- `Footer Text` sudah multiline (`textarea`) agar teks panjang wrap otomatis.
+- Preview setup bersifat **manual** (klik `Refresh Preview`) untuk menjaga performa.
+- Preview mendukung mode viewport:
+  - `Mobile`: phone-frame dengan virtual viewport device-like,
+  - `Desktop`: browser-frame dengan virtual desktop viewport.
+- Preview disembunyikan otomatis di layar kecil (`< xl`) untuk mencegah horizontal scroll saat setup via HP.
 
 Referensi:
 - `frontend/src/App.tsx`
@@ -234,6 +244,9 @@ Referensi:
 - `frontend/src/components/anniversary/gameBranching.ts`
 - `frontend/src/data/romanceJourney.ts`
 - `frontend/src/services/publicService.ts`
+- `frontend/src/pages/anniversary/setup/sections/SetupLivePreviewCard.tsx`
+- `frontend/src/pages/anniversary/SetupAnniversaryPreviewPage.tsx`
+- `frontend/src/pages/anniversary/setup/previewStorage.ts`
 
 ## 8) Permission-Driven Access (Bukan Role-Driven)
 

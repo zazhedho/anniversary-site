@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { setJourneyMusicSuppressed } from "../../utils/publicJourneyAudio";
 
 type TranslateFn = (key: string, vars?: Record<string, string | number>) => string;
 
@@ -57,7 +58,7 @@ export default function VoiceNoteStage({ t, url }: VoiceNoteStageProps) {
       <p className="mt-2 text-sm text-[#2b2220]/75">{t("showcase.game.voiceSubtitle")}</p>
 
       {source.kind === "audio" ? (
-        <audio controls preload="metadata" src={source.url} className="mt-4 w-full" />
+        <audio controls preload="metadata" src={source.url} className="mt-4 w-full" onPlay={() => setJourneyMusicSuppressed(true)} />
       ) : null}
 
       {source.kind === "youtube" ? (

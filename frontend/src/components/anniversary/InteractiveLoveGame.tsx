@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { buildJourneyPhotos, buildJourneyVideos } from "../../data/romanceJourney";
 import type { PublicSiteConfig } from "../../types/anniversary";
+import { playJourneyMusic, setJourneyMusicSuppressed } from "../../utils/publicJourneyAudio";
 import { romanticLineKeys, romanticTagKey, resolveRomanticBranch, type RomanticBranch } from "./gameBranching";
 import JourneyChapter, { type JourneyDirection, type JourneyStage } from "./JourneyChapter";
 import type { UnlockMemoryCard } from "./MemoryUnlockStage";
@@ -187,6 +188,27 @@ export default function InteractiveLoveGame({ t, config, showcasePath }: Interac
     if (step !== "journey" || journeyStage !== "unlock" || unlockCards.length > 0) return;
     setUnlockCards(pickUnlockCards(unlockCandidates));
   }, [journeyStage, step, unlockCandidates, unlockCards.length]);
+
+  useEffect(() => {
+    if (step !== "journey") {
+      setJourneyMusicSuppressed(false);
+      return;
+    }
+
+    if (journeyStage === "voice") {
+      setJourneyMusicSuppressed(true);
+      return;
+    }
+
+    setJourneyMusicSuppressed(false);
+    if (sessionStorage.getItem("anniversaryJourneyStarted") === "1") {
+      void playJourneyMusic(config?.music_url);
+    }
+
+    return () => {
+      setJourneyMusicSuppressed(false);
+    };
+  }, [config?.music_url, journeyStage, step]);
 
   function randomNoPosition() {
     const buttonWidth = 130;

@@ -38,9 +38,14 @@ Backend and frontend run independently. Frontend only consumes backend APIs.
 - Memory map with real coordinates + Google Maps link
 
 ### Setup experience
-- Token-based setup API (no login required)
+- Auth-protected setup API (JWT user token)
 - Friendly form-based editor + advanced JSON mode
 - Media upload (`photo`, `video`, `poster`, `audio`)
+- Manual live preview with `Refresh Preview` (performance-safe)
+- Virtual viewport preview:
+  - Mobile: phone-frame preview with device-like viewport
+  - Desktop: browser-frame preview with fixed desktop viewport
+- Preview panel hidden automatically on small screens (`< xl`) to avoid mobile horizontal scroll
 - Config can be stored in JSON file or PostgreSQL
 
 ### Admin (optional)
@@ -218,6 +223,10 @@ Setup UI note:
   - YouTube URL -> shown as YouTube embed/open link
   - other webpage URL -> shown as `Open Music Link` fallback
 - Setup form fields now enforce character limits on frontend; backend also sanitizes and clamps text/url lengths before saving.
+- Setup preview behavior:
+  - preview is manual (click `Refresh Preview`)
+  - mobile/desktop viewport can be switched in preview panel
+  - preview panel is available on desktop layout only (`xl` and above)
 
 ### Admin APIs (when `ENABLE_ADMIN_API=true`)
 

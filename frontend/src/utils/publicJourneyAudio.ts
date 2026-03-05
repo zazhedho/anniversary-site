@@ -3,6 +3,7 @@ type AudioStateListener = (isPlaying: boolean) => void;
 let journeyAudio: HTMLAudioElement | null = null;
 let activeSource = "";
 const listeners = new Set<AudioStateListener>();
+let isSuppressed = false;
 
 function isYoutubeUrl(url: string): boolean {
   return /(?:youtu\.be\/|youtube\.com\/)/i.test(url);
@@ -34,6 +35,10 @@ function bindAudioEvents(audio: HTMLAudioElement) {
   audio.addEventListener("ended", emitState);
 }
 
+function applyJourneyAudioDefaults(audio: HTMLAudioElement) {
+  audio.loop = true;
+}
+
 export function canUseJourneyAudio(url?: string): boolean {
   const source = normalizeSource(url);
   if (!source) return false;
@@ -47,6 +52,7 @@ export function getOrCreateJourneyAudio(url?: string): HTMLAudioElement | null {
 
   if (!journeyAudio) {
     journeyAudio = new Audio(source);
+    applyJourneyAudioDefaults(journeyAudio);
     activeSource = source;
     bindAudioEvents(journeyAudio);
     return journeyAudio;
@@ -57,6 +63,7 @@ export function getOrCreateJourneyAudio(url?: string): HTMLAudioElement | null {
     journeyAudio.pause();
     journeyAudio.src = source;
     journeyAudio.currentTime = 0;
+    applyJourneyAudioDefaults(journeyAudio);
     activeSource = source;
     if (shouldResume) {
       void journeyAudio.play().catch(() => undefined);
@@ -67,6 +74,7 @@ export function getOrCreateJourneyAudio(url?: string): HTMLAudioElement | null {
 }
 
 export async function startJourneyMusicFromGesture(url?: string): Promise<boolean> {
+  if (isSuppressed) return false;
   const audio = getOrCreateJourneyAudio(url);
   if (!audio) return false;
 
@@ -80,6 +88,7 @@ export async function startJourneyMusicFromGesture(url?: string): Promise<boolea
 }
 
 export async function playJourneyMusic(url?: string): Promise<boolean> {
+  if (isSuppressed) return false;
   const audio = getOrCreateJourneyAudio(url);
   if (!audio) return false;
 
@@ -95,6 +104,13 @@ export async function playJourneyMusic(url?: string): Promise<boolean> {
 export function pauseJourneyMusic() {
   if (!journeyAudio) return;
   journeyAudio.pause();
+}
+
+export function setJourneyMusicSuppressed(value: boolean) {
+  isSuppressed = value;
+  if (isSuppressed) {
+    pauseJourneyMusic();
+  }
 }
 
 export function stopJourneyMusic() {
