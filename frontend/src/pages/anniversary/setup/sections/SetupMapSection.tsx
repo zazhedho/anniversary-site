@@ -1,4 +1,6 @@
 import type { EditLanguage, MapFormItem, TranslateFn } from "../types";
+import { setupFieldLimits } from "../fieldLimits";
+import FieldCounter from "../FieldCounter";
 
 type SetupMapSectionProps = {
   t: TranslateFn;
@@ -44,15 +46,20 @@ export default function SetupMapSection({
             type="text"
             value={item.title[editLanguage]}
             onChange={(event) => onMapPointLocalizedFieldChange(index, "title", event.target.value)}
+            maxLength={setupFieldLimits.mapTitle}
             placeholder={t("setup.placeholder.mapPointTitle")}
             className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
           />
+          <div className="flex justify-end">
+            <FieldCounter value={item.title[editLanguage]} max={setupFieldLimits.mapTitle} />
+          </div>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <input
               type="text"
               inputMode="decimal"
               value={item.lat}
               onChange={(event) => onMapPointCoordinateChange(index, "lat", event.target.value)}
+              maxLength={setupFieldLimits.mapCoordinate}
               placeholder={t("setup.placeholder.mapPointLat")}
               className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
             />
@@ -61,16 +68,29 @@ export default function SetupMapSection({
               inputMode="decimal"
               value={item.lng}
               onChange={(event) => onMapPointCoordinateChange(index, "lng", event.target.value)}
+              maxLength={setupFieldLimits.mapCoordinate}
               placeholder={t("setup.placeholder.mapPointLng")}
               className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
             />
           </div>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <div className="flex justify-end">
+              <FieldCounter value={item.lat} max={setupFieldLimits.mapCoordinate} />
+            </div>
+            <div className="flex justify-end">
+              <FieldCounter value={item.lng} max={setupFieldLimits.mapCoordinate} />
+            </div>
+          </div>
           <textarea
             value={item.note[editLanguage]}
             onChange={(event) => onMapPointLocalizedFieldChange(index, "note", event.target.value)}
+            maxLength={setupFieldLimits.mapNote}
             placeholder={t("setup.placeholder.mapPointNote")}
             className="min-h-[80px] w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2 text-sm outline-none focus:border-[#9c4f46]"
           />
+          <div className="flex justify-end">
+            <FieldCounter value={item.note[editLanguage]} max={setupFieldLimits.mapNote} />
+          </div>
         </div>
       ))}
     </article>

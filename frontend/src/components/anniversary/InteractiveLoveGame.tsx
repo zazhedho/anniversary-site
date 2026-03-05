@@ -24,6 +24,7 @@ type GameStep = "challenge" | "romantic" | "journey";
 type InteractiveLoveGameProps = {
   t: TranslateFn;
   config?: PublicSiteConfig;
+  showcasePath: string;
 };
 
 const NO_LIMIT = 10;
@@ -31,7 +32,7 @@ const SURPRISE_TOTAL = 5;
 const PHOTO_AUTO_SLIDE_MS = 3200;
 const UNLOCK_REQUIRED = 3;
 
-export default function InteractiveLoveGame({ t, config }: InteractiveLoveGameProps) {
+export default function InteractiveLoveGame({ t, config, showcasePath }: InteractiveLoveGameProps) {
   const navigate = useNavigate();
   const [noCount, setNoCount] = useState(0);
   const [yesAccepted, setYesAccepted] = useState(false);
@@ -441,7 +442,7 @@ export default function InteractiveLoveGame({ t, config }: InteractiveLoveGamePr
             isLast={isJourneyLast}
             onNextStage={goNextJourneyStage}
             onPreviousStage={goPreviousJourneyStage}
-            onFinish={() => navigate("/anniversary/showcase")}
+            onFinish={() => navigate(showcasePath)}
           />
         ) : null}
 

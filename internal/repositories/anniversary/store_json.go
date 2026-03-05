@@ -15,6 +15,33 @@ import (
 
 const dateLayout = "2006-01-02"
 
+const (
+	maxBrandLength          = 120
+	maxCoupleNamesLength    = 160
+	maxCoverBadgeLength     = 120
+	maxCoverTitleLength     = 160
+	maxCoverSubtextLength   = 600
+	maxCoverCTALength       = 80
+	maxHeroTitleLength      = 160
+	maxHeroSubtextLength    = 1200
+	maxLetterLength         = 5000
+	maxFooterTextLength     = 300
+	maxURLLength            = 500
+	maxTimelineTitleLength  = 120
+	maxTimelineDescLength   = 700
+	maxMemoryTitleLength    = 120
+	maxMemorySummaryLength  = 200
+	maxMemoryNoteLength     = 700
+	maxMapTitleLength       = 120
+	maxMapNoteLength        = 500
+	maxGalleryIDLength      = 80
+	maxGalleryTitleLength   = 120
+	maxGalleryCaptionLength = 240
+	maxGalleryDescLength    = 700
+	maxMomentTitleLength    = 120
+	maxMomentNoteLength     = 700
+)
+
 type repo struct {
 	path string
 	loc  *time.Location
@@ -35,7 +62,7 @@ func NewAnniversaryRepo(path string, loc *time.Location) interfaceanniversary.Re
 	}
 }
 
-func (r *repo) Load() (dto.AnniversarySiteConfig, error) {
+func (r *repo) LoadByTenantSlug(_ string) (dto.AnniversarySiteConfig, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -71,7 +98,7 @@ func (r *repo) Load() (dto.AnniversarySiteConfig, error) {
 	return cfg, nil
 }
 
-func (r *repo) Save(cfg dto.AnniversarySiteConfig) (dto.AnniversarySiteConfig, error) {
+func (r *repo) SaveByTenantSlug(_ string, cfg dto.AnniversarySiteConfig) (dto.AnniversarySiteConfig, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -103,28 +130,28 @@ func (r *repo) write(cfg dto.AnniversarySiteConfig) error {
 func sanitizeConfig(cfg dto.AnniversarySiteConfig, loc *time.Location) (dto.AnniversarySiteConfig, error) {
 	def := defaultConfig()
 
-	cfg.Brand = fallbackLocalized(cfg.Brand, def.Brand)
-	cfg.CoupleNames = fallbackLocalized(cfg.CoupleNames, def.CoupleNames)
+	cfg.Brand = truncateLocalized(fallbackLocalized(cfg.Brand, def.Brand), maxBrandLength)
+	cfg.CoupleNames = truncateLocalized(fallbackLocalized(cfg.CoupleNames, def.CoupleNames), maxCoupleNamesLength)
 	cfg.WeddingDate = strings.TrimSpace(cfg.WeddingDate)
 	if cfg.WeddingDate == "" {
 		cfg.WeddingDate = def.WeddingDate
 	}
-	cfg.CoverBadge = fallbackLocalized(cfg.CoverBadge, def.CoverBadge)
-	cfg.CoverTitle = fallbackLocalized(cfg.CoverTitle, def.CoverTitle)
-	cfg.CoverSubtext = fallbackLocalized(cfg.CoverSubtext, def.CoverSubtext)
-	cfg.CoverCTA = fallbackLocalized(cfg.CoverCTA, def.CoverCTA)
+	cfg.CoverBadge = truncateLocalized(fallbackLocalized(cfg.CoverBadge, def.CoverBadge), maxCoverBadgeLength)
+	cfg.CoverTitle = truncateLocalized(fallbackLocalized(cfg.CoverTitle, def.CoverTitle), maxCoverTitleLength)
+	cfg.CoverSubtext = truncateLocalized(fallbackLocalized(cfg.CoverSubtext, def.CoverSubtext), maxCoverSubtextLength)
+	cfg.CoverCTA = truncateLocalized(fallbackLocalized(cfg.CoverCTA, def.CoverCTA), maxCoverCTALength)
 
 	weddingDate, err := time.ParseInLocation(dateLayout, cfg.WeddingDate, loc)
 	if err != nil {
 		return dto.AnniversarySiteConfig{}, fmt.Errorf("invalid wedding_date format, use YYYY-MM-DD: %w", err)
 	}
 
-	cfg.HeroTitle = fallbackLocalized(cfg.HeroTitle, def.HeroTitle)
-	cfg.HeroSubtext = fallbackLocalized(cfg.HeroSubtext, def.HeroSubtext)
-	cfg.Letter = fallbackLocalized(cfg.Letter, def.Letter)
-	cfg.FooterText = fallbackLocalized(cfg.FooterText, def.FooterText)
-	cfg.MusicURL = strings.TrimSpace(cfg.MusicURL)
-	cfg.VoiceNoteURL = strings.TrimSpace(cfg.VoiceNoteURL)
+	cfg.HeroTitle = truncateLocalized(fallbackLocalized(cfg.HeroTitle, def.HeroTitle), maxHeroTitleLength)
+	cfg.HeroSubtext = truncateLocalized(fallbackLocalized(cfg.HeroSubtext, def.HeroSubtext), maxHeroSubtextLength)
+	cfg.Letter = truncateLocalized(fallbackLocalized(cfg.Letter, def.Letter), maxLetterLength)
+	cfg.FooterText = truncateLocalized(fallbackLocalized(cfg.FooterText, def.FooterText), maxFooterTextLength)
+	cfg.MusicURL = truncateString(cfg.MusicURL, maxURLLength)
+	cfg.VoiceNoteURL = truncateString(cfg.VoiceNoteURL, maxURLLength)
 
 	if len(cfg.Timeline) == 0 {
 		cfg.Timeline = def.Timeline
@@ -136,8 +163,8 @@ func sanitizeConfig(cfg dto.AnniversarySiteConfig, loc *time.Location) (dto.Anni
 			titleFallback = def.Timeline[idx].Title
 			descriptionFallback = def.Timeline[idx].Description
 		}
-		cfg.Timeline[idx].Title = fallbackLocalized(cfg.Timeline[idx].Title, titleFallback)
-		cfg.Timeline[idx].Description = fallbackLocalized(cfg.Timeline[idx].Description, descriptionFallback)
+		cfg.Timeline[idx].Title = truncateLocalized(fallbackLocalized(cfg.Timeline[idx].Title, titleFallback), maxTimelineTitleLength)
+		cfg.Timeline[idx].Description = truncateLocalized(fallbackLocalized(cfg.Timeline[idx].Description, descriptionFallback), maxTimelineDescLength)
 	}
 
 	if len(cfg.MemoryCards) == 0 {
@@ -152,9 +179,9 @@ func sanitizeConfig(cfg dto.AnniversarySiteConfig, loc *time.Location) (dto.Anni
 			summaryFallback = def.MemoryCards[idx].Summary
 			noteFallback = def.MemoryCards[idx].Note
 		}
-		cfg.MemoryCards[idx].Title = fallbackLocalized(cfg.MemoryCards[idx].Title, titleFallback)
-		cfg.MemoryCards[idx].Summary = fallbackLocalized(cfg.MemoryCards[idx].Summary, summaryFallback)
-		cfg.MemoryCards[idx].Note = fallbackLocalized(cfg.MemoryCards[idx].Note, noteFallback)
+		cfg.MemoryCards[idx].Title = truncateLocalized(fallbackLocalized(cfg.MemoryCards[idx].Title, titleFallback), maxMemoryTitleLength)
+		cfg.MemoryCards[idx].Summary = truncateLocalized(fallbackLocalized(cfg.MemoryCards[idx].Summary, summaryFallback), maxMemorySummaryLength)
+		cfg.MemoryCards[idx].Note = truncateLocalized(fallbackLocalized(cfg.MemoryCards[idx].Note, noteFallback), maxMemoryNoteLength)
 	}
 
 	if len(cfg.MapPoints) == 0 {
@@ -171,8 +198,8 @@ func sanitizeConfig(cfg dto.AnniversarySiteConfig, loc *time.Location) (dto.Anni
 			latFallback = def.MapPoints[idx].Lat
 			lngFallback = def.MapPoints[idx].Lng
 		}
-		cfg.MapPoints[idx].Title = fallbackLocalized(cfg.MapPoints[idx].Title, titleFallback)
-		cfg.MapPoints[idx].Note = fallbackLocalized(cfg.MapPoints[idx].Note, noteFallback)
+		cfg.MapPoints[idx].Title = truncateLocalized(fallbackLocalized(cfg.MapPoints[idx].Title, titleFallback), maxMapTitleLength)
+		cfg.MapPoints[idx].Note = truncateLocalized(fallbackLocalized(cfg.MapPoints[idx].Note, noteFallback), maxMapNoteLength)
 		if cfg.MapPoints[idx].Lat == 0 && cfg.MapPoints[idx].Lng == 0 {
 			cfg.MapPoints[idx].Lat = latFallback
 			cfg.MapPoints[idx].Lng = lngFallback
@@ -190,16 +217,16 @@ func sanitizeConfig(cfg dto.AnniversarySiteConfig, loc *time.Location) (dto.Anni
 	}
 	sanitizedPhotos := make([]dto.AnniversaryGalleryPhoto, 0, len(cfg.GalleryPhotos))
 	for idx := range cfg.GalleryPhotos {
-		cfg.GalleryPhotos[idx].ID = strings.TrimSpace(cfg.GalleryPhotos[idx].ID)
-		cfg.GalleryPhotos[idx].ImageURL = strings.TrimSpace(cfg.GalleryPhotos[idx].ImageURL)
+		cfg.GalleryPhotos[idx].ID = truncateString(cfg.GalleryPhotos[idx].ID, maxGalleryIDLength)
+		cfg.GalleryPhotos[idx].ImageURL = truncateString(cfg.GalleryPhotos[idx].ImageURL, maxURLLength)
 		if cfg.GalleryPhotos[idx].ImageURL == "" {
 			continue
 		}
 
 		titleFallback := dto.NewLocalizedText(fmt.Sprintf("Foto %d", idx+1))
 		captionFallback := dto.NewLocalizedText("")
-		cfg.GalleryPhotos[idx].Title = fallbackLocalized(cfg.GalleryPhotos[idx].Title, titleFallback)
-		cfg.GalleryPhotos[idx].Caption = fallbackLocalized(cfg.GalleryPhotos[idx].Caption, captionFallback)
+		cfg.GalleryPhotos[idx].Title = truncateLocalized(fallbackLocalized(cfg.GalleryPhotos[idx].Title, titleFallback), maxGalleryTitleLength)
+		cfg.GalleryPhotos[idx].Caption = truncateLocalized(fallbackLocalized(cfg.GalleryPhotos[idx].Caption, captionFallback), maxGalleryCaptionLength)
 
 		sanitizedPhotos = append(sanitizedPhotos, cfg.GalleryPhotos[idx])
 	}
@@ -210,17 +237,17 @@ func sanitizeConfig(cfg dto.AnniversarySiteConfig, loc *time.Location) (dto.Anni
 	}
 	sanitizedVideos := make([]dto.AnniversaryGalleryVideo, 0, len(cfg.GalleryVideos))
 	for idx := range cfg.GalleryVideos {
-		cfg.GalleryVideos[idx].ID = strings.TrimSpace(cfg.GalleryVideos[idx].ID)
-		cfg.GalleryVideos[idx].VideoURL = strings.TrimSpace(cfg.GalleryVideos[idx].VideoURL)
-		cfg.GalleryVideos[idx].PosterURL = strings.TrimSpace(cfg.GalleryVideos[idx].PosterURL)
+		cfg.GalleryVideos[idx].ID = truncateString(cfg.GalleryVideos[idx].ID, maxGalleryIDLength)
+		cfg.GalleryVideos[idx].VideoURL = truncateString(cfg.GalleryVideos[idx].VideoURL, maxURLLength)
+		cfg.GalleryVideos[idx].PosterURL = truncateString(cfg.GalleryVideos[idx].PosterURL, maxURLLength)
 		if cfg.GalleryVideos[idx].VideoURL == "" {
 			continue
 		}
 
 		titleFallback := dto.NewLocalizedText(fmt.Sprintf("Video %d", idx+1))
 		descriptionFallback := dto.NewLocalizedText("")
-		cfg.GalleryVideos[idx].Title = fallbackLocalized(cfg.GalleryVideos[idx].Title, titleFallback)
-		cfg.GalleryVideos[idx].Description = fallbackLocalized(cfg.GalleryVideos[idx].Description, descriptionFallback)
+		cfg.GalleryVideos[idx].Title = truncateLocalized(fallbackLocalized(cfg.GalleryVideos[idx].Title, titleFallback), maxGalleryTitleLength)
+		cfg.GalleryVideos[idx].Description = truncateLocalized(fallbackLocalized(cfg.GalleryVideos[idx].Description, descriptionFallback), maxGalleryDescLength)
 
 		sanitizedVideos = append(sanitizedVideos, cfg.GalleryVideos[idx])
 	}
@@ -251,8 +278,8 @@ func sanitizeConfig(cfg dto.AnniversarySiteConfig, loc *time.Location) (dto.Anni
 			noteFallback = def.Moments[idx].Note
 		}
 
-		cfg.Moments[idx].Title = fallbackLocalized(cfg.Moments[idx].Title, titleFallback)
-		cfg.Moments[idx].Note = fallbackLocalized(cfg.Moments[idx].Note, noteFallback)
+		cfg.Moments[idx].Title = truncateLocalized(fallbackLocalized(cfg.Moments[idx].Title, titleFallback), maxMomentTitleLength)
+		cfg.Moments[idx].Note = truncateLocalized(fallbackLocalized(cfg.Moments[idx].Note, noteFallback), maxMomentNoteLength)
 	}
 
 	sort.Slice(cfg.Moments, func(i, j int) bool {
@@ -280,7 +307,10 @@ func defaultConfig() dto.AnniversarySiteConfig {
 			ID: "Mulai Perjalanan",
 			EN: "Start The Journey",
 		}.Normalize(),
-		HeroTitle: dto.NewLocalizedText("My another Z, I'm YourZ"),
+		HeroTitle: dto.LocalizedText{
+			ID: "Selamat Anniversary Pertama, My Another Z",
+			EN: "Happy 1st Anniversary, My Another Z",
+		}.Normalize(),
 		HeroSubtext: dto.LocalizedText{
 			ID: "First anniversary ini jadi bab pertama perjalanan resmi kita sebagai suami istri. Dari 27 April 2025 sampai hari ini, setiap langkah kita selalu terasa lebih berarti karena dijalani berdua.",
 			EN: "This first anniversary is the first chapter of our official journey as husband and wife. Since April 27, 2025, every step has felt more meaningful because we walk it together.",
@@ -293,7 +323,7 @@ func defaultConfig() dto.AnniversarySiteConfig {
 			ID: "Dibuat oleh Zaidus Zhuhur untuk Zaqia Khana Meriza, di anniversary pertama kita.",
 			EN: "Made by Zaidus Zhuhur for Zaqia Khana Meriza, on our first anniversary.",
 		}.Normalize(),
-		MusicURL:     "/our-song.mp3",
+		MusicURL:     "https://image2url.com/r2/default/audio/1772528386754-8843de09-d7af-4507-819e-25b5e428694c.mp3",
 		VoiceNoteURL: "",
 		Timeline: []dto.AnniversaryTimelineItem{
 			{
@@ -377,27 +407,36 @@ func defaultConfig() dto.AnniversarySiteConfig {
 		GalleryVideos: []dto.AnniversaryGalleryVideo{},
 		Moments: []dto.AnniversaryMoment{
 			{
-				Year:  1,
-				Title: dto.NewLocalizedText("First Anniversary"),
-				Date:  "2026-04-27",
+				Year: 1,
+				Title: dto.LocalizedText{
+					ID: "Anniversary Pertama",
+					EN: "First Anniversary",
+				}.Normalize(),
+				Date: "2026-04-27",
 				Note: dto.LocalizedText{
 					ID: "Satu tahun pertama bersama: My another Z, I'm YourZ.",
 					EN: "Our very first year together: My another Z, I'm YourZ.",
 				}.Normalize(),
 			},
 			{
-				Year:  2,
-				Title: dto.NewLocalizedText("Second Anniversary"),
-				Date:  "2027-04-27",
+				Year: 2,
+				Title: dto.LocalizedText{
+					ID: "Anniversary Kedua",
+					EN: "Second Anniversary",
+				}.Normalize(),
+				Date: "2027-04-27",
 				Note: dto.LocalizedText{
 					ID: "Saatnya menambah cerita baru dan merayakan pertumbuhan kita sebagai tim.",
 					EN: "Time to add new stories and celebrate how we grow as a team.",
 				}.Normalize(),
 			},
 			{
-				Year:  3,
-				Title: dto.NewLocalizedText("Third Anniversary"),
-				Date:  "2028-04-27",
+				Year: 3,
+				Title: dto.LocalizedText{
+					ID: "Anniversary Ketiga",
+					EN: "Third Anniversary",
+				}.Normalize(),
+				Date: "2028-04-27",
 				Note: dto.LocalizedText{
 					ID: "Tetap bertumbuh, tetap saling memilih, dan tetap pulang pada cinta yang sama.",
 					EN: "Keep growing, keep choosing each other, and keep coming home to the same love.",
@@ -419,6 +458,26 @@ func fallbackLocalized(value, fallback dto.LocalizedText) dto.LocalizedText {
 		return fallback.Normalize()
 	}
 	return normalized
+}
+
+func truncateString(value string, max int) string {
+	trimmed := strings.TrimSpace(value)
+	if max <= 0 || trimmed == "" {
+		return trimmed
+	}
+
+	runes := []rune(trimmed)
+	if len(runes) <= max {
+		return trimmed
+	}
+	return strings.TrimSpace(string(runes[:max]))
+}
+
+func truncateLocalized(value dto.LocalizedText, max int) dto.LocalizedText {
+	normalized := value.Normalize()
+	normalized.ID = truncateString(normalized.ID, max)
+	normalized.EN = truncateString(normalized.EN, max)
+	return normalized.Normalize()
 }
 
 var _ interfaceanniversary.RepoAnniversaryInterface = (*repo)(nil)

@@ -1,5 +1,5 @@
 import { Suspense, lazy } from "react";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import AppLayout from "./components/common/AppLayout";
 import PermissionRoute from "./components/common/PermissionRoute";
 import ProtectedRoute from "./components/common/ProtectedRoute";
@@ -7,6 +7,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { LocaleProvider } from "./contexts/LocaleContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import PublicAnniversaryPage from "./pages/anniversary/PublicAnniversaryPage";
+import { normalizeTenantSlug } from "./utils/tenantSlug";
 
 const PublicAnniversaryGamePage = lazy(() => import("./pages/anniversary/PublicAnniversaryGamePage"));
 const PublicAnniversaryShowcasePage = lazy(() => import("./pages/anniversary/PublicAnniversaryShowcasePage"));
@@ -20,6 +21,8 @@ const MenuFormPage = lazy(() => import("./pages/menus/MenuFormPage"));
 const MenuListPage = lazy(() => import("./pages/menus/MenuListPage"));
 const RoleFormPage = lazy(() => import("./pages/roles/RoleFormPage"));
 const RoleListPage = lazy(() => import("./pages/roles/RoleListPage"));
+const TenantFormPage = lazy(() => import("./pages/tenants/TenantFormPage"));
+const TenantListPage = lazy(() => import("./pages/tenants/TenantListPage"));
 const NotFoundPage = lazy(() => import("./pages/system/NotFoundPage"));
 const UnauthorizedPage = lazy(() => import("./pages/system/UnauthorizedPage"));
 const ProfilePage = lazy(() => import("./pages/users/ProfilePage"));
@@ -34,7 +37,17 @@ function RouteLoadingFallback() {
   );
 }
 
+function LegacyPathRedirect({ from, to }: { from: string; to: string }) {
+  const location = useLocation();
+  const suffix = location.pathname.startsWith(from) ? location.pathname.slice(from.length) : "";
+  const nextPath = `${to}${suffix}` || "/";
+  return <Navigate to={`${nextPath}${location.search}`} replace />;
+}
+
 export default function App() {
+  const defaultTenantSlug = normalizeTenantSlug(import.meta.env.VITE_DEFAULT_PUBLIC_TENANT || "default") || "default";
+  const defaultPublicPath = `/${defaultTenantSlug}`;
+
   return (
     <BrowserRouter>
       <LocaleProvider>
@@ -42,20 +55,33 @@ export default function App() {
           <AuthProvider>
             <Suspense fallback={<RouteLoadingFallback />}>
               <Routes>
-                <Route path="/" element={<Navigate to="/anniversary" replace />} />
-                <Route path="/anniversary" element={<PublicAnniversaryPage />} />
-                <Route path="/anniversary/game" element={<PublicAnniversaryGamePage />} />
-                <Route path="/anniversary/showcase" element={<PublicAnniversaryShowcasePage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                <Route path="/reset-password" element={<ResetPasswordPage />} />
-                <Route path="/unauthorized" element={<UnauthorizedPage />} />
+                <Route path="/" element={<Navigate to={defaultPublicPath} replace />} />
+
+                <Route path="/app/login" element={<LoginPage />} />
+                <Route path="/app/register" element={<RegisterPage />} />
+                <Route path="/app/forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="/app/reset-password" element={<ResetPasswordPage />} />
+                <Route path="/app/unauthorized" element={<UnauthorizedPage />} />
+                <Route path="/app" element={<Navigate to="/app/login" replace />} />
+
+                <Route path="/login" element={<Navigate to="/app/login" replace />} />
+                <Route path="/register" element={<Navigate to="/app/register" replace />} />
+                <Route path="/forgot-password" element={<Navigate to="/app/forgot-password" replace />} />
+                <Route path="/reset-password" element={<Navigate to="/app/reset-password" replace />} />
+                <Route path="/unauthorized" element={<Navigate to="/app/unauthorized" replace />} />
+
+                <Route path="/anniversary" element={<Navigate to={defaultPublicPath} replace />} />
+                <Route path="/anniversary/game" element={<Navigate to={`${defaultPublicPath}/game`} replace />} />
+                <Route path="/anniversary/showcase" element={<Navigate to={`${defaultPublicPath}/showcase`} replace />} />
+
+                <Route path="/:slug/game" element={<PublicAnniversaryGamePage />} />
+                <Route path="/:slug/showcase" element={<PublicAnniversaryShowcasePage />} />
+                <Route path="/:slug" element={<PublicAnniversaryPage />} />
 
                 <Route element={<ProtectedRoute />}>
                   <Route element={<AppLayout />}>
                     <Route
-                      path="/dashboard"
+                      path="/app/dashboard"
                       element={
                         <PermissionRoute requiredAccess={{ resource: "dashboard", action: "view" }}>
                           <DashboardPage />
@@ -63,7 +89,7 @@ export default function App() {
                       }
                     />
                     <Route
-                      path="/setup/anniversary"
+                      path="/app/setup/anniversary"
                       element={
                         <PermissionRoute requiredAccess={{ resource: "dashboard", action: "view" }}>
                           <SetupAnniversaryPage />
@@ -71,7 +97,7 @@ export default function App() {
                       }
                     />
                     <Route
-                      path="/roles"
+                      path="/app/roles"
                       element={
                         <PermissionRoute requiredAccess={{ resource: "roles", action: "list" }}>
                           <RoleListPage />
@@ -79,7 +105,7 @@ export default function App() {
                       }
                     />
                     <Route
-                      path="/roles/new"
+                      path="/app/roles/new"
                       element={
                         <PermissionRoute requiredAccess={{ resource: "roles", action: "create" }}>
                           <RoleFormPage />
@@ -87,7 +113,7 @@ export default function App() {
                       }
                     />
                     <Route
-                      path="/roles/:id/edit"
+                      path="/app/roles/:id/edit"
                       element={
                         <PermissionRoute requiredAccess={{ resource: "roles", action: "update" }}>
                           <RoleFormPage />
@@ -95,7 +121,7 @@ export default function App() {
                       }
                     />
                     <Route
-                      path="/menus"
+                      path="/app/menus"
                       element={
                         <PermissionRoute requiredAccess={{ resource: "menus", action: "list" }}>
                           <MenuListPage />
@@ -103,7 +129,7 @@ export default function App() {
                       }
                     />
                     <Route
-                      path="/menus/new"
+                      path="/app/menus/new"
                       element={
                         <PermissionRoute requiredAccess={{ resource: "menus", action: "create" }}>
                           <MenuFormPage />
@@ -111,7 +137,7 @@ export default function App() {
                       }
                     />
                     <Route
-                      path="/menus/:id/edit"
+                      path="/app/menus/:id/edit"
                       element={
                         <PermissionRoute requiredAccess={{ resource: "menus", action: "update" }}>
                           <MenuFormPage />
@@ -119,7 +145,31 @@ export default function App() {
                       }
                     />
                     <Route
-                      path="/users"
+                      path="/app/tenants"
+                      element={
+                        <PermissionRoute requiredAccess={{ resource: "tenants", action: "list" }}>
+                          <TenantListPage />
+                        </PermissionRoute>
+                      }
+                    />
+                    <Route
+                      path="/app/tenants/new"
+                      element={
+                        <PermissionRoute requiredAccess={{ resource: "tenants", action: "create" }}>
+                          <TenantFormPage />
+                        </PermissionRoute>
+                      }
+                    />
+                    <Route
+                      path="/app/tenants/:id/edit"
+                      element={
+                        <PermissionRoute requiredAccess={{ resource: "tenants", action: "update" }}>
+                          <TenantFormPage />
+                        </PermissionRoute>
+                      }
+                    />
+                    <Route
+                      path="/app/users"
                       element={
                         <PermissionRoute requiredAccess={{ resource: "users", action: "list" }}>
                           <UserListPage />
@@ -127,7 +177,7 @@ export default function App() {
                       }
                     />
                     <Route
-                      path="/users/new"
+                      path="/app/users/new"
                       element={
                         <PermissionRoute requiredAccess={{ resource: "users", action: "create" }}>
                           <UserFormPage />
@@ -135,7 +185,7 @@ export default function App() {
                       }
                     />
                     <Route
-                      path="/users/:id/edit"
+                      path="/app/users/:id/edit"
                       element={
                         <PermissionRoute requiredAccess={{ resource: "users", action: "update" }}>
                           <UserFormPage />
@@ -143,7 +193,7 @@ export default function App() {
                       }
                     />
                     <Route
-                      path="/users/profile"
+                      path="/app/users/profile"
                       element={
                         <PermissionRoute anyOfAccesses={[{ resource: "profile", action: "view" }, { resource: "profile", action: "update_password" }]}>
                           <ProfilePage />
@@ -151,7 +201,7 @@ export default function App() {
                       }
                     />
                     <Route
-                      path="/profile"
+                      path="/app/profile"
                       element={
                         <PermissionRoute anyOfAccesses={[{ resource: "profile", action: "view" }, { resource: "profile", action: "update_password" }]}>
                           <ProfilePage />
@@ -159,15 +209,24 @@ export default function App() {
                       }
                     />
                     <Route
-                      path="/change-password"
+                      path="/app/change-password"
                       element={
                         <PermissionRoute anyOfAccesses={[{ resource: "profile", action: "view" }, { resource: "profile", action: "update_password" }]}>
-                          <Navigate to="/profile" replace />
+                          <Navigate to="/app/profile" replace />
                         </PermissionRoute>
                       }
                     />
                   </Route>
                 </Route>
+
+                <Route path="/dashboard/*" element={<LegacyPathRedirect from="/dashboard" to="/app/dashboard" />} />
+                <Route path="/setup/*" element={<LegacyPathRedirect from="/setup" to="/app/setup" />} />
+                <Route path="/roles/*" element={<LegacyPathRedirect from="/roles" to="/app/roles" />} />
+                <Route path="/menus/*" element={<LegacyPathRedirect from="/menus" to="/app/menus" />} />
+                <Route path="/tenants/*" element={<LegacyPathRedirect from="/tenants" to="/app/tenants" />} />
+                <Route path="/users/*" element={<LegacyPathRedirect from="/users" to="/app/users" />} />
+                <Route path="/profile/*" element={<LegacyPathRedirect from="/profile" to="/app/profile" />} />
+                <Route path="/change-password/*" element={<LegacyPathRedirect from="/change-password" to="/app/change-password" />} />
 
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>

@@ -43,7 +43,7 @@ export default function PermissionRoute({
           : true;
 
   if (!isAllowed) {
-    return <Navigate to="/unauthorized" replace />;
+    return <Navigate to="/app/unauthorized" replace />;
   }
 
   return children;

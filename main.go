@@ -49,18 +49,11 @@ func resolvePublicEndpoint(port string, serverIP string) string {
 }
 
 func logStartupMode(port string, runMigrate bool, enableAdminAPI bool, anniversaryStore string, serverIP string) {
-	setupAPIEnabled := utils.GetEnv("SETUP_API_ENABLED", true)
-	setupToken := strings.TrimSpace(utils.GetEnv("SETUP_TOKEN", ""))
 	dataFile := utils.GetEnv("ANNIVERSARY_DATA_FILE", "./data/anniversary.json")
 	uploadMaxMB := utils.GetEnv("ANNIVERSARY_UPLOAD_MAX_MB", 50)
 	storageProvider := strings.ToLower(strings.TrimSpace(utils.GetEnv("STORAGE_PROVIDER", "minio")))
 	if storageProvider == "" {
 		storageProvider = "minio"
-	}
-
-	setupTokenStatus := "missing"
-	if setupToken != "" {
-		setupTokenStatus = fmt.Sprintf("set(len=%d)", len(setupToken))
 	}
 
 	dbRequired := runMigrate || enableAdminAPI || anniversaryStore == "db"
@@ -81,9 +74,7 @@ func logStartupMode(port string, runMigrate bool, enableAdminAPI bool, anniversa
 		dbRequired,
 	))
 	logger.WriteLog(logger.LogLevelInfo, fmt.Sprintf(
-		"Setup summary: setup_api_enabled=%t | setup_token=%s | data_file=%s | upload_max_mb=%d | storage_provider=%s",
-		setupAPIEnabled,
-		setupTokenStatus,
+		"Setup summary: setup_auth=jwt | data_file=%s | upload_max_mb=%d | storage_provider=%s",
 		dataFile,
 		uploadMaxMB,
 		storageProvider,
@@ -199,6 +190,7 @@ func main() {
 		routes.RoleRoutes()
 		routes.PermissionRoutes()
 		routes.MenuRoutes()
+		routes.TenantRoutes()
 		routes.LocationRoutes()
 
 		// Register session routes if Redis is available

@@ -16,6 +16,7 @@ import (
 	permissionHandler "anniversary-site/internal/handlers/http/permission"
 	roleHandler "anniversary-site/internal/handlers/http/role"
 	sessionHandler "anniversary-site/internal/handlers/http/session"
+	tenantHandler "anniversary-site/internal/handlers/http/tenant"
 	userHandler "anniversary-site/internal/handlers/http/user"
 	interfaceanniversary "anniversary-site/internal/interfaces/anniversary"
 	anniversaryRepo "anniversary-site/internal/repositories/anniversary"
@@ -25,6 +26,7 @@ import (
 	permissionRepo "anniversary-site/internal/repositories/permission"
 	roleRepo "anniversary-site/internal/repositories/role"
 	sessionRepo "anniversary-site/internal/repositories/session"
+	tenantRepo "anniversary-site/internal/repositories/tenant"
 	userRepo "anniversary-site/internal/repositories/user"
 	anniversarySvc "anniversary-site/internal/services/anniversary"
 	auditSvc "anniversary-site/internal/services/audit"
@@ -33,6 +35,7 @@ import (
 	permissionSvc "anniversary-site/internal/services/permission"
 	roleSvc "anniversary-site/internal/services/role"
 	sessionSvc "anniversary-site/internal/services/session"
+	tenantSvc "anniversary-site/internal/services/tenant"
 	userSvc "anniversary-site/internal/services/user"
 	"anniversary-site/middlewares"
 	"anniversary-site/pkg/logger"
@@ -92,6 +95,7 @@ func (r *Routes) AnniversaryRoutes() {
 	}
 
 	svc := anniversarySvc.NewAnniversaryService(repo, loc)
+	tRepo := tenantRepo.NewTenantRepo(r.DB)
 	storageProvider, storageErr := media.InitStorage()
 	if storageErr != nil {
 		logger.WriteLog(logger.LogLevelError, "Failed to initialize storage provider for anniversary upload: "+storageErr.Error())
@@ -99,28 +103,53 @@ func (r *Routes) AnniversaryRoutes() {
 
 	h := anniversaryHandler.NewHandler(
 		svc,
+		tRepo,
 		storageProvider,
 		int64(utils.GetEnv("ANNIVERSARY_UPLOAD_MAX_MB", 50)),
 	)
+	defaultTenantSlug := utils.GetEnv("TENANT_DEFAULT_SLUG", "default")
 
 	public := r.App.Group("/api/public")
+	public.Use(middlewares.TenantScopeMiddleware(defaultTenantSlug))
 	{
 		public.GET("/anniversary", h.GetPublic)
 		public.GET("/anniversary/moments", h.GetMoments)
+		public.GET("/tenants/:slug/anniversary", h.GetPublic)
+		public.GET("/tenants/:slug/anniversary/moments", h.GetMoments)
+		public.GET("/tenants/:slug/moments", h.GetMoments)
 	}
 
+	if r.DB == nil {
+		setupUnavailable := r.App.Group("/api/setup")
+		setupUnavailable.Use(middlewares.TenantScopeMiddleware(defaultTenantSlug))
+		setupUnavailable.Any("/*path", func(ctx *gin.Context) {
+			ctx.JSON(http.StatusServiceUnavailable, gin.H{
+				"status":  false,
+				"message": "setup API requires database and authenticated mode",
+			})
+		})
+		return
+	}
+
+	blacklistRepo := authRepo.NewBlacklistRepo(r.DB)
+	pRepo := permissionRepo.NewPermissionRepo(r.DB)
+	mdw := middlewares.NewMiddleware(blacklistRepo, pRepo)
+
 	setup := r.App.Group("/api/setup")
-	setup.Use(middlewares.SetupTokenMiddleware(
-		utils.GetEnv("SETUP_API_ENABLED", true),
-		utils.GetEnv("SETUP_TOKEN", ""),
-	))
+	setup.Use(mdw.AuthMiddleware(), middlewares.TenantScopeMiddleware(defaultTenantSlug))
 	{
-		setup.GET("/anniversary", h.GetSetup)
-		setup.PUT("/anniversary", h.UpdateConfig)
-		setup.PUT("/anniversary/moments", h.ReplaceMoments)
-		setup.POST("/anniversary/moments", h.AddMoment)
-		setup.DELETE("/anniversary/moments/:year", h.DeleteMoment)
-		setup.POST("/anniversary/media/upload", h.UploadMedia)
+		setup.GET("/anniversary", mdw.PermissionMiddleware("dashboard", "view"), h.GetSetup)
+		setup.PUT("/anniversary", mdw.PermissionMiddleware("tenants", "update"), h.UpdateConfig)
+		setup.PUT("/anniversary/moments", mdw.PermissionMiddleware("tenants", "update"), h.ReplaceMoments)
+		setup.POST("/anniversary/moments", mdw.PermissionMiddleware("tenants", "update"), h.AddMoment)
+		setup.DELETE("/anniversary/moments/:year", mdw.PermissionMiddleware("tenants", "update"), h.DeleteMoment)
+		setup.POST("/anniversary/media/upload", mdw.PermissionMiddleware("tenants", "update"), h.UploadMedia)
+		setup.GET("/tenants/:slug/anniversary", mdw.PermissionMiddleware("dashboard", "view"), h.GetSetup)
+		setup.PUT("/tenants/:slug/anniversary", mdw.PermissionMiddleware("tenants", "update"), h.UpdateConfig)
+		setup.PUT("/tenants/:slug/anniversary/moments", mdw.PermissionMiddleware("tenants", "update"), h.ReplaceMoments)
+		setup.POST("/tenants/:slug/anniversary/moments", mdw.PermissionMiddleware("tenants", "update"), h.AddMoment)
+		setup.DELETE("/tenants/:slug/anniversary/moments/:year", mdw.PermissionMiddleware("tenants", "update"), h.DeleteMoment)
+		setup.POST("/tenants/:slug/anniversary/media/upload", mdw.PermissionMiddleware("tenants", "update"), h.UploadMedia)
 	}
 }
 
@@ -129,7 +158,8 @@ func (r *Routes) UserRoutes() {
 	repo := userRepo.NewUserRepo(r.DB)
 	rRepo := roleRepo.NewRoleRepo(r.DB)
 	pRepo := permissionRepo.NewPermissionRepo(r.DB)
-	uc := userSvc.NewUserService(repo, blacklistRepo, rRepo, pRepo)
+	tRepo := tenantRepo.NewTenantRepo(r.DB)
+	uc := userSvc.NewUserService(repo, blacklistRepo, rRepo, pRepo, tRepo)
 	repoAudit := auditRepo.NewAuditRepo(r.DB)
 	svcAudit := auditSvc.NewAuditService(repoAudit)
 
@@ -264,6 +294,29 @@ func (r *Routes) MenuRoutes() {
 		menu.GET("/:id", mdw.PermissionMiddleware("menus", "view"), h.GetByID)
 		menu.PUT("/:id", mdw.PermissionMiddleware("menus", "update"), h.Update)
 		menu.DELETE("/:id", mdw.PermissionMiddleware("menus", "delete"), h.Delete)
+	}
+}
+
+func (r *Routes) TenantRoutes() {
+	repo := tenantRepo.NewTenantRepo(r.DB)
+	repoUser := userRepo.NewUserRepo(r.DB)
+	svc := tenantSvc.NewTenantService(repo, repoUser)
+	repoAudit := auditRepo.NewAuditRepo(r.DB)
+	svcAudit := auditSvc.NewAuditService(repoAudit)
+	h := tenantHandler.NewTenantHandler(svc, svcAudit)
+	blacklistRepo := authRepo.NewBlacklistRepo(r.DB)
+	pRepo := permissionRepo.NewPermissionRepo(r.DB)
+	mdw := middlewares.NewMiddleware(blacklistRepo, pRepo)
+
+	r.App.GET("/api/tenants", mdw.AuthMiddleware(), mdw.PermissionMiddleware("tenants", "list"), h.GetAll)
+
+	tenant := r.App.Group("/api/tenants").Use(mdw.AuthMiddleware())
+	{
+		tenant.POST("", mdw.PermissionMiddleware("tenants", "create"), h.Create)
+		tenant.GET("/:id", mdw.PermissionMiddleware("tenants", "view"), h.GetByID)
+		tenant.PATCH("/:id", mdw.PermissionMiddleware("tenants", "update"), h.Update)
+		tenant.DELETE("/:id", mdw.PermissionMiddleware("tenants", "delete"), h.Delete)
+		tenant.POST("/:id/members", mdw.PermissionMiddleware("tenants", "update"), h.AddMember)
 	}
 }
 

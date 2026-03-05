@@ -90,7 +90,7 @@ export default function RoleListPage() {
             <p className="mt-2 text-sm text-[#2b2220]/70">{t("roles.subtitle")}</p>
           </div>
           {canCreateRole ? (
-            <Link to="/roles/new" className="rounded-xl bg-[#9c4f46] px-4 py-2 text-sm font-semibold text-white">
+            <Link to="/app/roles/new" className="rounded-xl bg-[#9c4f46] px-4 py-2 text-sm font-semibold text-white">
               {t("roles.add")}
             </Link>
           ) : (
@@ -151,7 +151,7 @@ export default function RoleListPage() {
                     <td className="px-2 py-2">
                       <div className="flex items-center gap-2">
                         {canUpdateRole ? (
-                          <Link to={`/roles/${role.id}/edit`} className="rounded-lg border border-[#9c4f46]/30 bg-white px-3 py-1.5 text-xs font-semibold">
+                          <Link to={`/app/roles/${role.id}/edit`} className="rounded-lg border border-[#9c4f46]/30 bg-white px-3 py-1.5 text-xs font-semibold">
                             {t("roles.edit")}
                           </Link>
                         ) : (

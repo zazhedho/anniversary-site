@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import InteractiveLoveGame from "../../components/anniversary/InteractiveLoveGame";
 import LanguageSwitcher from "../../components/common/LanguageSwitcher";
 import SiteFooter from "../../components/common/SiteFooter";
@@ -7,9 +7,12 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LocaleContext";
 import { fetchPublicAnniversary } from "../../services/publicService";
 import type { PublicSiteConfig } from "../../types/anniversary";
+import { buildPublicTenantPath, resolveTenantSlug } from "../../utils/tenantSlug";
 import { playJourneyMusic } from "../../utils/publicJourneyAudio";
 
 export default function PublicAnniversaryGamePage() {
+  const { slug } = useParams<{ slug?: string }>();
+  const tenantSlug = resolveTenantSlug(slug);
   const { isAuthenticated, loading, hasAccess } = useAuth();
   const { language, t } = useLanguage();
   const [config, setConfig] = useState<PublicSiteConfig | undefined>(undefined);
@@ -19,7 +22,7 @@ export default function PublicAnniversaryGamePage() {
 
     async function load() {
       try {
-        const payload = await fetchPublicAnniversary(language);
+        const payload = await fetchPublicAnniversary(language, tenantSlug);
         if (!mounted) return;
         setConfig(payload.config);
       } catch {
@@ -32,7 +35,7 @@ export default function PublicAnniversaryGamePage() {
     return () => {
       mounted = false;
     };
-  }, [language]);
+  }, [language, tenantSlug]);
 
   useEffect(() => {
     if (!config?.music_url) return;
@@ -42,7 +45,9 @@ export default function PublicAnniversaryGamePage() {
 
   const canViewDashboard = hasAccess({ resource: "dashboard", action: "view" });
   const canViewProfile = hasAccess({ resource: "profile", action: "view" });
-  const authDestination = canViewDashboard ? "/dashboard" : canViewProfile ? "/profile" : "/anniversary";
+  const homePath = buildPublicTenantPath(tenantSlug, "home");
+  const showcasePath = buildPublicTenantPath(tenantSlug, "showcase");
+  const authDestination = canViewDashboard ? "/app/dashboard" : canViewProfile ? "/app/profile" : homePath;
   const authLabel = canViewDashboard ? t("public.dashboard") : t("nav.profile");
 
   return (
@@ -52,12 +57,12 @@ export default function PublicAnniversaryGamePage() {
           <p className="text-xs uppercase tracking-[0.14em] text-[#6f332f]">{t("game.pageTag")}</p>
           <div className="flex flex-wrap items-center gap-2 text-sm">
             <LanguageSwitcher className="align-middle" />
-            <Link to="/anniversary" className="rounded-full border border-[#9c4f46]/30 bg-white/70 px-3 py-1.5 font-semibold">{t("game.backPublic")}</Link>
+            <Link to={homePath} className="rounded-full border border-[#9c4f46]/30 bg-white/70 px-3 py-1.5 font-semibold">{t("game.backPublic")}</Link>
             {!loading ? (
               isAuthenticated ? (
                 <Link to={authDestination} className="rounded-full bg-[#9c4f46] px-3 py-1.5 font-semibold text-white">{authLabel}</Link>
               ) : (
-                <Link to="/login" className="rounded-full border border-[#9c4f46]/30 bg-white/70 px-3 py-1.5 font-semibold">{t("public.login")}</Link>
+                <Link to="/app/login" className="rounded-full border border-[#9c4f46]/30 bg-white/70 px-3 py-1.5 font-semibold">{t("public.login")}</Link>
               )
             ) : null}
           </div>
@@ -68,7 +73,7 @@ export default function PublicAnniversaryGamePage() {
           <p className="mt-2 text-sm text-[#2b2220]/75">{t("game.pageSubtitle")}</p>
 
           <div className="mx-auto mt-5 w-full max-w-2xl">
-            <InteractiveLoveGame t={t} config={config} />
+            <InteractiveLoveGame t={t} config={config} showcasePath={showcasePath} />
           </div>
         </section>
       </div>

@@ -12,8 +12,12 @@ function getToken(): string {
   return localStorage.getItem(TOKEN_KEY) || "";
 }
 
+export function getAuthToken(): string {
+  return getToken();
+}
+
 type RequestOptions = {
-  method?: "GET" | "POST" | "PUT" | "DELETE";
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   auth?: boolean;
   body?: unknown;
   headers?: Record<string, string>;

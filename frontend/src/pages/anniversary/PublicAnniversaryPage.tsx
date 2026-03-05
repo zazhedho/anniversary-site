@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import LanguageSwitcher from "../../components/common/LanguageSwitcher";
 import ScrollReveal from "../../components/common/ScrollReveal";
 import SiteFooter from "../../components/common/SiteFooter";
@@ -7,10 +7,13 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LocaleContext";
 import { fetchPublicAnniversary } from "../../services/publicService";
 import type { PublicSiteConfig } from "../../types/anniversary";
+import { buildPublicTenantPath, resolveTenantSlug } from "../../utils/tenantSlug";
 import { startJourneyMusicFromGesture } from "../../utils/publicJourneyAudio";
 
 export default function PublicAnniversaryPage() {
   const navigate = useNavigate();
+  const { slug } = useParams<{ slug?: string }>();
+  const tenantSlug = resolveTenantSlug(slug);
   const { isAuthenticated, loading, hasAccess } = useAuth();
   const { language, t } = useLanguage();
   const [config, setConfig] = useState<PublicSiteConfig | undefined>(undefined);
@@ -20,7 +23,7 @@ export default function PublicAnniversaryPage() {
 
     async function load() {
       try {
-        const payload = await fetchPublicAnniversary(language);
+        const payload = await fetchPublicAnniversary(language, tenantSlug);
         if (!mounted) return;
         setConfig(payload.config);
       } catch {
@@ -33,7 +36,7 @@ export default function PublicAnniversaryPage() {
     return () => {
       mounted = false;
     };
-  }, [language]);
+  }, [language, tenantSlug]);
 
   const coverBadge = useMemo(() => config?.cover_badge || config?.brand || "My another Z • I'm YourZ", [config]);
   const coverTitle = useMemo(() => config?.cover_title || config?.hero_title || t("public.coverTitle"), [config, t]);
@@ -41,13 +44,15 @@ export default function PublicAnniversaryPage() {
   const coverCTA = useMemo(() => config?.cover_cta || t("public.startJourney"), [config, t]);
   const canViewDashboard = hasAccess({ resource: "dashboard", action: "view" });
   const canViewProfile = hasAccess({ resource: "profile", action: "view" });
-  const authDestination = canViewDashboard ? "/dashboard" : canViewProfile ? "/profile" : "/anniversary";
+  const homePath = buildPublicTenantPath(tenantSlug, "home");
+  const gamePath = buildPublicTenantPath(tenantSlug, "game");
+  const authDestination = canViewDashboard ? "/app/dashboard" : canViewProfile ? "/app/profile" : homePath;
   const authLabel = canViewDashboard ? t("public.dashboard") : t("nav.profile");
 
   async function handleStartJourney() {
     sessionStorage.setItem("anniversaryJourneyStarted", "1");
     await startJourneyMusicFromGesture(config?.music_url);
-    navigate("/anniversary/game");
+    navigate(gamePath);
   }
 
   return (
@@ -61,7 +66,7 @@ export default function PublicAnniversaryPage() {
               isAuthenticated ? (
                 <Link to={authDestination} className="rounded-full bg-[#9c4f46] px-3 py-1.5 font-semibold text-white">{authLabel}</Link>
               ) : (
-                <Link to="/login" className="rounded-full border border-[#9c4f46]/30 bg-white/70 px-3 py-1.5 font-semibold">{t("public.login")}</Link>
+                <Link to="/app/login" className="rounded-full border border-[#9c4f46]/30 bg-white/70 px-3 py-1.5 font-semibold">{t("public.login")}</Link>
               )
             ) : null}
           </div>

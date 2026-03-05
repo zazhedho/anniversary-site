@@ -86,7 +86,7 @@ function resolveMusicSource(value?: string): MusicSource {
   return { kind: "external", url };
 }
 
-export default function AnniversaryShowcase() {
+export default function AnniversaryShowcase({ tenantSlug }: { tenantSlug?: string }) {
   const { language, t } = useLanguage();
   const [payload, setPayload] = useState<PublicPayload | null>(null);
   const [loading, setLoading] = useState(true);
@@ -110,7 +110,7 @@ export default function AnniversaryShowcase() {
 
     async function load() {
       try {
-        const data = await fetchPublicAnniversary(language);
+        const data = await fetchPublicAnniversary(language, tenantSlug);
         if (!mounted) return;
         setPayload(data);
       } catch (err) {
@@ -125,7 +125,7 @@ export default function AnniversaryShowcase() {
     return () => {
       mounted = false;
     };
-  }, [language, t]);
+  }, [language, t, tenantSlug]);
 
   useEffect(() => {
     if (!payload) return;

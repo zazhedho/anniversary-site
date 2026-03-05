@@ -17,6 +17,7 @@ export type RegisterPayload = {
   email: string;
   phone: string;
   password: string;
+  tenant_slug: string;
 };
 
 export type LoginResult = {

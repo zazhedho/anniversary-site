@@ -3,8 +3,11 @@ package anniversary
 import (
 	"anniversary-site/internal/dto"
 	interfaceanniversary "anniversary-site/internal/interfaces/anniversary"
+	interfacetenant "anniversary-site/internal/interfaces/tenant"
 	serviceanniversary "anniversary-site/internal/services/anniversary"
+	"anniversary-site/middlewares"
 	"anniversary-site/pkg/storage"
+	"anniversary-site/utils"
 	"errors"
 	"fmt"
 	"net/http"
@@ -12,16 +15,19 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type Handler struct {
 	service         interfaceanniversary.ServiceAnniversaryInterface
+	tenantRepo      interfacetenant.RepoTenantInterface
 	storageProvider storage.StorageProvider
 	maxUploadMB     int64
 }
 
 func NewHandler(
 	service interfaceanniversary.ServiceAnniversaryInterface,
+	tenantRepo interfacetenant.RepoTenantInterface,
 	storageProvider storage.StorageProvider,
 	maxUploadMB int64,
 ) *Handler {
@@ -31,14 +37,20 @@ func NewHandler(
 
 	return &Handler{
 		service:         service,
+		tenantRepo:      tenantRepo,
 		storageProvider: storageProvider,
 		maxUploadMB:     maxUploadMB,
 	}
 }
 
 func (h *Handler) GetPublic(ctx *gin.Context) {
-	payload, err := h.service.GetPublicPayload(languageFromQuery(ctx.Query("lang")))
+	tenantSlug := middlewares.TenantSlugFromContext(ctx)
+	payload, err := h.service.GetPublicPayload(tenantSlug, languageFromQuery(ctx.Query("lang")))
 	if err != nil {
+		if errors.Is(err, serviceanniversary.ErrTenantNotFound) {
+			ctx.JSON(http.StatusNotFound, gin.H{"status": false, "message": "tenant not found"})
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, gin.H{"status": false, "message": err.Error()})
 		return
 	}
@@ -47,8 +59,13 @@ func (h *Handler) GetPublic(ctx *gin.Context) {
 }
 
 func (h *Handler) GetMoments(ctx *gin.Context) {
-	moments, err := h.service.GetPublicMoments(languageFromQuery(ctx.Query("lang")))
+	tenantSlug := middlewares.TenantSlugFromContext(ctx)
+	moments, err := h.service.GetPublicMoments(tenantSlug, languageFromQuery(ctx.Query("lang")))
 	if err != nil {
+		if errors.Is(err, serviceanniversary.ErrTenantNotFound) {
+			ctx.JSON(http.StatusNotFound, gin.H{"status": false, "message": "tenant not found"})
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, gin.H{"status": false, "message": err.Error()})
 		return
 	}
@@ -64,8 +81,16 @@ func languageFromQuery(value string) string {
 }
 
 func (h *Handler) GetSetup(ctx *gin.Context) {
-	cfg, err := h.service.GetSetupConfig()
+	tenantSlug, ok := h.authorizeSetupAccess(ctx, false)
+	if !ok {
+		return
+	}
+	cfg, err := h.service.GetSetupConfig(tenantSlug)
 	if err != nil {
+		if errors.Is(err, serviceanniversary.ErrTenantNotFound) {
+			ctx.JSON(http.StatusNotFound, gin.H{"status": false, "message": "tenant not found"})
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, gin.H{"status": false, "message": err.Error()})
 		return
 	}
@@ -73,14 +98,22 @@ func (h *Handler) GetSetup(ctx *gin.Context) {
 }
 
 func (h *Handler) UpdateConfig(ctx *gin.Context) {
+	tenantSlug, ok := h.authorizeSetupAccess(ctx, true)
+	if !ok {
+		return
+	}
 	var req dto.AnniversarySiteConfig
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"status": false, "message": "invalid JSON body"})
 		return
 	}
 
-	payload, err := h.service.UpdateConfig(req)
+	payload, err := h.service.UpdateConfig(tenantSlug, req)
 	if err != nil {
+		if errors.Is(err, serviceanniversary.ErrTenantNotFound) {
+			ctx.JSON(http.StatusNotFound, gin.H{"status": false, "message": "tenant not found"})
+			return
+		}
 		if errors.Is(err, serviceanniversary.ErrSaveConfig) {
 			ctx.JSON(http.StatusBadRequest, gin.H{"status": false, "message": err.Error()})
 			return
@@ -93,14 +126,22 @@ func (h *Handler) UpdateConfig(ctx *gin.Context) {
 }
 
 func (h *Handler) ReplaceMoments(ctx *gin.Context) {
+	tenantSlug, ok := h.authorizeSetupAccess(ctx, true)
+	if !ok {
+		return
+	}
 	var req []dto.AnniversaryMoment
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"status": false, "message": "invalid JSON body"})
 		return
 	}
 
-	moments, err := h.service.ReplaceMoments(req)
+	moments, err := h.service.ReplaceMoments(tenantSlug, req)
 	if err != nil {
+		if errors.Is(err, serviceanniversary.ErrTenantNotFound) {
+			ctx.JSON(http.StatusNotFound, gin.H{"status": false, "message": "tenant not found"})
+			return
+		}
 		if errors.Is(err, serviceanniversary.ErrLoadConfig) {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"status": false, "message": err.Error()})
 			return
@@ -117,14 +158,22 @@ func (h *Handler) ReplaceMoments(ctx *gin.Context) {
 }
 
 func (h *Handler) AddMoment(ctx *gin.Context) {
+	tenantSlug, ok := h.authorizeSetupAccess(ctx, true)
+	if !ok {
+		return
+	}
 	var req dto.AnniversaryMoment
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"status": false, "message": "invalid JSON body"})
 		return
 	}
 
-	moments, err := h.service.AddMoment(req)
+	moments, err := h.service.AddMoment(tenantSlug, req)
 	if err != nil {
+		if errors.Is(err, serviceanniversary.ErrTenantNotFound) {
+			ctx.JSON(http.StatusNotFound, gin.H{"status": false, "message": "tenant not found"})
+			return
+		}
 		if errors.Is(err, serviceanniversary.ErrLoadConfig) {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"status": false, "message": err.Error()})
 			return
@@ -141,14 +190,22 @@ func (h *Handler) AddMoment(ctx *gin.Context) {
 }
 
 func (h *Handler) DeleteMoment(ctx *gin.Context) {
+	tenantSlug, ok := h.authorizeSetupAccess(ctx, true)
+	if !ok {
+		return
+	}
 	year, err := strconv.Atoi(ctx.Param("year"))
 	if err != nil || year < 1 {
 		ctx.JSON(http.StatusBadRequest, gin.H{"status": false, "message": "invalid year"})
 		return
 	}
 
-	moments, err := h.service.DeleteMoment(year)
+	moments, err := h.service.DeleteMoment(tenantSlug, year)
 	if err != nil {
+		if errors.Is(err, serviceanniversary.ErrTenantNotFound) {
+			ctx.JSON(http.StatusNotFound, gin.H{"status": false, "message": "tenant not found"})
+			return
+		}
 		if errors.Is(err, serviceanniversary.ErrMomentNotFound) {
 			ctx.JSON(http.StatusNotFound, gin.H{"status": false, "message": "moment not found"})
 			return
@@ -169,6 +226,10 @@ func (h *Handler) DeleteMoment(ctx *gin.Context) {
 }
 
 func (h *Handler) UploadMedia(ctx *gin.Context) {
+	tenantSlug, ok := h.authorizeSetupAccess(ctx, true)
+	if !ok {
+		return
+	}
 	if h.storageProvider == nil {
 		ctx.JSON(http.StatusServiceUnavailable, gin.H{
 			"status":  false,
@@ -205,6 +266,7 @@ func (h *Handler) UploadMedia(ctx *gin.Context) {
 	} else if mediaType == "audio" {
 		folder = "anniversary-audios"
 	}
+	folder = fmt.Sprintf("tenant-%s/%s", sanitizePathSegment(tenantSlug), folder)
 
 	file, err := fileHeader.Open()
 	if err != nil {
@@ -230,4 +292,49 @@ func (h *Handler) UploadMedia(ctx *gin.Context) {
 			"filename":  fileHeader.Filename,
 		},
 	})
+}
+
+func (h *Handler) authorizeSetupAccess(ctx *gin.Context, requireOwner bool) (string, bool) {
+	tenantSlug := middlewares.TenantSlugFromContext(ctx)
+	if h.tenantRepo == nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"status": false, "message": "tenant repository is not initialized"})
+		return "", false
+	}
+
+	tenant, err := h.tenantRepo.GetBySlug(tenantSlug)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			ctx.JSON(http.StatusNotFound, gin.H{"status": false, "message": "tenant not found"})
+			return "", false
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"status": false, "message": err.Error()})
+		return "", false
+	}
+
+	if middlewares.HasAccess(ctx, "tenants", "access_all") {
+		return tenantSlug, true
+	}
+
+	userID := strings.TrimSpace(utils.InterfaceString(ctx.GetString("userId")))
+	if userID == "" {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"status": false, "message": "unauthorized"})
+		return "", false
+	}
+
+	var allowed bool
+	if requireOwner {
+		allowed, err = h.tenantRepo.IsTenantOwner(tenant.ID, userID)
+	} else {
+		allowed, err = h.tenantRepo.IsTenantMember(tenant.ID, userID)
+	}
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"status": false, "message": err.Error()})
+		return "", false
+	}
+	if !allowed {
+		ctx.JSON(http.StatusForbidden, gin.H{"status": false, "message": "access denied to tenant"})
+		return "", false
+	}
+
+	return tenantSlug, true
 }

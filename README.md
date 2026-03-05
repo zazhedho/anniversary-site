@@ -8,8 +8,8 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-supported-336791?logo=postgresql&logoColor=white)](#)
 
 Anniversary website with:
-- public romantic experience (`/anniversary`, `/anniversary/game`, `/anniversary/showcase`)
-- setup CMS-like flow for non-technical users (`/setup/anniversary`)
+- public romantic experience (`/{slug}`, `/{slug}/game`, `/{slug}/showcase`)
+- setup CMS-like flow for non-technical users (`/app/setup/anniversary`)
 - optional admin RBAC modules (Users, Roles, Menus, Profile)
 
 Backend and frontend run independently. Frontend only consumes backend APIs.
@@ -44,7 +44,7 @@ Backend and frontend run independently. Frontend only consumes backend APIs.
 - Config can be stored in JSON file or PostgreSQL
 
 ### Admin (optional)
-- Users, Roles, Menus, Profile
+- Users, Roles, Menus, Tenants, Profile
 - Permission-driven UI/API access (`resource + action`)
 - Session and Redis-based security features (when enabled)
 
@@ -160,9 +160,11 @@ Important keys:
 | `ENABLE_ADMIN_API` | `false` / `true` | enable or disable admin RBAC routes |
 | `ANNIVERSARY_STORE` | `json` / `db` | config storage mode |
 | `ANNIVERSARY_DATA_FILE` | `./data/anniversary.json` | JSON storage path |
+| `TENANT_DEFAULT_SLUG` | `default` | fallback tenant slug when no slug/header/query is provided |
+| `SAAS_TENANT_PLAN_LIMITS` | `free:1,starter:2,pro:5` | tenant quota per plan (`plan:limit`) |
+| `SAAS_TENANT_DEFAULT_PLAN` | `free` | default plan used for quota |
+| `SAAS_TENANT_PLAN_OVERRIDES` | `user-id:starter,user@email.com:pro` | optional per-user plan override |
 | `PUBLIC_BASE_URL` | `https://anniversary.example.com` | optional base URL shown in startup public endpoint log |
-| `SETUP_API_ENABLED` | `true` | setup API switch |
-| `SETUP_TOKEN` | `change-this-setup-token` | setup token |
 | `ANNIVERSARY_UPLOAD_MAX_MB` | `50` | max upload size |
 | `STORAGE_PROVIDER` | `minio` / `r2` | upload provider |
 
@@ -176,6 +178,7 @@ DB/Redis values are required when:
 | Key | Example | Description |
 |---|---|---|
 | `VITE_API_BASE_URL` | `http://localhost:8080` | backend base URL |
+| `VITE_DEFAULT_PUBLIC_TENANT` | `default` | fallback tenant slug for public pages |
 
 ## API Overview
 
@@ -183,23 +186,26 @@ DB/Redis values are required when:
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `GET` | `/api/public/anniversary?lang=id|en` | full public payload |
-| `GET` | `/api/public/anniversary/moments?lang=id|en` | yearly moments only |
+| `GET` | `/api/public/tenants/:slug/anniversary?lang=id|en` | full public payload for specific tenant |
+| `GET` | `/api/public/tenants/:slug/anniversary/moments?lang=id|en` | yearly moments for specific tenant |
+| `GET` | `/api/public/anniversary?tenant=:slug&lang=id|en` | compatibility endpoint (tenant via query/header) |
+| `GET` | `/api/public/anniversary/moments?tenant=:slug&lang=id|en` | compatibility endpoint (tenant via query/header) |
 
-### Setup APIs (token protected)
+### Setup APIs (auth protected)
 
 Auth header:
-- `X-Setup-Token: <SETUP_TOKEN>`
-- or `Authorization: Bearer <SETUP_TOKEN>`
+- `Authorization: Bearer <USER_JWT_TOKEN>`
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `GET` | `/api/setup/anniversary` | get setup config |
-| `PUT` | `/api/setup/anniversary` | update setup config |
-| `PUT` | `/api/setup/anniversary/moments` | replace moments |
-| `POST` | `/api/setup/anniversary/moments` | add moment |
-| `DELETE` | `/api/setup/anniversary/moments/:year` | delete moment |
-| `POST` | `/api/setup/anniversary/media/upload` | upload media |
+| `GET` | `/api/setup/tenants/:slug/anniversary` | get setup config by tenant |
+| `PUT` | `/api/setup/tenants/:slug/anniversary` | update setup config by tenant |
+| `PUT` | `/api/setup/tenants/:slug/anniversary/moments` | replace moments by tenant |
+| `POST` | `/api/setup/tenants/:slug/anniversary/moments` | add moment by tenant |
+| `DELETE` | `/api/setup/tenants/:slug/anniversary/moments/:year` | delete moment by tenant |
+| `POST` | `/api/setup/tenants/:slug/anniversary/media/upload` | upload media by tenant |
+| `GET` | `/api/setup/anniversary?tenant=:slug` | compatibility endpoint |
+| `PUT` | `/api/setup/anniversary?tenant=:slug` | compatibility endpoint |
 
 Upload payload:
 - `file`: multipart file
@@ -211,6 +217,7 @@ Setup UI note:
   - direct audio URL (`.mp3`, `.m4a`, etc) -> playable as background music
   - YouTube URL -> shown as YouTube embed/open link
   - other webpage URL -> shown as `Open Music Link` fallback
+- Setup form fields now enforce character limits on frontend; backend also sanitizes and clamps text/url lengths before saving.
 
 ### Admin APIs (when `ENABLE_ADMIN_API=true`)
 
@@ -219,6 +226,25 @@ Main groups:
 - `/api/roles`, `/api/role/*`
 - `/api/permissions`, `/api/permission/*`
 - `/api/menus`, `/api/menu/*`
+- `/api/tenants/*`
+
+Tenant management endpoints:
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/tenants` | list tenants (global sees all, non-global sees own memberships) |
+| `POST` | `/api/tenants` | create tenant and assign creator as owner |
+| `GET` | `/api/tenants/:id` | get tenant detail + members |
+| `PATCH` | `/api/tenants/:id` | update tenant (slug/name/status) |
+| `DELETE` | `/api/tenants/:id` | delete tenant (except `default`) |
+| `POST` | `/api/tenants/:id/members` | add/update tenant member (`owner`/`member`) |
+
+Tenant quota behavior:
+- for non-global users (without `tenants:access_all`), `POST /api/tenants` is limited by plan quota.
+- plan is resolved by:
+  1) `SAAS_TENANT_PLAN_OVERRIDES` using `user_id`, then `email`
+  2) fallback `SAAS_TENANT_DEFAULT_PLAN`
+- users with `tenants:access_all` bypass quota.
 
 ## Docker
 
@@ -249,7 +275,15 @@ Examples:
 - `users:list`, `users:create`, `users:update`, `users:delete`
 - `roles:list`, `roles:assign_permissions`, `roles:assign_menus`
 - `menus:list`, `menus:update`
+- `tenants:list`, `tenants:create`, `tenants:update`, `tenants:access_all`
 - `profile:view`, `profile:update`, `profile:update_password`
+
+Registration behavior:
+- `POST /api/user/register` now defaults new user to role `tenant_owner`.
+- A personal tenant is created automatically, and the registrant is assigned as tenant `owner`.
+- Register payload must include `tenant_slug` (chosen by user).
+- Tenant slug is one-time for regular users; changing slug afterwards requires global permission `tenants:access_all`.
+- RBAC seed only includes `superadmin`, `admin`, and `tenant_owner`.
 
 ## Troubleshooting
 
@@ -272,9 +306,9 @@ npm run dev:poll
 
 ### Setup API returns unauthorized
 
-Make sure header contains valid token:
+Make sure request uses valid user JWT:
 ```bash
-X-Setup-Token: <SETUP_TOKEN>
+Authorization: Bearer <USER_JWT_TOKEN>
 ```
 
 ### Public page still old after update
@@ -293,4 +327,4 @@ Check all of these:
 ## Additional Docs
 
 - [Compact Context Guide](docs/COMPACT_CONTEXT_GUIDE.md)
-- [Multi Tenant Subdomain Plan](docs/MULTI_TENANT_SUBDOMAIN_PLAN.md)
+- [Multi Tenant URL Plan (Path-First)](docs/MULTI_TENANT_PLAN.md)

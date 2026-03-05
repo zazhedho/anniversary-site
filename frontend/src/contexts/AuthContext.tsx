@@ -1,8 +1,13 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { changePassword, getMe, getMyPermissions, login, logout, updateProfile } from "../services/authService";
 import { hasToken } from "../services/api";
+import { getTenantOptions } from "../services/tenantsService";
 import type { AuthUser, ChangePasswordPayload, LoginPayload, UpdateProfilePayload } from "../types/auth";
 import type { PermissionAccess, PermissionGrant } from "../types/permission";
+import type { TenantRecord } from "../types/tenant";
+import { normalizeTenantSlug } from "../utils/tenantSlug";
+
+const ACTIVE_TENANT_STORAGE_KEY = "anniv_active_tenant_slug";
 
 type AuthContextValue = {
   user: AuthUser | null;
@@ -12,6 +17,10 @@ type AuthContextValue = {
   hasAnyPermission: (permissions: string[]) => boolean;
   hasAccess: (access: PermissionAccess) => boolean;
   hasAnyAccess: (accesses: PermissionAccess[]) => boolean;
+  availableTenants: TenantRecord[];
+  activeTenantSlug: string;
+  setActiveTenantSlug: (slug: string) => void;
+  refreshTenants: () => Promise<void>;
   loginUser: (payload: LoginPayload) => Promise<void>;
   logoutUser: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -24,15 +33,42 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [permissionGrants, setPermissionGrants] = useState<PermissionGrant[]>([]);
+  const [availableTenants, setAvailableTenants] = useState<TenantRecord[]>([]);
+  const [activeTenantSlug, setActiveTenantSlugState] = useState(() => {
+    return normalizeTenantSlug(localStorage.getItem(ACTIVE_TENANT_STORAGE_KEY) || "") || "";
+  });
   const [loading, setLoading] = useState(true);
 
   const normalize = (value: string) => value.trim().toLowerCase();
   const accessKey = (resource: string, action: string) => `${normalize(resource)}:${normalize(action)}`;
 
+  const syncActiveTenant = (tenants: TenantRecord[]) => {
+    const normalizedCurrent = normalizeTenantSlug(activeTenantSlug);
+    const tenantSlugs = tenants.map((tenant) => normalizeTenantSlug(tenant.slug)).filter(Boolean);
+    const fallbackSlug = tenantSlugs[0] || normalizeTenantSlug(import.meta.env.VITE_DEFAULT_PUBLIC_TENANT || "default") || "default";
+    const resolvedSlug = normalizedCurrent && tenantSlugs.includes(normalizedCurrent) ? normalizedCurrent : fallbackSlug;
+    setActiveTenantSlugState(resolvedSlug);
+    localStorage.setItem(ACTIVE_TENANT_STORAGE_KEY, resolvedSlug);
+  };
+
+  const loadTenants = async () => {
+    try {
+      const tenants = await getTenantOptions();
+      setAvailableTenants(tenants);
+      syncActiveTenant(tenants);
+    } catch {
+      setAvailableTenants([]);
+      const fallback = normalizeTenantSlug(import.meta.env.VITE_DEFAULT_PUBLIC_TENANT || "default") || "default";
+      setActiveTenantSlugState(fallback);
+      localStorage.setItem(ACTIVE_TENANT_STORAGE_KEY, fallback);
+    }
+  };
+
   const loadCurrentUser = async () => {
     const [profile, grants] = await Promise.all([getMe(), getMyPermissions()]);
     setUser(profile);
     setPermissionGrants(grants);
+    await loadTenants();
   };
 
   useEffect(() => {
@@ -49,11 +85,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (mounted) {
           setUser(profile);
           setPermissionGrants(grants);
+          try {
+            const tenants = await getTenantOptions();
+            if (mounted) {
+              setAvailableTenants(tenants);
+              const normalizedCurrent = normalizeTenantSlug(localStorage.getItem(ACTIVE_TENANT_STORAGE_KEY) || "") || "";
+              const tenantSlugs = tenants.map((tenant) => normalizeTenantSlug(tenant.slug)).filter(Boolean);
+              const fallbackSlug = tenantSlugs[0] || normalizeTenantSlug(import.meta.env.VITE_DEFAULT_PUBLIC_TENANT || "default") || "default";
+              const resolvedSlug = normalizedCurrent && tenantSlugs.includes(normalizedCurrent) ? normalizedCurrent : fallbackSlug;
+              setActiveTenantSlugState(resolvedSlug);
+              localStorage.setItem(ACTIVE_TENANT_STORAGE_KEY, resolvedSlug);
+            }
+          } catch {
+            if (mounted) {
+              setAvailableTenants([]);
+            }
+          }
         }
       } catch {
         if (mounted) {
           setUser(null);
           setPermissionGrants([]);
+          setAvailableTenants([]);
+          setActiveTenantSlugState("");
         }
       } finally {
         if (mounted) setLoading(false);
@@ -87,6 +141,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         hasAccess: ({ resource, action }: PermissionAccess) => permissionAccessSet.has(accessKey(resource, action)),
         hasAnyAccess: (accesses: PermissionAccess[]) =>
           accesses.some((access) => permissionAccessSet.has(accessKey(access.resource, access.action))),
+        availableTenants,
+        activeTenantSlug,
+        setActiveTenantSlug: (slug: string) => {
+          const normalized = normalizeTenantSlug(slug);
+          if (!normalized) return;
+          setActiveTenantSlugState(normalized);
+          localStorage.setItem(ACTIVE_TENANT_STORAGE_KEY, normalized);
+        },
+        refreshTenants: async () => {
+          await loadTenants();
+        },
         loginUser: async (payload: LoginPayload) => {
           await login(payload);
           await loadCurrentUser();
@@ -95,6 +160,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await logout();
           setUser(null);
           setPermissionGrants([]);
+          setAvailableTenants([]);
+          setActiveTenantSlugState("");
+          localStorage.removeItem(ACTIVE_TENANT_STORAGE_KEY);
         },
         refreshUser: async () => {
           await loadCurrentUser();
@@ -108,7 +176,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         },
       };
     },
-    [user, permissionGrants, loading]
+    [user, permissionGrants, loading, availableTenants, activeTenantSlug]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -8,15 +8,17 @@ Struktur (mirip safety-riding):
 - `src/pages/auth`, `src/pages/dashboard`, `src/pages/users`, `src/pages/roles`, `src/pages/menus`, `src/pages/anniversary`, `src/pages/system` untuk screen
 
 Route utama:
-- `/anniversary` (public cover page, single CTA to start linear journey)
-- `/anniversary/game` (public interactive flow: yes/no -> romantic note -> envelope note -> photos -> optional videos)
-- `/anniversary/showcase` (public anniversary showcase from DB/JSON, shown after finishing game)
-- `/login`, `/register`, `/forgot-password`, `/reset-password`
-- `/dashboard`, `/profile`, `/change-password` (protected)
-- `/users`, `/users/new`, `/users/:id/edit` (protected, admin-style flow)
-- `/roles`, `/roles/new`, `/roles/:id/edit` (protected, permission-based)
-- `/menus`, `/menus/new`, `/menus/:id/edit` (protected, permission-based)
-- `/setup/anniversary` (protected, editor JSON setup)
+- `/:slug` (public cover page, main tenant path)
+- `/:slug/game` (public interactive flow by tenant)
+- `/:slug/showcase` (public showcase by tenant)
+- `/app/login`, `/app/register`, `/app/forgot-password`, `/app/reset-password`
+- `/app/dashboard`, `/app/profile`, `/app/change-password` (protected)
+- `/app/users`, `/app/users/new`, `/app/users/:id/edit` (protected, admin-style flow)
+- `/app/roles`, `/app/roles/new`, `/app/roles/:id/edit` (protected, permission-based)
+- `/app/menus`, `/app/menus/new`, `/app/menus/:id/edit` (protected, permission-based)
+- `/app/tenants`, `/app/tenants/new`, `/app/tenants/:id/edit` (protected, permission-based)
+- `/app/setup/anniversary` (protected, editor JSON setup)
+- legacy compatibility: `/anniversary*`, `/login`, `/dashboard`, dll akan redirect ke path baru
 
 Kontrol menu dan akses route protected menggunakan permission dari backend (bukan hardcoded role),
 dengan acuan `resource + action` dari endpoint `GET /api/permissions/me`
@@ -26,6 +28,9 @@ Kontrol tombol aksi juga per permission action:
 Untuk modul baru:
 `Add Role -> roles:create`, `Edit Role -> roles:update`, `Assign Permission -> roles:assign_permissions`,
 `Assign Menu -> roles:assign_menus`, `Add Menu -> menus:create`, `Edit Menu -> menus:update`, `Delete Menu -> menus:delete`.
+Tenant module:
+`List Tenant -> tenants:list`, `Add Tenant -> tenants:create`, `Edit Tenant -> tenants:update`,
+`Delete Tenant -> tenants:delete`, `Cross-tenant switcher -> tenants:access_all`.
 
 ## Local Run
 
@@ -45,6 +50,7 @@ npm run preview
 ## Environment
 
 - `VITE_API_BASE_URL` (contoh: `http://localhost:8080`)
+- `VITE_DEFAULT_PUBLIC_TENANT` (default: `default`)
 
 Jika kosong, frontend akan menggunakan path relatif (`/api/...`).
 
@@ -73,26 +79,37 @@ Jika kosong, frontend akan menggunakan path relatif (`/api/...`).
 - `POST /api/menu`
 - `PUT /api/menu/:id`
 - `DELETE /api/menu/:id`
+- `GET /api/tenants`
+- `GET /api/tenants/:id`
+- `POST /api/tenants`
+- `PATCH /api/tenants/:id`
+- `DELETE /api/tenants/:id`
+- `POST /api/tenants/:id/members`
 - `GET /api/permissions` (untuk pemilihan assign role)
 - `GET /api/permissions/me` (untuk evaluasi akses resource/action)
 - `PUT /api/user/change/password`
-- `GET /api/public/anniversary`
-- `GET /api/public/anniversary/moments`
-- `GET /api/setup/anniversary` (`X-Setup-Token`)
-- `PUT /api/setup/anniversary` (`X-Setup-Token`)
-- `PUT /api/setup/anniversary/moments` (`X-Setup-Token`)
-- `POST /api/setup/anniversary/moments` (`X-Setup-Token`)
-- `DELETE /api/setup/anniversary/moments/:year` (`X-Setup-Token`)
-- `POST /api/setup/anniversary/media/upload` (`X-Setup-Token`, `type=photo|video|poster|audio`)
+- `GET /api/public/tenants/:slug/anniversary`
+- `GET /api/public/tenants/:slug/anniversary/moments`
+- `GET /api/setup/tenants/:slug/anniversary` (`Authorization: Bearer <JWT>`)
+- `PUT /api/setup/tenants/:slug/anniversary` (`Authorization: Bearer <JWT>`)
+- `PUT /api/setup/tenants/:slug/anniversary/moments` (`Authorization: Bearer <JWT>`)
+- `POST /api/setup/tenants/:slug/anniversary/moments` (`Authorization: Bearer <JWT>`)
+- `DELETE /api/setup/tenants/:slug/anniversary/moments/:year` (`Authorization: Bearer <JWT>`)
+- `POST /api/setup/tenants/:slug/anniversary/media/upload` (`Authorization: Bearer <JWT>`, `type=photo|video|poster|audio`)
 
 Pastikan backend dijalankan dengan `ENABLE_ADMIN_API=true` jika ingin memakai endpoint auth (`/api/user/*`).
 
 Catatan setup cover public:
 - Konten halaman `/anniversary` bisa diubah dari setup payload melalui key:
 `cover_badge`, `cover_title`, `cover_subtext`, `cover_cta`.
+- Seluruh input Setup sudah punya batas karakter (`maxLength`) agar input tetap aman dan konsisten.
 
 Catatan music URL:
 - Setup Basic mendukung `Upload Music` (`type=audio`) untuk mengisi `music_url`.
 - Jika `music_url` adalah audio direct (`.mp3/.m4a/...`) maka bisa diputar di public showcase.
 - Jika `music_url` YouTube maka tampil sebagai embed/open link.
 - Jika `music_url` adalah link halaman biasa, UI fallback menjadi tombol `Open Music Link`.
+
+Catatan register:
+- Form register kini meminta `tenant_slug` (slug publik tenant milik user).
+- Untuk user biasa, slug tenant hanya bisa ditentukan sekali saat create tenant pertama.

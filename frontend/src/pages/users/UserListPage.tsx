@@ -98,7 +98,7 @@ export default function UserListPage() {
             </p>
           </div>
           {canCreateUser ? (
-            <Link to="/users/new" className="rounded-xl bg-[#9c4f46] px-4 py-2 text-sm font-semibold text-white">
+            <Link to="/app/users/new" className="rounded-xl bg-[#9c4f46] px-4 py-2 text-sm font-semibold text-white">
               {t("userList.addUser")}
             </Link>
           ) : (
@@ -174,7 +174,7 @@ export default function UserListPage() {
                     <td className="px-2 py-2">
                       {canUpdateUser ? (
                         <Link
-                          to={`/users/${item.id}/edit`}
+                          to={`/app/users/${item.id}/edit`}
                           className="rounded-lg border border-[#9c4f46]/30 bg-white px-3 py-1.5 text-xs font-semibold"
                         >
                           {t("userList.edit")}

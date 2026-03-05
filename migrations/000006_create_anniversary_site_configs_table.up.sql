@@ -16,148 +16,184 @@ SELECT
     $json$
 {
   "brand": "My another Z • I'm YourZ",
-  "couple_names": "Zaidus Zhuhur \u0026 Zaqia Khana Meriza",
-  "wedding_date": "2025-04-27",
-  "cover_badge": {
-    "id": "My another Z • I'm YourZ",
-    "en": "My another Z • I'm YourZ"
-  },
-  "cover_title": {
-    "id": "Untuk My another Z",
-    "en": "For My another Z"
-  },
-  "cover_subtext": {
-    "id": "Aku sudah menyiapkan perjalanan kecil untukmu. Tidak perlu buru-buru, cukup klik mulai dan ikuti alurnya.",
-    "en": "I prepared a little journey for you. No need to rush, just start and follow the flow."
-  },
-  "cover_cta": {
-    "id": "Mulai Perjalanan",
-    "en": "Start The Journey"
-  },
-  "hero_title": {
-    "id": "Selamat Anniversary Pertama, My Another Z",
-    "en": "Happy 1st Anniversary, My Another Z"
-  },
-  "hero_subtext": {
-    "id": "First anniversary ini jadi bab pertama perjalanan resmi kita sebagai suami istri. Dari 27 April 2025 sampai hari ini, setiap langkah kita selalu terasa lebih berarti karena dijalani berdua.",
-    "en": "This first anniversary is the first chapter of our official journey as husband and wife. Since April 27, 2025, every step has felt more meaningful because we walk it together."
-  },
   "letter": {
-    "id": "Untuk Zaqia Khana Meriza, terima kasih sudah menjadi rumah terbaikku. Di anniversary pertama ini, aku tetap memilihmu setiap hari. My another Z, I'm YourZ, hari ini dan seterusnya.",
-    "en": "For Zaqia Khana Meriza, thank you for being my safest home. On our first anniversary, I still choose you every day. My another Z, I'm YourZ, today and always."
+    "en": "For Zaqia Khana Meriza, thank you for being my safest home. On our first anniversary, I still choose you every day. My another Z, I'm YourZ, today and always.",
+    "id": "Untuk Zaqia Khana Meriza, terima kasih sudah menjadi rumah terbaikku. Di anniversary pertama ini, aku tetap memilihmu setiap hari. My another Z, I'm YourZ, hari ini dan seterusnya."
   },
-  "footer_text": {
-    "id": "Dibuat oleh Zaidus Zhuhur untuk Zaqia Khana Meriza, di anniversary pertama kita.",
-    "en": "Made by Zaidus Zhuhur for Zaqia Khana Meriza, on our first anniversary."
-  },
-  "music_url": "/our-song.mp3",
   "timeline": [
     {
       "title": {
-        "id": "Awal Menjadi Satu",
-        "en": "The Beginning as One"
+        "en": "The Beginning as One",
+        "id": "Awal Menjadi Satu"
       },
       "description": {
-        "id": "Hari di mana janji diucapkan, sekaligus titik awal petualangan paling personal dalam hidup kita.",
-        "en": "The day we said our vows and started the most personal journey of our lives."
+        "en": "The day we said our vows and started the most personal journey of our lives.",
+        "id": "Hari di mana janji diucapkan, sekaligus titik awal petualangan paling personal dalam hidup kita."
       }
     },
     {
       "title": {
-        "id": "Belajar Bersama",
-        "en": "Growing Together"
+        "en": "Growing Together",
+        "id": "Belajar Bersama"
       },
       "description": {
-        "id": "Dari hal kecil sampai keputusan besar, kita saling menguatkan dan bertumbuh sebagai tim.",
-        "en": "From little things to big decisions, we support each other and grow as a team."
+        "en": "From little things to big decisions, we support each other and grow as a team.",
+        "id": "Dari hal kecil sampai keputusan besar, kita saling menguatkan dan bertumbuh sebagai tim."
       }
     },
     {
       "title": {
-        "id": "Tetap Memilih Satu Sama Lain",
-        "en": "Choosing Each Other Every Day"
+        "en": "Choosing Each Other Every Day",
+        "id": "Tetap Memilih Satu Sama Lain"
       },
       "description": {
-        "id": "Di setiap kondisi, rumah terbaik tetap ada pada kebersamaan kita berdua.",
-        "en": "In every situation, the best home is still found in our togetherness."
+        "en": "In every situation, the best home is still found in our togetherness.",
+        "id": "Di setiap kondisi, rumah terbaik tetap ada pada kebersamaan kita berdua."
       }
     }
   ],
+  "cover_cta": {
+    "en": "Start The Journey",
+    "id": "Mulai Perjalanan"
+  },
+  "music_url": "https://image2url.com/r2/default/audio/1772528386754-8843de09-d7af-4507-819e-25b5e428694c.mp3",
+  "hero_title": {
+    "en": "Happy 1st Anniversary, My Another Z",
+    "id": "Selamat Anniversary Pertama, My Another Z"
+  },
+  "map_points": [
+    {
+      "lat": -5.4256121,
+      "lng": 105.2385326,
+      "note": {
+        "en": "Here, I knew I wanted to walk this journey with you until we grow old.",
+        "id": "Di sini, aku yakin perjalanan ini ingin aku jalani bersamamu sampai tua."
+      },
+      "title": {
+        "en": "Where We Promised Forever",
+        "id": "Tempat Janji Kita"
+      }
+    },
+    {
+      "lat": -6.2441557,
+      "lng": 106.7974447,
+      "note": {
+        "en": "A simple place that always makes our hearts feel calm.",
+        "id": "Tempat sederhana yang selalu berhasil bikin hati kita tenang."
+      },
+      "title": {
+        "en": "Our Favorite Corner",
+        "id": "Sudut Favorit Kita"
+      }
+    },
+    {
+      "lat": -6.2618394,
+      "lng": 106.7925383,
+      "note": {
+        "en": "From this point, we started planning many little dreams together.",
+        "id": "Dari titik ini, kita mulai merancang banyak mimpi kecil bersama."
+      },
+      "title": {
+        "en": "Where New Dreams Began",
+        "id": "Rencana Mimpi Baru"
+      }
+    }
+  ],
+  "cover_badge": "My another Z • I'm YourZ",
+  "cover_title": {
+    "en": "For My another Z",
+    "id": "Untuk My another Z"
+  },
+  "cover_subtext": {
+    "en": "I prepared a little journey for you. No need to rush, just start and follow the flow.",
+    "id": "Aku sudah menyiapkan perjalanan kecil untukmu. Tidak perlu buru-buru, cukup klik mulai dan ikuti alurnya."
+  },
+  "footer_text": {
+    "en": "Made by Zaidus Zhuhur for Zaqia Khana Meriza, on our first anniversary.",
+    "id": "Dibuat oleh Zaidus Zhuhur untuk Zaqia Khana Meriza, di anniversary pertama kita."
+  },
+  "couple_names": "Zaidus Zhuhur & Zaqia Khana Meriza",
+  "hero_subtext": {
+    "en": "This first anniversary is the first chapter of our official journey as husband and wife. Since April 27, 2025, every step has felt more meaningful because we walk it together.",
+    "id": "First anniversary ini jadi bab pertama perjalanan resmi kita sebagai suami istri. Dari 27 April 2025 sampai hari ini, setiap langkah kita selalu terasa lebih berarti karena dijalani berdua."
+  },
   "memory_cards": [
     {
+      "note": {
+        "en": "Thank you for always being the reason I smile on ordinary days.",
+        "id": "Terima kasih selalu jadi alasan aku tersenyum di hari-hari biasa."
+      },
       "title": "Morning Coffee",
       "summary": {
-        "id": "Momen kecil yang bikin hangat.",
-        "en": "A tiny moment that always feels warm."
-      },
-      "note": {
-        "id": "Terima kasih selalu jadi alasan aku tersenyum di hari-hari biasa.",
-        "en": "Thank you for always being the reason I smile on ordinary days."
+        "en": "A tiny moment that always feels warm.",
+        "id": "Momen kecil yang bikin hangat."
       }
     },
     {
+      "note": {
+        "en": "We may be tired, but we always end the night with calmer hearts.",
+        "id": "Kita mungkin capek, tapi selalu pulang dengan hati yang lebih tenang."
+      },
       "title": "Late Night Talks",
       "summary": {
-        "id": "Cerita panjang sebelum tidur.",
-        "en": "Long conversations before sleep."
-      },
-      "note": {
-        "id": "Kita mungkin capek, tapi selalu pulang dengan hati yang lebih tenang.",
-        "en": "We may be tired, but we always end the night with calmer hearts."
+        "en": "Long conversations before sleep.",
+        "id": "Cerita panjang sebelum tidur."
       }
     },
     {
+      "note": {
+        "en": "May we explore many more new journeys together as a couple.",
+        "id": "Semoga banyak perjalanan baru yang kita jelajahi sebagai pasangan."
+      },
       "title": "Weekend Escape",
       "summary": {
-        "id": "Rencana spontan yang seru.",
-        "en": "A fun spontaneous plan."
-      },
+        "en": "A fun spontaneous plan.",
+        "id": "Rencana spontan yang seru."
+      }
+    }
+  ],
+  "wedding_date": "2025-04-27",
+  "annual_moments": [
+    {
+      "date": "2026-04-27",
       "note": {
-        "id": "Semoga banyak perjalanan baru yang kita jelajahi sebagai pasangan.",
-        "en": "May we explore many more new journeys together as a couple."
+        "en": "Our very first year together: My another Z, I'm YourZ.",
+        "id": "Satu tahun pertama bersama: My another Z, I'm YourZ."
+      },
+      "year": 1,
+      "title": {
+        "en": "First Anniversary",
+        "id": "Anniversary Pertama"
+      }
+    },
+    {
+      "date": "2027-04-27",
+      "note": {
+        "en": "Time to add new stories and celebrate how we grow as a team.",
+        "id": "Saatnya menambah cerita baru dan merayakan pertumbuhan kita sebagai tim."
+      },
+      "year": 2,
+      "title": {
+        "en": "Second Anniversary",
+        "id": "Anniversary Kedua"
+      }
+    },
+    {
+      "date": "2028-04-27",
+      "note": {
+        "en": "Keep growing, keep choosing each other, and keep coming home to the same love.",
+        "id": "Tetap bertumbuh, tetap saling memilih, dan tetap pulang pada cinta yang sama."
+      },
+      "year": 3,
+      "title": {
+        "en": "Third Anniversary",
+        "id": "Anniversary Ketiga"
       }
     }
   ],
   "gallery_photos": [],
   "gallery_videos": [],
-  "annual_moments": [
-    {
-      "year": 1,
-      "title": {
-        "id": "Anniversary Pertama",
-        "en": "First Anniversary"
-      },
-      "date": "2026-04-27",
-      "note": {
-        "id": "Satu tahun pertama bersama: My another Z, I'm YourZ.",
-        "en": "Our very first year together: My another Z, I'm YourZ."
-      }
-    },
-    {
-      "year": 2,
-      "title": {
-        "id": "Anniversary Kedua",
-        "en": "Second Anniversary"
-      },
-      "date": "2027-04-27",
-      "note": {
-        "id": "Saatnya menambah cerita baru dan merayakan pertumbuhan kita sebagai tim.",
-        "en": "Time to add new stories and celebrate how we grow as a team."
-      }
-    },
-    {
-      "year": 3,
-      "title": {
-        "id": "Anniversary Ketiga",
-        "en": "Third Anniversary"
-      },
-      "date": "2028-04-27",
-      "note": {
-        "id": "Tetap bertumbuh, tetap saling memilih, dan tetap pulang pada cinta yang sama.",
-        "en": "Keep growing, keep choosing each other, and keep coming home to the same love."
-      }
-    }
-  ]
+  "voice_note_url": ""
 }
     $json$::jsonb,
     CURRENT_TIMESTAMP,

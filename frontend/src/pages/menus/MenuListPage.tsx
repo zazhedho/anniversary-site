@@ -97,7 +97,7 @@ export default function MenuListPage() {
             <p className="mt-2 text-sm text-[#2b2220]/70">{t("menus.subtitle")}</p>
           </div>
           {canCreateMenu ? (
-            <Link to="/menus/new" className="rounded-xl bg-[#9c4f46] px-4 py-2 text-sm font-semibold text-white">
+            <Link to="/app/menus/new" className="rounded-xl bg-[#9c4f46] px-4 py-2 text-sm font-semibold text-white">
               {t("menus.add")}
             </Link>
           ) : (
@@ -169,7 +169,7 @@ export default function MenuListPage() {
                     <td className="px-2 py-2">
                       <div className="flex items-center gap-2">
                         {canUpdateMenu ? (
-                          <Link to={`/menus/${menu.id}/edit`} className="rounded-lg border border-[#9c4f46]/30 bg-white px-3 py-1.5 text-xs font-semibold">
+                          <Link to={`/app/menus/${menu.id}/edit`} className="rounded-lg border border-[#9c4f46]/30 bg-white px-3 py-1.5 text-xs font-semibold">
                             {t("menus.edit")}
                           </Link>
                         ) : (

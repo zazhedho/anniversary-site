@@ -5,6 +5,7 @@ import (
 	interfacerole "anniversary-site/internal/interfaces/role"
 	"errors"
 	"regexp"
+	"strings"
 )
 
 func ValidatePasswordStrength(password string) error {
@@ -59,4 +60,25 @@ func findRoleIDByName(roleRepo interfacerole.RepoRoleInterface, roleName string)
 	}
 
 	return &roleEntity.Id, true
+}
+
+func sanitizeTenantSlug(value string) string {
+	normalized := strings.TrimSpace(strings.ToLower(value))
+	if normalized == "" {
+		return ""
+	}
+
+	cleaned := regexp.MustCompile(`[^a-z0-9-]+`).ReplaceAllString(normalized, "-")
+	cleaned = regexp.MustCompile(`-{2,}`).ReplaceAllString(cleaned, "-")
+	cleaned = strings.Trim(cleaned, "-")
+	if cleaned == "" {
+		return ""
+	}
+	if len(cleaned) > 100 {
+		cleaned = strings.Trim(cleaned[:100], "-")
+	}
+	if len(cleaned) < 3 {
+		return ""
+	}
+	return cleaned
 }

@@ -14,7 +14,7 @@ func CORS() gin.HandlerFunc {
 
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 
-		allowHeaders := "Content-Type, Authorization, Accept, Origin, Cache-Control, X-Requested-With, X-Setup-Token"
+		allowHeaders := "Content-Type, Authorization, Accept, Origin, Cache-Control, X-Requested-With, X-Tenant-Slug"
 		if requestedHeaders := c.GetHeader("Access-Control-Request-Headers"); requestedHeaders != "" {
 			allowHeaders = allowHeaders + ", " + requestedHeaders
 		}

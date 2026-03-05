@@ -49,10 +49,10 @@ export default function ForgotPasswordPage() {
             </button>
 
             <p className="text-sm text-[#2b2220]/70">
-              {t("forgot.remember")} <Link to="/login" className="font-semibold text-[#6f332f]">{t("login.submit")}</Link>
+              {t("forgot.remember")} <Link to="/app/login" className="font-semibold text-[#6f332f]">{t("login.submit")}</Link>
             </p>
             <p className="text-sm text-[#2b2220]/70">
-              {t("forgot.haveToken")} <Link to="/reset-password" className="font-semibold text-[#6f332f]">{t("reset.submit")}</Link>
+              {t("forgot.haveToken")} <Link to="/app/reset-password" className="font-semibold text-[#6f332f]">{t("reset.submit")}</Link>
             </p>
           </form>
         </AuthCard>

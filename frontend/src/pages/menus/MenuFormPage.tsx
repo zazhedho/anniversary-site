@@ -118,7 +118,7 @@ export default function MenuFormPage() {
         const text = t("menuForm.createSuccess");
         setMessage(text);
         notifySuccess(text);
-        navigate("/menus");
+        navigate("/app/menus");
       }
     } catch (err) {
       const text = err instanceof Error ? err.message : t("menuForm.saveFailed");
@@ -260,7 +260,7 @@ export default function MenuFormPage() {
           >
             {loading ? t("menuForm.saving") : t("menuForm.save")}
           </button>
-          <Link to="/menus" className="rounded-xl border border-[#9c4f46]/30 bg-white px-4 py-2.5 text-sm font-semibold">
+          <Link to="/app/menus" className="rounded-xl border border-[#9c4f46]/30 bg-white px-4 py-2.5 text-sm font-semibold">
             {t("menuForm.backToList")}
           </Link>
         </div>

@@ -1,10 +1,11 @@
 package dto
 
 type UserRegister struct {
-	Name     string `json:"name" binding:"required,min=3,max=100"`
-	Email    string `json:"email" binding:"required,email"`
-	Phone    string `json:"phone" binding:"required,min=9,max=15"`
-	Password string `json:"password" binding:"required,min=8,max=64"`
+	Name       string `json:"name" binding:"required,min=3,max=100"`
+	Email      string `json:"email" binding:"required,email"`
+	Phone      string `json:"phone" binding:"required,min=9,max=15"`
+	Password   string `json:"password" binding:"required,min=8,max=64"`
+	TenantSlug string `json:"tenant_slug" binding:"required,min=3,max=100"`
 }
 
 type AdminCreateUser struct {
