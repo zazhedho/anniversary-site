@@ -3,15 +3,110 @@ package servicetenant
 import (
 	domaintenant "anniversary-site/internal/domain/tenant"
 	"anniversary-site/internal/dto"
+	"anniversary-site/utils"
 	"errors"
+	"strconv"
 	"strings"
 )
 
 var (
-	ErrTenantForbidden  = errors.New("access denied to tenant")
-	ErrTenantSlugTaken  = errors.New("tenant slug already exists")
-	ErrTenantSlugLocked = errors.New("tenant slug can only be set once")
+	ErrTenantForbidden    = errors.New("access denied to tenant")
+	ErrTenantSlugTaken    = errors.New("tenant slug already exists")
+	ErrTenantSlugLocked   = errors.New("tenant slug can only be set once")
+	ErrTenantLimitReached = errors.New("tenant quota exceeded for current plan")
 )
+
+const (
+	defaultTenantPlan       = "free"
+	defaultTenantPlanLimits = "free:1,starter:2,pro:5"
+)
+
+type tenantPlanConfig struct {
+	defaultPlan string
+	limits      map[string]int
+	overrides   map[string]string
+}
+
+func loadTenantPlanConfig() tenantPlanConfig {
+	limits := parsePlanLimits(utils.GetEnv("SAAS_TENANT_PLAN_LIMITS", defaultTenantPlanLimits))
+	defaultPlan := strings.TrimSpace(strings.ToLower(utils.GetEnv("SAAS_TENANT_DEFAULT_PLAN", defaultTenantPlan)))
+	if _, ok := limits[defaultPlan]; !ok {
+		defaultPlan = defaultTenantPlan
+	}
+	if _, ok := limits[defaultPlan]; !ok {
+		limits[defaultPlan] = 1
+	}
+
+	return tenantPlanConfig{
+		defaultPlan: defaultPlan,
+		limits:      limits,
+		overrides:   parsePlanOverrides(utils.GetEnv("SAAS_TENANT_PLAN_OVERRIDES", ""), limits),
+	}
+}
+
+func parsePlanLimits(raw string) map[string]int {
+	limits := map[string]int{
+		"free":    1,
+		"starter": 2,
+		"pro":     5,
+	}
+
+	for _, item := range strings.Split(raw, ",") {
+		parts := strings.Split(strings.TrimSpace(item), ":")
+		if len(parts) != 2 {
+			continue
+		}
+
+		plan := strings.ToLower(strings.TrimSpace(parts[0]))
+		if plan == "" {
+			continue
+		}
+
+		limit, err := strconv.Atoi(strings.TrimSpace(parts[1]))
+		if err != nil {
+			continue
+		}
+		limits[plan] = limit
+	}
+
+	return limits
+}
+
+func parsePlanOverrides(raw string, allowedPlans map[string]int) map[string]string {
+	overrides := make(map[string]string)
+
+	for _, item := range strings.Split(raw, ",") {
+		parts := strings.Split(strings.TrimSpace(item), ":")
+		if len(parts) != 2 {
+			continue
+		}
+
+		identity := strings.ToLower(strings.TrimSpace(parts[0]))
+		plan := strings.ToLower(strings.TrimSpace(parts[1]))
+		if identity == "" || plan == "" {
+			continue
+		}
+		if _, ok := allowedPlans[plan]; !ok {
+			continue
+		}
+		overrides[identity] = plan
+	}
+
+	return overrides
+}
+
+func resolvePlanForUser(cfg tenantPlanConfig, userID, email string) string {
+	normalizedUserID := strings.ToLower(strings.TrimSpace(userID))
+	normalizedEmail := strings.ToLower(strings.TrimSpace(email))
+
+	if plan, ok := cfg.overrides[normalizedUserID]; ok {
+		return plan
+	}
+	if plan, ok := cfg.overrides[normalizedEmail]; ok {
+		return plan
+	}
+	return cfg.defaultPlan
+}
 
 func (s *TenantService) ensureTenantReadable(tenantID, actorUserID string, hasAccessAll bool) error {
 	if hasAccessAll {

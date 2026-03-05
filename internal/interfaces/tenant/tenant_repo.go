@@ -19,4 +19,5 @@ type RepoTenantInterface interface {
 	GetMembers(tenantID string) ([]dto.TenantMemberView, error)
 	IsTenantMember(tenantID, userID string) (bool, error)
 	IsTenantOwner(tenantID, userID string) (bool, error)
+	CountOwnedByUser(userID string) (int64, error)
 }

@@ -26,7 +26,7 @@ func NewTenantService(tenantRepo interfacetenant.RepoTenantInterface, userRepo i
 	}
 }
 
-func (s *TenantService) Create(req dto.TenantCreate, actorUserID string) (dto.TenantDetail, error) {
+func (s *TenantService) Create(req dto.TenantCreate, actorUserID string, hasAccessAll bool) (dto.TenantDetail, error) {
 	now := time.Now()
 	slug := normalizeTenantSlug(req.Slug)
 	if slug == "" {
@@ -42,6 +42,26 @@ func (s *TenantService) Create(req dto.TenantCreate, actorUserID string) (dto.Te
 	name := strings.TrimSpace(req.Name)
 	if name == "" {
 		return dto.TenantDetail{}, errors.New("tenant name is required")
+	}
+
+	if !hasAccessAll && strings.TrimSpace(actorUserID) != "" && s.UserRepo != nil && s.TenantRepo != nil {
+		user, err := s.UserRepo.GetByID(actorUserID)
+		if err != nil {
+			return dto.TenantDetail{}, err
+		}
+
+		planCfg := loadTenantPlanConfig()
+		plan := resolvePlanForUser(planCfg, actorUserID, user.Email)
+		limit := planCfg.limits[plan]
+		if limit >= 0 {
+			currentOwnedCount, err := s.TenantRepo.CountOwnedByUser(actorUserID)
+			if err != nil {
+				return dto.TenantDetail{}, err
+			}
+			if currentOwnedCount >= int64(limit) {
+				return dto.TenantDetail{}, ErrTenantLimitReached
+			}
+		}
 	}
 
 	status := normalizeTenantStatus(req.Status)

@@ -182,3 +182,13 @@ func (r *repo) IsTenantOwner(tenantID, userID string) (bool, error) {
 	}
 	return count > 0, nil
 }
+
+func (r *repo) CountOwnedByUser(userID string) (int64, error) {
+	var count int64
+	if err := r.DB.Table("tenant_members").
+		Where("user_id = ? AND member_type = 'owner'", userID).
+		Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
+}

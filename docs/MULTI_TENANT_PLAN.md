@@ -21,6 +21,7 @@ Status saat ini:
    - role `tenant_owner` default registrasi selesai (digabung di `000005_sync_rbac_permissions.*.sql`).
    - API tenant management aktif (`/api/tenants*`).
    - tenant switcher untuk user global (`tenants:access_all`) aktif di frontend.
+   - tenant quota SaaS aktif untuk non-global user saat create tenant (`free/starter/pro`, configurable via env).
 
 ## 1) Keputusan Utama
 

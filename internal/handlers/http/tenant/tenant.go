@@ -6,6 +6,7 @@ import (
 	handlercommon "anniversary-site/internal/handlers/http/common"
 	interfaceaudit "anniversary-site/internal/interfaces/audit"
 	interfacetenant "anniversary-site/internal/interfaces/tenant"
+	servicetenant "anniversary-site/internal/services/tenant"
 	"anniversary-site/middlewares"
 	"anniversary-site/pkg/filter"
 	"anniversary-site/pkg/logger"
@@ -76,7 +77,8 @@ func (h *TenantHandler) Create(ctx *gin.Context) {
 	}
 
 	userID := utils.InterfaceString(ctx.GetString("userId"))
-	data, err := h.Service.Create(req, userID)
+	hasAccessAll := middlewares.HasAccess(ctx, "tenants", "access_all")
+	data, err := h.Service.Create(req, userID, hasAccessAll)
 	if err != nil {
 		h.writeAudit(ctx, domainaudit.AuditEvent{
 			Action:       domainaudit.ActionCreate,
@@ -87,7 +89,10 @@ func (h *TenantHandler) Create(ctx *gin.Context) {
 			AfterData:    req,
 		})
 
-		if errors.Is(err, gorm.ErrDuplicatedKey) || errors.Is(err, gorm.ErrForeignKeyViolated) || err.Error() == "tenant slug already exists" {
+		if errors.Is(err, gorm.ErrDuplicatedKey) ||
+			errors.Is(err, gorm.ErrForeignKeyViolated) ||
+			errors.Is(err, servicetenant.ErrTenantSlugTaken) ||
+			errors.Is(err, servicetenant.ErrTenantLimitReached) {
 			res := response.Response(http.StatusBadRequest, err.Error(), logID, nil)
 			res.Error = err.Error()
 			ctx.JSON(http.StatusBadRequest, res)

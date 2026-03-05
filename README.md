@@ -161,6 +161,9 @@ Important keys:
 | `ANNIVERSARY_STORE` | `json` / `db` | config storage mode |
 | `ANNIVERSARY_DATA_FILE` | `./data/anniversary.json` | JSON storage path |
 | `TENANT_DEFAULT_SLUG` | `default` | fallback tenant slug when no slug/header/query is provided |
+| `SAAS_TENANT_PLAN_LIMITS` | `free:1,starter:2,pro:5` | tenant quota per plan (`plan:limit`) |
+| `SAAS_TENANT_DEFAULT_PLAN` | `free` | default plan used for quota |
+| `SAAS_TENANT_PLAN_OVERRIDES` | `user-id:starter,user@email.com:pro` | optional per-user plan override |
 | `PUBLIC_BASE_URL` | `https://anniversary.example.com` | optional base URL shown in startup public endpoint log |
 | `ANNIVERSARY_UPLOAD_MAX_MB` | `50` | max upload size |
 | `STORAGE_PROVIDER` | `minio` / `r2` | upload provider |
@@ -235,6 +238,13 @@ Tenant management endpoints:
 | `PATCH` | `/api/tenants/:id` | update tenant (slug/name/status) |
 | `DELETE` | `/api/tenants/:id` | delete tenant (except `default`) |
 | `POST` | `/api/tenants/:id/members` | add/update tenant member (`owner`/`member`) |
+
+Tenant quota behavior:
+- for non-global users (without `tenants:access_all`), `POST /api/tenants` is limited by plan quota.
+- plan is resolved by:
+  1) `SAAS_TENANT_PLAN_OVERRIDES` using `user_id`, then `email`
+  2) fallback `SAAS_TENANT_DEFAULT_PLAN`
+- users with `tenants:access_all` bypass quota.
 
 ## Docker
 

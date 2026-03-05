@@ -6,7 +6,7 @@ import (
 )
 
 type ServiceTenantInterface interface {
-	Create(req dto.TenantCreate, actorUserID string) (dto.TenantDetail, error)
+	Create(req dto.TenantCreate, actorUserID string, hasAccessAll bool) (dto.TenantDetail, error)
 	GetByID(id, actorUserID string, hasAccessAll bool) (dto.TenantDetail, error)
 	GetAll(params filter.BaseParams, actorUserID string, hasAccessAll bool) ([]dto.TenantListItem, int64, error)
 	Update(id string, req dto.TenantUpdate, actorUserID string, hasAccessAll bool) (dto.TenantDetail, error)
