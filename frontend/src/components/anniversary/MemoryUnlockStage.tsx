@@ -42,6 +42,7 @@ export default function MemoryUnlockStage({
         {cards.map((card) => {
           const revealed = revealedIds.includes(card.id);
           const disabled = revealed || !canRevealMore;
+          const isMobileOddLastCard = cards.length % 2 === 1 && card.id === cards[cards.length - 1]?.id;
 
           return (
             <button
@@ -49,7 +50,9 @@ export default function MemoryUnlockStage({
               type="button"
               onClick={() => onReveal(card.id)}
               disabled={disabled}
-              className={`group rounded-2xl border p-3 text-left transition ${revealed ? "border-[#9c4f46]/45 bg-white shadow-sm" : "border-[#9c4f46]/20 bg-white/70 hover:-translate-y-0.5 hover:bg-white"} disabled:cursor-default disabled:opacity-95`}
+              className={`group rounded-2xl border p-3 text-left transition ${revealed ? "border-[#9c4f46]/45 bg-white shadow-sm" : "border-[#9c4f46]/20 bg-white/70 hover:-translate-y-0.5 hover:bg-white"} ${
+                isMobileOddLastCard ? "col-span-2 mx-auto w-full max-w-[18rem] sm:col-span-1 sm:max-w-none" : ""
+              } disabled:cursor-default disabled:opacity-95`}
             >
               <p className="text-[10px] uppercase tracking-[0.12em] text-[#6f332f]/70">
                 {revealed ? t("showcase.game.unlockRevealed") : t("showcase.game.unlockLocked")}

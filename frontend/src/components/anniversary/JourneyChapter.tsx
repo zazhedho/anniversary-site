@@ -36,6 +36,7 @@ type JourneyChapterProps = {
   isLast: boolean;
   onNextStage: () => void;
   onPreviousStage: () => void;
+  onPreviousFromStart: () => void;
   onFinish: () => void;
 };
 
@@ -66,6 +67,7 @@ export default function JourneyChapter({
   isLast,
   onNextStage,
   onPreviousStage,
+  onPreviousFromStart,
   onFinish,
 }: JourneyChapterProps) {
   const chapterTitle = useMemo(() => {
@@ -82,6 +84,14 @@ export default function JourneyChapter({
     if (stage === "photos") return t("showcase.game.chapterSubtitlePhotos");
     return t("showcase.game.chapterSubtitleVideos");
   }, [stage, t]);
+  const canShowPrevious = canGoPrevious || stage === "surprise";
+  const handlePrevious = () => {
+    if (canGoPrevious) {
+      onPreviousStage();
+      return;
+    }
+    onPreviousFromStart();
+  };
 
   return (
     <article className="animate-[stepEnter_420ms_cubic-bezier(0.16,1,0.3,1)] rounded-2xl border border-[#9c4f46]/20 bg-[linear-gradient(150deg,rgba(255,255,255,0.92),rgba(244,208,196,0.55))] p-4 sm:p-5">
@@ -109,16 +119,24 @@ export default function JourneyChapter({
               <button
                 type="button"
                 onClick={onPreviousPhoto}
-                className="rounded-full border border-[#9c4f46]/30 bg-white px-4 py-1.5 text-sm font-semibold text-[#2b2220]"
+                aria-label={t("showcase.game.previousPhoto")}
+                title={t("showcase.game.previousPhoto")}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#9c4f46]/30 bg-white text-[#2b2220] transition hover:-translate-y-0.5"
               >
-                {t("showcase.game.previous")}
+                <svg viewBox="0 0 20 20" aria-hidden="true" className="h-4 w-4">
+                  <path d="M12.8 4.6 7.4 10l5.4 5.4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               </button>
               <button
                 type="button"
                 onClick={onNextPhoto}
-                className="rounded-full border border-[#9c4f46]/30 bg-white px-4 py-1.5 text-sm font-semibold text-[#2b2220]"
+                aria-label={t("showcase.game.nextPhoto")}
+                title={t("showcase.game.nextPhoto")}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#9c4f46]/30 bg-white text-[#2b2220] transition hover:-translate-y-0.5"
               >
-                {t("showcase.game.next")}
+                <svg viewBox="0 0 20 20" aria-hidden="true" className="h-4 w-4">
+                  <path d="M7.2 4.6 12.6 10l-5.4 5.4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               </button>
             </div>
 
@@ -196,10 +214,10 @@ export default function JourneyChapter({
       </div>
 
       <div className="mt-4 flex items-center justify-between gap-2">
-        {canGoPrevious ? (
+        {canShowPrevious ? (
           <button
             type="button"
-            onClick={onPreviousStage}
+            onClick={handlePrevious}
             className="rounded-full border border-[#9c4f46]/30 bg-white px-4 py-2 text-sm font-semibold text-[#2b2220] sm:px-5"
           >
             {t("showcase.game.previous")}

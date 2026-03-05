@@ -308,6 +308,12 @@ export default function InteractiveLoveGame({ t, config, showcasePath }: Interac
     });
   }
 
+  function goBackToRomanticStage() {
+    setJourneyDirection("prev");
+    setJourneyStage("surprise");
+    setStep("romantic");
+  }
+
   function resetGame() {
     setNoCount(0);
     setYesAccepted(false);
@@ -351,7 +357,9 @@ export default function InteractiveLoveGame({ t, config, showcasePath }: Interac
         @keyframes warmPulse{0%,100%{box-shadow:0 0 0 0 rgba(156,79,70,0.16);}50%{box-shadow:0 0 0 10px rgba(156,79,70,0);}}
       `}</style>
       <div className="relative z-10">
-        <p className="mb-2 text-[10px] uppercase tracking-[0.14em] text-[#6f332f]/75">{chapterTitle}</p>
+        {step !== "journey" ? (
+          <p className="mb-2 text-[10px] uppercase tracking-[0.14em] text-[#6f332f]/75">{chapterTitle}</p>
+        ) : null}
         {step === "challenge" ? (
           <div className="animate-[stepEnter_420ms_cubic-bezier(0.16,1,0.3,1)]">
             <h3 className="font-display text-3xl sm:text-4xl">{t("showcase.game.chaseTitle")}</h3>
@@ -442,6 +450,7 @@ export default function InteractiveLoveGame({ t, config, showcasePath }: Interac
             isLast={isJourneyLast}
             onNextStage={goNextJourneyStage}
             onPreviousStage={goPreviousJourneyStage}
+            onPreviousFromStart={goBackToRomanticStage}
             onFinish={() => navigate(showcasePath)}
           />
         ) : null}
