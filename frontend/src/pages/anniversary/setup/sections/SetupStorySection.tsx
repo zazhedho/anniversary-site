@@ -80,18 +80,17 @@ export default function SetupStorySection({ t, form, editLanguage, onLocalizedFi
           />
         </label>
 
-        <label className="block">
+        <label className="block md:col-span-2">
           <div className="mb-1 flex items-center justify-between gap-2">
             <span className="block text-sm font-semibold">{t("setup.footerText")}</span>
             <FieldCounter value={form.footer_text[editLanguage]} max={setupFieldLimits.footerText} />
           </div>
-          <input
-            type="text"
+          <textarea
             value={form.footer_text[editLanguage]}
             onChange={(event) => onLocalizedFieldChange("footer_text", event.target.value)}
             maxLength={setupFieldLimits.footerText}
             placeholder={t("setup.placeholder.footerText")}
-            className="w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#9c4f46]"
+            className="min-h-[88px] w-full rounded-xl border border-[#9c4f46]/20 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#9c4f46]"
             required
           />
         </label>

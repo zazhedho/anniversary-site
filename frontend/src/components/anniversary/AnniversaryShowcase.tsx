@@ -86,10 +86,16 @@ function resolveMusicSource(value?: string): MusicSource {
   return { kind: "external", url };
 }
 
-export default function AnniversaryShowcase({ tenantSlug }: { tenantSlug?: string }) {
+type AnniversaryShowcaseProps = {
+  tenantSlug?: string;
+  previewPayload?: PublicPayload;
+  isSetupPreview?: boolean;
+};
+
+export default function AnniversaryShowcase({ tenantSlug, previewPayload, isSetupPreview = false }: AnniversaryShowcaseProps) {
   const { language, t } = useLanguage();
-  const [payload, setPayload] = useState<PublicPayload | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [payload, setPayload] = useState<PublicPayload | null>(previewPayload || null);
+  const [loading, setLoading] = useState(previewPayload ? false : true);
   const [error, setError] = useState("");
   const [selectedNote, setSelectedNote] = useState("");
   const [countdown, setCountdown] = useState<CountdownState>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -106,6 +112,14 @@ export default function AnniversaryShowcase({ tenantSlug }: { tenantSlug?: strin
   }
 
   useEffect(() => {
+    if (!previewPayload) return;
+    setPayload(previewPayload);
+    setLoading(false);
+    setError("");
+  }, [previewPayload]);
+
+  useEffect(() => {
+    if (previewPayload) return;
     let mounted = true;
 
     async function load() {
@@ -125,7 +139,7 @@ export default function AnniversaryShowcase({ tenantSlug }: { tenantSlug?: strin
     return () => {
       mounted = false;
     };
-  }, [language, t, tenantSlug]);
+  }, [language, previewPayload, t, tenantSlug]);
 
   useEffect(() => {
     if (!payload) return;
@@ -162,6 +176,7 @@ export default function AnniversaryShowcase({ tenantSlug }: { tenantSlug?: strin
   const musicDisabled = musicSource.kind === "none";
 
   async function toggleMusic() {
+    if (isSetupPreview) return;
     if (musicSource.kind !== "audio" || musicDisabled) return;
 
     try {
@@ -177,6 +192,11 @@ export default function AnniversaryShowcase({ tenantSlug }: { tenantSlug?: strin
   }
 
   useEffect(() => {
+    if (isSetupPreview) {
+      setIsPlaying(false);
+      return;
+    }
+
     if (musicSource.kind !== "audio") {
       pauseJourneyMusic();
       setIsPlaying(false);
@@ -197,7 +217,7 @@ export default function AnniversaryShowcase({ tenantSlug }: { tenantSlug?: strin
     return () => {
       unsubscribe();
     };
-  }, [musicSource.kind, musicSource.kind === "audio" ? musicSource.url : ""]);
+  }, [isSetupPreview, musicSource.kind, musicSource.kind === "audio" ? musicSource.url : ""]);
 
   if (loading) {
     return <p className="rounded-2xl border border-[#9c4f46]/20 bg-white/60 p-4 text-sm">{t("showcase.loading")}</p>;
@@ -314,9 +334,9 @@ export default function AnniversaryShowcase({ tenantSlug }: { tenantSlug?: strin
                 [t("showcase.countdown.minutes"), countdown.minutes],
                 [t("showcase.countdown.seconds"), countdown.seconds],
               ].map(([label, value]) => (
-                <div key={String(label)} className="rounded-2xl border border-[#9c4f46]/20 bg-white/60 p-2 text-center sm:p-3">
-                  <p className="font-display text-2xl text-[#6f332f] sm:text-3xl">{String(value).padStart(2, "0")}</p>
-                  <p className="text-[10px] uppercase tracking-[0.12em] text-[#2b2220]/65">{label}</p>
+                <div key={String(label)} className="min-w-0 rounded-2xl border border-[#9c4f46]/20 bg-white/60 p-2 text-center sm:p-3">
+                  <p className="font-display text-xl text-[#6f332f] sm:text-3xl">{String(value).padStart(2, "0")}</p>
+                  <p className="text-[9px] uppercase tracking-[0.08em] leading-tight text-[#2b2220]/65 sm:text-[10px]">{label}</p>
                 </div>
               ))}
             </div>
@@ -340,9 +360,9 @@ export default function AnniversaryShowcase({ tenantSlug }: { tenantSlug?: strin
                 [t("showcase.countdown.minutes"), elapsed.minutes],
                 [t("showcase.countdown.seconds"), elapsed.seconds],
               ].map(([label, value]) => (
-                <div key={`elapsed-${String(label)}`} className="rounded-2xl border border-[#9c4f46]/20 bg-white/60 p-2 text-center sm:p-3">
-                  <p className="font-display text-2xl text-[#6f332f] sm:text-3xl">{String(value).padStart(2, "0")}</p>
-                  <p className="text-[10px] uppercase tracking-[0.12em] text-[#2b2220]/65">{label}</p>
+                <div key={`elapsed-${String(label)}`} className="min-w-0 rounded-2xl border border-[#9c4f46]/20 bg-white/60 p-2 text-center sm:p-3">
+                  <p className="font-display text-xl text-[#6f332f] sm:text-3xl">{String(value).padStart(2, "0")}</p>
+                  <p className="text-[9px] uppercase tracking-[0.08em] leading-tight text-[#2b2220]/65 sm:text-[10px]">{label}</p>
                 </div>
               ))}
             </div>
@@ -424,7 +444,7 @@ export default function AnniversaryShowcase({ tenantSlug }: { tenantSlug?: strin
         <p className="mt-6 border-t border-black/10 pt-4 text-sm text-[#2b2220]/70">{config.footer_text}</p>
       </ScrollReveal>
 
-      {musicSource.kind === "audio" && !musicDisabled ? (
+      {musicSource.kind === "audio" && !musicDisabled && !isSetupPreview ? (
         <button
           type="button"
           aria-label={isPlaying ? t("showcase.pauseSong") : t("showcase.playSong")}

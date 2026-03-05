@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LocaleContext";
 import { useNotification } from "../../contexts/NotificationContext";
@@ -18,6 +18,7 @@ import SetupSaveSection from "./setup/sections/SetupSaveSection";
 import SetupStorySection from "./setup/sections/SetupStorySection";
 import SetupTimelineSection from "./setup/sections/SetupTimelineSection";
 import SetupScrollToSaveButton from "./setup/sections/SetupScrollToSaveButton";
+import SetupLivePreviewCard from "./setup/sections/SetupLivePreviewCard";
 import { normalizeTenantSlug, normalizeTenantSlugInput } from "../../utils/tenantSlug";
 import { setupFieldLimits } from "./setup/fieldLimits";
 import type {
@@ -57,7 +58,9 @@ export default function SetupAnniversaryPage() {
 
   const [tenantSlug, setTenantSlug] = useState("default");
   const [editLanguage, setEditLanguage] = useState<EditLanguage>(language);
+  const [previewLanguage, setPreviewLanguage] = useState<EditLanguage>(language);
   const [form, setForm] = useState<SetupForm>(EMPTY_SETUP_FORM);
+  const [previewForm, setPreviewForm] = useState<SetupForm>(EMPTY_SETUP_FORM);
   const [advancedJson, setAdvancedJson] = useState("{}");
   const [fetching, setFetching] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -68,6 +71,8 @@ export default function SetupAnniversaryPage() {
   const [uploadingVoice, setUploadingVoice] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [hasPendingPreviewChanges, setHasPendingPreviewChanges] = useState(false);
+  const hasFormInitialized = useRef(false);
 
   const tenantOptions = useMemo(
     () =>
@@ -106,10 +111,19 @@ export default function SetupAnniversaryPage() {
 
   useEffect(() => {
     setEditLanguage(language);
+    setPreviewLanguage(language);
   }, [language]);
 
   useEffect(() => {
     setAdvancedJson(toPrettyJson(toPayload(form)));
+  }, [form]);
+
+  useEffect(() => {
+    if (!hasFormInitialized.current) {
+      hasFormInitialized.current = true;
+      return;
+    }
+    setHasPendingPreviewChanges(true);
   }, [form]);
 
   function setLocalizedField(key: RootLocalizedKey, value: string) {
@@ -365,6 +379,8 @@ export default function SetupAnniversaryPage() {
       const config = await getSetupConfig(selectedSlug);
       const normalized = normalizeConfig(config);
       setForm(normalized);
+      setPreviewForm(normalized);
+      setHasPendingPreviewChanges(false);
       const text = t("setup.configLoaded");
       setMessage(text);
       notifySuccess(text);
@@ -498,6 +514,11 @@ export default function SetupAnniversaryPage() {
     }
   }
 
+  function refreshPreview() {
+    setPreviewForm(form);
+    setHasPendingPreviewChanges(false);
+  }
+
   return (
     <section className="space-y-4">
       <SetupHeaderCard t={t} />
@@ -512,86 +533,101 @@ export default function SetupAnniversaryPage() {
       <SetupLanguageCard t={t} editLanguage={editLanguage} onChangeLanguage={setEditLanguage} />
       {message ? <p className="rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{message}</p> : null}
       {error ? <p className="rounded-xl border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p> : null}
-      <form onSubmit={onSaveConfig} className="space-y-4">
-        <SetupBasicSection
-          t={t}
-          form={form}
-          editLanguage={editLanguage}
-          saving={saving}
-          onLocalizedFieldChange={setLocalizedField}
-          onWeddingDateChange={(value) => setForm((prev) => ({ ...prev, wedding_date: value }))}
-          onMusicUrlChange={(value) => setForm((prev) => ({ ...prev, music_url: clampText(value, setupFieldLimits.musicUrl) }))}
-          onUploadMusic={uploadMusic}
-          uploadingMusic={uploadingMusic}
-          onVoiceNoteUrlChange={(value) => setForm((prev) => ({ ...prev, voice_note_url: clampText(value, setupFieldLimits.voiceNoteUrl) }))}
-          onUploadVoice={uploadVoice}
-          uploadingVoice={uploadingVoice}
-        />
-        <SetupStorySection t={t} form={form} editLanguage={editLanguage} onLocalizedFieldChange={setLocalizedField} />
-        <SetupTimelineSection
-          t={t}
-          editLanguage={editLanguage}
-          timeline={form.timeline}
-          onAddTimeline={addTimeline}
-          onRemoveTimeline={removeTimeline}
-          onTimelineFieldChange={setTimelineField}
-        />
-        <SetupMemoriesSection
-          t={t}
-          editLanguage={editLanguage}
-          memoryCards={form.memory_cards}
-          onAddMemory={addMemory}
-          onRemoveMemory={removeMemory}
-          onMemoryFieldChange={setMemoryField}
-        />
-        <SetupMapSection
-          t={t}
-          editLanguage={editLanguage}
-          mapPoints={form.map_points}
-          onAddMapPoint={addMapPoint}
-          onRemoveMapPoint={removeMapPoint}
-          onMapPointLocalizedFieldChange={setMapPointLocalizedField}
-          onMapPointCoordinateChange={setMapPointCoordinateField}
-        />
-        <SetupMomentsSection
-          t={t}
-          editLanguage={editLanguage}
-          annualMoments={form.annual_moments}
-          onAddMoment={addMoment}
-          onRemoveMoment={removeMoment}
-          onMomentFieldChange={setMomentField}
-        />
-        <SetupGallerySection
-          t={t}
-          editLanguage={editLanguage}
-          galleryPhotos={form.gallery_photos}
-          galleryVideos={form.gallery_videos}
-          uploadingPhotoIndex={uploadingPhotoIndex}
-          uploadingVideoIndex={uploadingVideoIndex}
-          uploadingPosterIndex={uploadingPosterIndex}
-          onAddPhoto={addPhoto}
-          onRemovePhoto={removePhoto}
-          onPhotoLocalizedFieldChange={setGalleryPhotoLocalizedField}
-          onPhotoFieldChange={setGalleryPhotoField}
-          onUploadPhoto={uploadPhoto}
-          onAddVideo={addVideo}
-          onRemoveVideo={removeVideo}
-          onVideoLocalizedFieldChange={setGalleryVideoLocalizedField}
-          onVideoFieldChange={setGalleryVideoField}
-          onUploadVideo={uploadVideo}
-          onUploadPoster={uploadPoster}
-        />
-        <div id="setup-save-anchor">
-          <SetupSaveSection t={t} saving={saving} />
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(24rem,30rem)]">
+        <div className="order-2 space-y-4 xl:order-1">
+          <form onSubmit={onSaveConfig} className="space-y-4">
+            <SetupBasicSection
+              t={t}
+              form={form}
+              editLanguage={editLanguage}
+              saving={saving}
+              onLocalizedFieldChange={setLocalizedField}
+              onWeddingDateChange={(value) => setForm((prev) => ({ ...prev, wedding_date: value }))}
+              onMusicUrlChange={(value) => setForm((prev) => ({ ...prev, music_url: clampText(value, setupFieldLimits.musicUrl) }))}
+              onUploadMusic={uploadMusic}
+              uploadingMusic={uploadingMusic}
+              onVoiceNoteUrlChange={(value) => setForm((prev) => ({ ...prev, voice_note_url: clampText(value, setupFieldLimits.voiceNoteUrl) }))}
+              onUploadVoice={uploadVoice}
+              uploadingVoice={uploadingVoice}
+            />
+            <SetupStorySection t={t} form={form} editLanguage={editLanguage} onLocalizedFieldChange={setLocalizedField} />
+            <SetupTimelineSection
+              t={t}
+              editLanguage={editLanguage}
+              timeline={form.timeline}
+              onAddTimeline={addTimeline}
+              onRemoveTimeline={removeTimeline}
+              onTimelineFieldChange={setTimelineField}
+            />
+            <SetupMemoriesSection
+              t={t}
+              editLanguage={editLanguage}
+              memoryCards={form.memory_cards}
+              onAddMemory={addMemory}
+              onRemoveMemory={removeMemory}
+              onMemoryFieldChange={setMemoryField}
+            />
+            <SetupMapSection
+              t={t}
+              editLanguage={editLanguage}
+              mapPoints={form.map_points}
+              onAddMapPoint={addMapPoint}
+              onRemoveMapPoint={removeMapPoint}
+              onMapPointLocalizedFieldChange={setMapPointLocalizedField}
+              onMapPointCoordinateChange={setMapPointCoordinateField}
+            />
+            <SetupMomentsSection
+              t={t}
+              editLanguage={editLanguage}
+              annualMoments={form.annual_moments}
+              onAddMoment={addMoment}
+              onRemoveMoment={removeMoment}
+              onMomentFieldChange={setMomentField}
+            />
+            <SetupGallerySection
+              t={t}
+              editLanguage={editLanguage}
+              galleryPhotos={form.gallery_photos}
+              galleryVideos={form.gallery_videos}
+              uploadingPhotoIndex={uploadingPhotoIndex}
+              uploadingVideoIndex={uploadingVideoIndex}
+              uploadingPosterIndex={uploadingPosterIndex}
+              onAddPhoto={addPhoto}
+              onRemovePhoto={removePhoto}
+              onPhotoLocalizedFieldChange={setGalleryPhotoLocalizedField}
+              onPhotoFieldChange={setGalleryPhotoField}
+              onUploadPhoto={uploadPhoto}
+              onAddVideo={addVideo}
+              onRemoveVideo={removeVideo}
+              onVideoLocalizedFieldChange={setGalleryVideoLocalizedField}
+              onVideoFieldChange={setGalleryVideoField}
+              onUploadVideo={uploadVideo}
+              onUploadPoster={uploadPoster}
+            />
+            <div id="setup-save-anchor">
+              <SetupSaveSection t={t} saving={saving} />
+            </div>
+          </form>
+          <SetupAdvancedJsonSection
+            t={t}
+            advancedJson={advancedJson}
+            onAdvancedJsonChange={(value) => setAdvancedJson(clampText(value, setupFieldLimits.advancedJson))}
+            onApplyJson={applyJsonToForm}
+            onRefreshJson={() => setAdvancedJson(toPrettyJson(toPayload(form)))}
+          />
         </div>
-      </form>
-      <SetupAdvancedJsonSection
-        t={t}
-        advancedJson={advancedJson}
-        onAdvancedJsonChange={(value) => setAdvancedJson(clampText(value, setupFieldLimits.advancedJson))}
-        onApplyJson={applyJsonToForm}
-        onRefreshJson={() => setAdvancedJson(toPrettyJson(toPayload(form)))}
-      />
+        <div className="hidden xl:block xl:order-2">
+          <SetupLivePreviewCard
+            t={t}
+            form={previewForm}
+            tenantSlug={tenantSlug}
+            previewLanguage={previewLanguage}
+            onChangePreviewLanguage={setPreviewLanguage}
+            onRefreshPreview={refreshPreview}
+            hasPendingChanges={hasPendingPreviewChanges}
+          />
+        </div>
+      </div>
       <SetupScrollToSaveButton onClick={scrollToSaveSection} />
     </section>
   );

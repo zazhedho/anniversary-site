@@ -11,6 +11,7 @@ import { normalizeTenantSlug } from "./utils/tenantSlug";
 
 const PublicAnniversaryGamePage = lazy(() => import("./pages/anniversary/PublicAnniversaryGamePage"));
 const PublicAnniversaryShowcasePage = lazy(() => import("./pages/anniversary/PublicAnniversaryShowcasePage"));
+const SetupAnniversaryPreviewPage = lazy(() => import("./pages/anniversary/SetupAnniversaryPreviewPage"));
 const SetupAnniversaryPage = lazy(() => import("./pages/anniversary/SetupAnniversaryPage"));
 const ForgotPasswordPage = lazy(() => import("./pages/auth/ForgotPasswordPage"));
 const LoginPage = lazy(() => import("./pages/auth/LoginPage"));
@@ -79,6 +80,14 @@ export default function App() {
                 <Route path="/:slug" element={<PublicAnniversaryPage />} />
 
                 <Route element={<ProtectedRoute />}>
+                  <Route
+                    path="/app/setup/anniversary/preview"
+                    element={
+                      <PermissionRoute requiredAccess={{ resource: "dashboard", action: "view" }}>
+                        <SetupAnniversaryPreviewPage />
+                      </PermissionRoute>
+                    }
+                  />
                   <Route element={<AppLayout />}>
                     <Route
                       path="/app/dashboard"
