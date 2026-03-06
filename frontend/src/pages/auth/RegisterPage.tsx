@@ -184,8 +184,8 @@ export default function RegisterPage() {
             </div>
 
             <GoogleIdentityButton
-              label={googleLoading ? t("register.googleLoading") : t("register.google")}
-              disabled={loading || googleLoading}
+              label={t("register.google")}
+              disabled={loading}
               onCredential={async (idToken) => {
                 await handleGoogleRegister(idToken, tenantSlug);
               }}

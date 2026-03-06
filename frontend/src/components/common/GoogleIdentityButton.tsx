@@ -135,7 +135,6 @@ export default function GoogleIdentityButton({ label, onCredential, disabled = f
         text: "continue_with",
         shape: "pill",
         size: "large",
-        width: 320,
         logo_alignment: "left",
       });
       setAvailable(true);
@@ -150,9 +149,14 @@ export default function GoogleIdentityButton({ label, onCredential, disabled = f
   return (
     <div className="space-y-2">
       <p className="text-center text-xs font-semibold uppercase tracking-[0.14em] text-[#6f332f]/75">{label}</p>
-      <div className="relative">
-        <div ref={containerRef} className="google-identity-button flex w-full justify-center" />
-        {!available || disabled ? <div className="absolute inset-0 cursor-not-allowed rounded-full bg-white/35" aria-hidden="true" /> : null}
+      <div className="relative h-[44px]">
+        <div
+          ref={containerRef}
+          aria-disabled={!available || disabled}
+          className={`google-identity-button mx-auto flex h-full w-full max-w-[320px] items-center justify-center overflow-hidden ${
+            !available || disabled ? "pointer-events-none" : ""
+          }`}
+        />
       </div>
     </div>
   );

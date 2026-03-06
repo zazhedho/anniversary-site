@@ -146,8 +146,8 @@ export default function LoginPage() {
             </div>
 
             <GoogleIdentityButton
-              label={googleLoading ? t("login.googleLoading") : t("login.google")}
-              disabled={loading || googleLoading}
+              label={t("login.google")}
+              disabled={loading}
               onCredential={async (idToken) => {
                 await handleGoogleToken(idToken);
               }}
