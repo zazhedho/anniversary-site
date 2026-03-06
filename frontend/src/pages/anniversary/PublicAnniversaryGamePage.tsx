@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import InteractiveLoveGame from "../../components/anniversary/InteractiveLoveGame";
 import LanguageSwitcher from "../../components/common/LanguageSwitcher";
@@ -8,7 +8,7 @@ import { useLanguage } from "../../contexts/LocaleContext";
 import { fetchPublicAnniversary } from "../../services/publicService";
 import type { PublicSiteConfig } from "../../types/anniversary";
 import { buildPublicTenantPath, resolveTenantSlug } from "../../utils/tenantSlug";
-import { playJourneyMusic } from "../../utils/publicJourneyAudio";
+import { canUseJourneyAudio, pauseJourneyMusic, playJourneyMusic, subscribeJourneyAudioState } from "../../utils/publicJourneyAudio";
 
 export default function PublicAnniversaryGamePage() {
   const { slug } = useParams<{ slug?: string }>();
@@ -16,6 +16,7 @@ export default function PublicAnniversaryGamePage() {
   const { isAuthenticated, loading, hasAccess } = useAuth();
   const { language, t } = useLanguage();
   const [config, setConfig] = useState<PublicSiteConfig | undefined>(undefined);
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -42,6 +43,34 @@ export default function PublicAnniversaryGamePage() {
     if (sessionStorage.getItem("anniversaryJourneyStarted") !== "1") return;
     void playJourneyMusic(config.music_url);
   }, [config?.music_url]);
+
+  const canControlMusic = useMemo(() => canUseJourneyAudio(config?.music_url), [config?.music_url]);
+
+  useEffect(() => {
+    if (!canControlMusic) {
+      setIsMusicPlaying(false);
+      return;
+    }
+
+    const unsubscribe = subscribeJourneyAudioState((playing) => {
+      setIsMusicPlaying(playing);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [canControlMusic]);
+
+  async function handleToggleMusic() {
+    if (!config?.music_url || !canControlMusic) return;
+
+    if (isMusicPlaying) {
+      pauseJourneyMusic();
+      return;
+    }
+
+    await playJourneyMusic(config.music_url);
+  }
 
   const canViewDashboard = hasAccess({ resource: "dashboard", action: "view" });
   const canViewProfile = hasAccess({ resource: "profile", action: "view" });
@@ -80,6 +109,25 @@ export default function PublicAnniversaryGamePage() {
       <div className="mx-auto w-full max-w-[960px]">
         <SiteFooter className="mt-6" />
       </div>
+      {canControlMusic ? (
+        <button
+          type="button"
+          onClick={handleToggleMusic}
+          aria-label={isMusicPlaying ? t("showcase.pauseSong") : t("showcase.playSong")}
+          title={isMusicPlaying ? t("showcase.pauseSong") : t("showcase.playSong")}
+          className="fixed bottom-5 right-5 z-[70] inline-flex h-12 w-12 items-center justify-center rounded-full border border-[#9c4f46]/25 bg-[#9c4f46] text-white shadow-[0_14px_28px_rgba(111,51,47,0.38)] transition hover:scale-105 active:scale-95 sm:bottom-6 sm:right-6 sm:h-14 sm:w-14"
+        >
+          {isMusicPlaying ? (
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-6 w-6 fill-current sm:h-7 sm:w-7">
+              <path d="M7 5h3v14H7zM14 5h3v14h-3z" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-6 w-6 fill-current sm:h-7 sm:w-7">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          )}
+        </button>
+      ) : null}
     </main>
   );
 }

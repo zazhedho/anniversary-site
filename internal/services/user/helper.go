@@ -1,11 +1,21 @@
 package serviceuser
 
 import (
+	domaintenant "anniversary-site/internal/domain/tenant"
 	domainuser "anniversary-site/internal/domain/user"
 	interfacerole "anniversary-site/internal/interfaces/role"
+	"anniversary-site/utils"
 	"errors"
 	"regexp"
 	"strings"
+	"time"
+)
+
+var (
+	ErrGoogleNotConfigured = errors.New("google login is not configured")
+	ErrGoogleTokenInvalid  = errors.New("invalid google token")
+	ErrGoogleEmailMissing  = errors.New("google account email is not available")
+	ErrTenantSlugRequired  = errors.New("tenant slug is required for first-time google login")
 )
 
 func ValidatePasswordStrength(password string) error {
@@ -81,4 +91,26 @@ func sanitizeTenantSlug(value string) string {
 		return ""
 	}
 	return cleaned
+}
+
+func defaultTenantFromUser(user domainuser.Users, slug string, now time.Time) domaintenant.Tenant {
+	return domaintenant.Tenant{
+		ID:        utils.CreateUUID(),
+		Slug:      slug,
+		Name:      user.Name,
+		Status:    "active",
+		CreatedAt: now,
+		UpdatedAt: &now,
+	}
+}
+
+func defaultTenantOwnerMember(tenantID, userID string, now time.Time) domaintenant.TenantMember {
+	return domaintenant.TenantMember{
+		ID:         utils.CreateUUID(),
+		TenantID:   tenantID,
+		UserID:     userID,
+		MemberType: "owner",
+		CreatedAt:  now,
+		UpdatedAt:  &now,
+	}
 }

@@ -21,6 +21,16 @@ type Login struct {
 	Password string `json:"password" binding:"required,min=8,max=64"`
 }
 
+type GoogleLogin struct {
+	IDToken    string `json:"id_token" binding:"required"`
+	TenantSlug string `json:"tenant_slug" binding:"omitempty,min=3,max=100"`
+}
+
+type GoogleLoginResult struct {
+	Token     string `json:"token"`
+	IsNewUser bool   `json:"is_new_user"`
+}
+
 type UserUpdate struct {
 	Name  string `json:"name" binding:"omitempty,min=3,max=100"`
 	Email string `json:"email" binding:"omitempty,email"`

@@ -2,6 +2,8 @@ import { apiRequest, clearToken, saveToken } from "./api";
 import type {
   AuthUser,
   ChangePasswordPayload,
+  GoogleLoginPayload,
+  GoogleLoginResult,
   ForgotPasswordPayload,
   LoginPayload,
   LoginResult,
@@ -24,6 +26,22 @@ export async function login(payload: LoginPayload): Promise<string> {
 
   saveToken(token);
   return token;
+}
+
+export async function loginWithGoogle(payload: GoogleLoginPayload): Promise<GoogleLoginResult> {
+  const response = await apiRequest<GoogleLoginResult>("/api/user/google/login", {
+    method: "POST",
+    body: payload,
+  });
+
+  const data = response.data;
+  const token = data?.token;
+  if (!token) {
+    throw new Error("Token tidak tersedia");
+  }
+
+  saveToken(token);
+  return data;
 }
 
 export async function logout(): Promise<void> {

@@ -7,6 +7,7 @@ import (
 
 type RepoUserInterface interface {
 	Store(m domainuser.Users) error
+	StoreWithPhone(m domainuser.Users, phone *string) error
 	GetByEmail(email string) (domainuser.Users, error)
 	GetByPhone(phone string) (domainuser.Users, error)
 	GetByID(id string) (domainuser.Users, error)

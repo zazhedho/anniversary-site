@@ -1,8 +1,8 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { changePassword, getMe, getMyPermissions, login, logout, updateProfile } from "../services/authService";
+import { changePassword, getMe, getMyPermissions, login, loginWithGoogle, logout, updateProfile } from "../services/authService";
 import { hasToken } from "../services/api";
 import { getTenantOptions } from "../services/tenantsService";
-import type { AuthUser, ChangePasswordPayload, LoginPayload, UpdateProfilePayload } from "../types/auth";
+import type { AuthUser, ChangePasswordPayload, GoogleLoginPayload, LoginPayload, UpdateProfilePayload } from "../types/auth";
 import type { PermissionAccess, PermissionGrant } from "../types/permission";
 import type { TenantRecord } from "../types/tenant";
 import { normalizeTenantSlug } from "../utils/tenantSlug";
@@ -22,6 +22,7 @@ type AuthContextValue = {
   setActiveTenantSlug: (slug: string) => void;
   refreshTenants: () => Promise<void>;
   loginUser: (payload: LoginPayload) => Promise<void>;
+  loginWithGoogleUser: (payload: GoogleLoginPayload) => Promise<void>;
   logoutUser: () => Promise<void>;
   refreshUser: () => Promise<void>;
   updateCurrentUser: (payload: UpdateProfilePayload) => Promise<void>;
@@ -154,6 +155,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         },
         loginUser: async (payload: LoginPayload) => {
           await login(payload);
+          await loadCurrentUser();
+        },
+        loginWithGoogleUser: async (payload: GoogleLoginPayload) => {
+          await loginWithGoogle(payload);
           await loadCurrentUser();
         },
         logoutUser: async () => {

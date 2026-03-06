@@ -39,6 +39,7 @@ Backend and frontend run independently. Frontend only consumes backend APIs.
 
 ### Setup experience
 - Auth-protected setup API (JWT user token)
+- Login/registrasi via Google ID Token (opsional)
 - Friendly form-based editor + advanced JSON mode
 - Media upload (`photo`, `video`, `poster`, `audio`)
 - Manual live preview with `Refresh Preview` (performance-safe)
@@ -172,6 +173,8 @@ Important keys:
 | `PUBLIC_BASE_URL` | `https://anniversary.example.com` | optional base URL shown in startup public endpoint log |
 | `ANNIVERSARY_UPLOAD_MAX_MB` | `50` | max upload size |
 | `STORAGE_PROVIDER` | `minio` / `r2` | upload provider |
+| `GOOGLE_CLIENT_ID` | `xxxx.apps.googleusercontent.com` | Google OAuth client ID for backend ID token verification |
+| `GOOGLE_CLIENT_IDS` | `web-id,mobile-id` | optional comma-separated allowed audiences |
 
 DB/Redis values are required when:
 - `ENABLE_ADMIN_API=true`
@@ -184,6 +187,7 @@ DB/Redis values are required when:
 |---|---|---|
 | `VITE_API_BASE_URL` | `http://localhost:8080` | backend base URL |
 | `VITE_DEFAULT_PUBLIC_TENANT` | `default` | fallback tenant slug for public pages |
+| `VITE_GOOGLE_CLIENT_ID` | `xxxx.apps.googleusercontent.com` | Google client ID for frontend Google Identity button |
 
 ## API Overview
 
@@ -236,6 +240,14 @@ Main groups:
 - `/api/permissions`, `/api/permission/*`
 - `/api/menus`, `/api/menu/*`
 - `/api/tenants/*`
+
+Authentication highlights:
+- `POST /api/user/register`: manual register (requires `tenant_slug`)
+- `POST /api/user/login`: email + password login
+- `POST /api/user/google/login`: login/register via Google ID token
+  - existing user by email: login langsung
+  - user baru: wajib kirim `tenant_slug` agar tenant personal otomatis dibuat
+  - response `data.is_new_user` menunjukkan akun baru atau existing
 
 Tenant management endpoints:
 

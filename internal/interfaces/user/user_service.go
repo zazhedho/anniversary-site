@@ -10,6 +10,7 @@ type ServiceUserInterface interface {
 	RegisterUser(req dto.UserRegister) (domainuser.Users, error)
 	AdminCreateUser(req dto.AdminCreateUser, creatorRole string) (domainuser.Users, error)
 	LoginUser(req dto.Login, logId string) (string, error)
+	LoginWithGoogle(req dto.GoogleLogin, logId string) (dto.GoogleLoginResult, error)
 	LogoutUser(token string) error
 	GetUserById(id string) (domainuser.Users, error)
 	GetUserByEmail(email string) (domainuser.Users, error)

@@ -9,6 +9,7 @@ import (
 	interfaceuser "anniversary-site/internal/interfaces/user"
 	sessionRepo "anniversary-site/internal/repositories/session"
 	sessionSvc "anniversary-site/internal/services/session"
+	serviceuser "anniversary-site/internal/services/user"
 	"anniversary-site/pkg/filter"
 	"anniversary-site/pkg/logger"
 	"anniversary-site/pkg/messages"
@@ -317,6 +318,74 @@ func (h *HandlerUser) Login(ctx *gin.Context) {
 
 	res := response.Response(http.StatusOK, "success", logId, map[string]interface{}{"token": token})
 	logger.WriteLogWithContext(ctx, logger.LogLevelDebug, fmt.Sprintf("%s; Response: %+v;", logPrefix, utils.JsonEncode(token)))
+	ctx.JSON(http.StatusOK, res)
+}
+
+func (h *HandlerUser) GoogleLogin(ctx *gin.Context) {
+	var req dto.GoogleLogin
+	logId := utils.GenerateLogId(ctx)
+	logPrefix := "[UserController][GoogleLogin]"
+
+	if err := ctx.BindJSON(&req); err != nil {
+		logger.WriteLogWithContext(ctx, logger.LogLevelError, fmt.Sprintf("%s; BindJSON ERROR: %s;", logPrefix, err.Error()))
+
+		res := response.Response(http.StatusBadRequest, messages.InvalidRequest, logId, nil)
+		res.Error = utils.ValidateError(err, reflect.TypeOf(req), "json")
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	logger.WriteLogWithContext(ctx, logger.LogLevelDebug, fmt.Sprintf("%s; Request: %+v;", logPrefix, utils.JsonEncode(map[string]interface{}{
+		"tenant_slug": req.TenantSlug,
+	})))
+
+	result, err := h.Service.LoginWithGoogle(req, logId.String())
+	if err != nil {
+		logger.WriteLogWithContext(ctx, logger.LogLevelError, fmt.Sprintf("%s; Service.LoginWithGoogle; ERROR: %s;", logPrefix, err))
+
+		statusCode := http.StatusBadRequest
+		errorMessage := err.Error()
+		if errors.Is(err, serviceuser.ErrGoogleNotConfigured) {
+			statusCode = http.StatusServiceUnavailable
+		} else if errors.Is(err, serviceuser.ErrGoogleTokenInvalid) {
+			errorMessage = "Google login failed"
+		} else if !errors.Is(err, serviceuser.ErrGoogleEmailMissing) &&
+			!errors.Is(err, serviceuser.ErrTenantSlugRequired) &&
+			err.Error() != "tenant slug already exists" &&
+			!errors.Is(err, gorm.ErrDuplicatedKey) {
+			statusCode = http.StatusInternalServerError
+		}
+
+		h.writeAudit(ctx, domainaudit.AuditEvent{
+			Action:       domainaudit.ActionLogin,
+			Resource:     "auth",
+			Status:       domainaudit.StatusFailed,
+			Message:      "Google login failed",
+			ErrorMessage: err.Error(),
+			AfterData: map[string]interface{}{
+				"tenant_slug": req.TenantSlug,
+			},
+		})
+
+		res := response.Response(statusCode, errorMessage, logId, nil)
+		res.Error = response.Errors{Code: statusCode, Message: errorMessage}
+		ctx.JSON(statusCode, res)
+		return
+	}
+
+	h.writeAudit(ctx, domainaudit.AuditEvent{
+		Action:   domainaudit.ActionLogin,
+		Resource: "auth",
+		Status:   domainaudit.StatusSuccess,
+		Message:  "Google login success",
+		AfterData: map[string]interface{}{
+			"is_new_user": result.IsNewUser,
+		},
+	})
+
+	res := response.Response(http.StatusOK, "success", logId, map[string]interface{}{
+		"token":       result.Token,
+		"is_new_user": result.IsNewUser,
+	})
 	ctx.JSON(http.StatusOK, res)
 }
 

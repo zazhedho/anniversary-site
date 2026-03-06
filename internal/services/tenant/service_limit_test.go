@@ -85,6 +85,8 @@ func newUserRepoQuotaStub() *userRepoQuotaStub {
 
 func (r *userRepoQuotaStub) Store(_ domainuser.Users) error { return nil }
 
+func (r *userRepoQuotaStub) StoreWithPhone(_ domainuser.Users, _ *string) error { return nil }
+
 func (r *userRepoQuotaStub) GetByEmail(email string) (domainuser.Users, error) {
 	for _, user := range r.byID {
 		if user.Email == email {

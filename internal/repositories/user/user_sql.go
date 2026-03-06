@@ -21,6 +21,27 @@ func (r *repo) Store(m domainuser.Users) error {
 	return r.DB.Create(&m).Error
 }
 
+func (r *repo) StoreWithPhone(m domainuser.Users, phone *string) error {
+	payload := map[string]interface{}{
+		"id":         m.Id,
+		"name":       m.Name,
+		"email":      m.Email,
+		"password":   m.Password,
+		"role":       m.Role,
+		"role_id":    m.RoleId,
+		"created_at": m.CreatedAt,
+		"updated_at": m.UpdatedAt,
+	}
+
+	if phone == nil {
+		payload["phone"] = nil
+	} else {
+		payload["phone"] = *phone
+	}
+
+	return r.DB.Model(&domainuser.Users{}).Create(payload).Error
+}
+
 func (r *repo) GetByEmail(email string) (ret domainuser.Users, err error) {
 	if err = r.DB.Where("email = ?", email).First(&ret).Error; err != nil {
 		return domainuser.Users{}, err

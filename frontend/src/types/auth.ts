@@ -12,6 +12,11 @@ export type LoginPayload = {
   password: string;
 };
 
+export type GoogleLoginPayload = {
+  id_token: string;
+  tenant_slug?: string;
+};
+
 export type RegisterPayload = {
   name: string;
   email: string;
@@ -22,6 +27,11 @@ export type RegisterPayload = {
 
 export type LoginResult = {
   token: string;
+};
+
+export type GoogleLoginResult = {
+  token: string;
+  is_new_user: boolean;
 };
 
 export type UpdateProfilePayload = {

@@ -2,7 +2,6 @@ package serviceuser
 
 import (
 	domainauth "anniversary-site/internal/domain/auth"
-	domaintenant "anniversary-site/internal/domain/tenant"
 	domainuser "anniversary-site/internal/domain/user"
 	"anniversary-site/internal/dto"
 	interfaceauth "anniversary-site/internal/interfaces/auth"
@@ -102,26 +101,12 @@ func (s *ServiceUser) RegisterUser(req dto.UserRegister) (domainuser.Users, erro
 		}
 
 		now := time.Now()
-		tenant := domaintenant.Tenant{
-			ID:        utils.CreateUUID(),
-			Slug:      tenantSlug,
-			Name:      data.Name,
-			Status:    "active",
-			CreatedAt: now,
-			UpdatedAt: &now,
-		}
+		tenant := defaultTenantFromUser(data, tenantSlug, now)
 		if err := s.TenantRepo.Store(tenant); err != nil {
 			return domainuser.Users{}, err
 		}
 
-		member := domaintenant.TenantMember{
-			ID:         utils.CreateUUID(),
-			TenantID:   tenant.ID,
-			UserID:     data.Id,
-			MemberType: "owner",
-			CreatedAt:  now,
-			UpdatedAt:  &now,
-		}
+		member := defaultTenantOwnerMember(tenant.ID, data.Id, now)
 		if err := s.TenantRepo.AddOrUpdateMember(member); err != nil {
 			return domainuser.Users{}, err
 		}

@@ -44,10 +44,14 @@ Frontend (React + TS + Tailwind):
 - Butuh DB (Postgres), dan Redis untuk session endpoint tambahan.
 - Register user (`POST /api/user/register`) default ke role `tenant_owner`, auto-create tenant personal, dan auto-assign member type `owner`.
 - Payload register wajib kirim `tenant_slug`; slug ini hanya bisa ditentukan sekali oleh user biasa.
+- Login/register Google aktif via `POST /api/user/google/login` (ID token Google + `tenant_slug` hanya untuk first login user baru).
 - Kuota jumlah tenant per user sudah SaaS-ready via env:
   - `SAAS_TENANT_PLAN_LIMITS` (default `free:1,starter:2,pro:5`)
   - `SAAS_TENANT_DEFAULT_PLAN` (default `free`)
   - `SAAS_TENANT_PLAN_OVERRIDES` (opsional override per user/email)
+- Env Google auth:
+  - `GOOGLE_CLIENT_ID` (single audience)
+  - `GOOGLE_CLIENT_IDS` (opsional multi audience, comma-separated)
 
 `ANNIVERSARY_STORE`:
 - `json` (default): setup/public anniversary membaca dan menulis file `data/anniversary.json`.
@@ -80,6 +84,11 @@ Admin tenant management (auth + permission protected):
 - `PATCH /api/tenants/:id`
 - `DELETE /api/tenants/:id`
 - `POST /api/tenants/:id/members`
+
+Auth tambahan:
+- `POST /api/user/google/login`:
+  - request: `id_token`, `tenant_slug` (opsional, wajib untuk user Google baru),
+  - response: `token`, `is_new_user`.
 
 Auth setup:
 - Header `Authorization: Bearer <user_jwt_token>`
@@ -193,6 +202,11 @@ I18n:
 - `LocaleContext` menyimpan pilihan bahasa ke `localStorage` (`anniv_language`)
 - Public showcase refetch payload saat bahasa berubah
 
+Auth UX terbaru:
+- Login/Register mendukung tombol Google Identity.
+- Jika Google login pertama kali tanpa slug, frontend minta user isi tenant slug lalu submit ulang token Google.
+- Client env frontend untuk Google button: `VITE_GOOGLE_CLIENT_ID`.
+
 Public interactive flow:
 - Step `Yes/No` challenge (`No` random move, `Yes` progressively grows, full-screen at 10x `No`).
 - Setelah `Yes`: masuk ke layar romantis dengan **branching text** berdasarkan pola interaksi:
@@ -237,6 +251,7 @@ Referensi:
 - `frontend/src/components/anniversary/AnniversaryShowcase.tsx`
 - `frontend/src/components/anniversary/MemoryMapSection.tsx`
 - `frontend/src/components/anniversary/InteractiveLoveGame.tsx`
+- `frontend/src/components/common/GoogleIdentityButton.tsx`
 - `frontend/src/components/anniversary/JourneyChapter.tsx`
 - `frontend/src/components/anniversary/VoiceNoteStage.tsx`
 - `frontend/src/components/anniversary/MemoryUnlockStage.tsx`
